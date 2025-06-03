@@ -1,29 +1,19 @@
 // Next.js API Route - The One Ring MCP Server HTTP Endpoint
-// Using official Vercel MCP adapter for proper HTTP streaming support
+// TODO: Implement MCP server endpoint when @vercel/mcp-adapter is available
 
-import { createMcpHandler } from '@vercel/mcp-adapter';
-import { createMCPLookupServer } from '@/server-clean';
+import { NextRequest, NextResponse } from 'next/server';
 
-// Create the Vercel MCP adapter with our server initialization
-const handler = createMcpHandler(
-  (server) => {
-    // Initialize our MCP server with the provided McpServer instance
-    const mcpLookupServer = createMCPLookupServer();
-    
-    // Copy tools and resources from our server to the adapter's server
-    // This bridges the gap between our Server instance and the adapter's McpServer
-    return mcpLookupServer.initializeWithServer(server);
-  },
-  {
-    capabilities: {
-      tools: {},
-      resources: {},
-    },
-  },
-  {
-    verboseLogs: true,
-    maxDuration: 60,
-  }
-);
+// Temporary placeholder endpoint
+export async function GET(request: NextRequest) {
+  return NextResponse.json({
+    error: "MCP endpoint not yet implemented",
+    message: "This endpoint will provide MCP server functionality"
+  }, { status: 501 });
+}
 
-export { handler as GET, handler as POST };
+export async function POST(request: NextRequest) {
+  return NextResponse.json({
+    error: "MCP endpoint not yet implemented",
+    message: "This endpoint will provide MCP server functionality"
+  }, { status: 501 });
+}

@@ -1,52 +1,46 @@
 "use client"
 
+import { signIn } from "next-auth/react"
 import { Button, Icon } from "@chakra-ui/react"
-import { FaSignInAlt } from "react-icons/fa"
-import { signIn, useSession } from "next-auth/react"
+import { FaGithub, FaGoogle } from "react-icons/fa"
 
 interface SignInButtonProps {
-  provider?: string
-  callbackUrl?: string
-  size?: "sm" | "md" | "lg"
-  variant?: "solid" | "outline" | "ghost" | "link"
-  colorScheme?: string
+  provider: "github" | "google"
+  width?: string
 }
 
-export function SignInButton({
-  provider,
-  callbackUrl = "/",
-  size = "md",
-  variant = "solid",
-  colorScheme = "orange"
-}: SignInButtonProps) {
-  const { data: session, status } = useSession()
-
-  if (status === "loading") {
-    return (
-      <Button
-        isLoading
-        size={size}
-        variant={variant}
-        colorScheme={colorScheme}
-      >
-        Loading...
-      </Button>
-    )
+export function SignInButton({ provider, width }: SignInButtonProps) {
+  const handleSignIn = () => {
+    signIn(provider, { callbackUrl: "/" })
   }
 
-  if (session) {
-    return null // User is already signed in
+  const providerConfig = {
+    github: {
+      icon: FaGithub,
+      label: "Continue with GitHub",
+      colorPalette: "gray"
+    },
+    google: {
+      icon: FaGoogle,
+      label: "Continue with Google",
+      colorPalette: "blue"
+    }
   }
+
+  const config = providerConfig[provider]
 
   return (
     <Button
-      onClick={() => signIn(provider, { callbackUrl })}
-      leftIcon={<Icon as={FaSignInAlt} />}
-      size={size}
-      variant={variant}
-      colorScheme={colorScheme}
+      onClick={handleSignIn}
+      colorPalette={config.colorPalette}
+      variant="outline"
+      size="lg"
+      width={width}
     >
-      Sign In
+      <Icon mr={2}>
+        <config.icon />
+      </Icon>
+      {config.label}
     </Button>
   )
 }
