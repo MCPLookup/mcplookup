@@ -1,79 +1,50 @@
 "use client"
 
-// Force dynamic rendering
-export const dynamic = 'force-dynamic'
-
-import {
-  Box,
-  Container,
-  Heading,
-  Text,
-  VStack,
-  HStack,
-  Icon
-} from "@chakra-ui/react"
-import { Card } from "@/components/ui/card"
-import { FaRing } from "react-icons/fa"
 import { SignInButton } from "@/components/auth/signin-button"
-import { useColorModeValue } from "@/components/ui/color-mode"
+import Link from "next/link"
 
 export default function SignInPage() {
-  const bgGradient = useColorModeValue(
-    "linear-gradient(to bottom right, var(--chakra-colors-orange-50), var(--chakra-colors-yellow-50))",
-    "linear-gradient(to bottom right, var(--chakra-colors-gray-900), var(--chakra-colors-gray-800))"
-  )
-
   return (
-    <Box minH="100vh" css={{ background: bgGradient }}>
-      <Container maxW="md" py={16}>
-        <VStack gap={8}>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-md mx-auto py-16 px-4">
+        <div className="space-y-8">
           {/* Logo */}
-          <VStack gap={4} textAlign="center">
-            <HStack gap={3}>
-              <Icon fontSize="3rem" color="orange.500">
-                <FaRing />
-              </Icon>
-              <Heading 
-                size="2xl" 
-                css={{
-                  background: "linear-gradient(to right, var(--chakra-colors-orange-400), var(--chakra-colors-yellow-400))",
-                  backgroundClip: "text",
-                  color: "transparent"
-                }}
-              >
+          <Link href="/">
+            <div className="text-center cursor-pointer">
+              <div className="text-5xl text-orange-500 mb-2">🔍</div>
+              <h1 className="text-2xl font-bold text-orange-500">
                 MCPLookup
-              </Heading>
-            </HStack>
-            
-            <Text fontSize="lg" color="gray.600" _dark={{ color: "gray.300" }}>
-              Universal MCP Discovery Service
-            </Text>
-          </VStack>
+              </h1>
+            </div>
+          </Link>
 
           {/* Sign In Card */}
-          <Card.Root width="full">
-            <Card.Body>
-              <VStack gap={6}>
-                <VStack gap={2} textAlign="center">
-                  <Heading size="lg">Sign In</Heading>
-                  <Text color="gray.600" _dark={{ color: "gray.300" }}>
-                    Choose your preferred authentication method
-                  </Text>
-                </VStack>
+          <div className="bg-white rounded-lg shadow-md p-8">
+            <div className="space-y-6">
+              <div className="text-center">
+                <h2 className="text-2xl font-bold">Welcome back</h2>
+                <p className="text-gray-600 mt-2">
+                  Sign in to your account to continue
+                </p>
+              </div>
 
-                <VStack gap={4} width="full">
-                  <SignInButton provider="github" width="full" />
-                  <SignInButton provider="google" width="full" />
-                </VStack>
+              <div className="text-center">
+                <p className="text-sm font-medium">
+                  Choose your preferred authentication method
+                </p>
+              </div>
 
-                <Text fontSize="sm" color="gray.500" textAlign="center">
-                  By signing in, you agree to our Terms of Service and Privacy Policy
-                </Text>
-              </VStack>
-            </Card.Body>
-          </Card.Root>
-        </VStack>
-      </Container>
-    </Box>
+              <div className="space-y-4">
+                <SignInButton />
+              </div>
+
+              <p className="text-sm text-gray-500 text-center">
+                By signing in, you agree to our Terms of Service and Privacy Policy
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }

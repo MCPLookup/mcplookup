@@ -1,31 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
-import { useSession } from "next-auth/react"
-
-// Force dynamic rendering
-export const dynamic = 'force-dynamic'
-import {
-  Box,
-  Container,
-  Heading,
-  Text,
-  VStack,
-  HStack,
-  Input,
-  Button,
-  Textarea,
-  Spinner,
-  Code,
-  Badge,
-  Icon,
-  Field
-} from "@chakra-ui/react"
-import { Card } from "@/components/ui/card"
-import { Alert } from "@/components/ui/alert"
-import { FaServer, FaCheckCircle, FaClock, FaExclamationTriangle } from "react-icons/fa"
 import { Header } from "@/components/layout/header"
-import { useColorModeValue } from "@/components/ui/color-mode"
 
 interface RegistrationData {
   domain: string
@@ -41,23 +17,17 @@ interface VerificationStatus {
 }
 
 export default function RegisterPage() {
-  const { data: session } = useSession()
   const [formData, setFormData] = useState<RegistrationData>({
     domain: "",
     endpoint: "",
     capabilities: [],
-    contact_email: session?.user?.email || ""
+    contact_email: ""
   })
   const [capabilityInput, setCapabilityInput] = useState("")
   const [verification, setVerification] = useState<VerificationStatus | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
-
-  const bgGradient = useColorModeValue(
-    "linear-gradient(to bottom right, var(--chakra-colors-green-50), var(--chakra-colors-blue-50))",
-    "linear-gradient(to bottom right, var(--chakra-colors-gray-900), var(--chakra-colors-gray-800))"
-  )
 
   const handleInputChange = (field: keyof RegistrationData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -83,11 +53,6 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!session) {
-      setError("You must be signed in to register a server")
-      return
-    }
-
     setLoading(true)
     setError(null)
 
@@ -128,203 +93,171 @@ export default function RegisterPage() {
     }
   }
 
-  if (!session) {
-    return (
-      <Box minH="100vh" css={{ background: bgGradient }}>
-        <Header />
-        <Container maxW="4xl" py={16}>
-          <VStack gap={8} textAlign="center">
-            <Heading size="xl">Register MCP Server</Heading>
-            <Alert.Root status="warning">
-              <Alert.Icon />
-              <Alert.Title>Authentication Required</Alert.Title>
-              <Alert.Description>
-                You must be signed in to register a new MCP server.
-              </Alert.Description>
-            </Alert.Root>
-          </VStack>
-        </Container>
-      </Box>
-    )
-  }
-
   return (
-    <Box minH="100vh" css={{ background: bgGradient }}>
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
       <Header />
       
-      <Container maxW="4xl" py={8}>
-        <VStack gap={8} align="stretch">
+      <div className="max-w-4xl mx-auto py-8 px-4">
+        <div className="space-y-8">
           {/* Header */}
-          <VStack gap={4} textAlign="center">
-            <Heading size="xl">Register MCP Server</Heading>
-            <Text fontSize="lg" color="gray.600" _dark={{ color: "gray.300" }}>
+          <div className="text-center space-y-4">
+            <h1 className="text-3xl font-bold">Register MCP Server</h1>
+            <p className="text-lg text-gray-600">
               Add your Model Context Protocol server to the global registry
-            </Text>
-          </VStack>
+            </p>
+          </div>
 
           {!success ? (
             /* Registration Form */
-            <Card.Root>
-              <Card.Body>
-                <form onSubmit={handleSubmit}>
-                  <VStack gap={6}>
-                    <Field.Root required>
-                      <Field.Label>Domain</Field.Label>
-                      <Input
-                        placeholder="example.com"
-                        value={formData.domain}
-                        onChange={(e) => handleInputChange("domain", e.target.value)}
-                      />
-                    </Field.Root>
+            <div className="bg-white rounded-lg shadow-md p-8">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Domain *
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="example.com"
+                    value={formData.domain}
+                    onChange={(e) => handleInputChange("domain", e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
 
-                    <Field.Root required>
-                      <Field.Label>MCP Endpoint</Field.Label>
-                      <Input
-                        placeholder="https://example.com/mcp"
-                        value={formData.endpoint}
-                        onChange={(e) => handleInputChange("endpoint", e.target.value)}
-                      />
-                    </Field.Root>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    MCP Endpoint *
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://example.com/mcp"
+                    value={formData.endpoint}
+                    onChange={(e) => handleInputChange("endpoint", e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
 
-                    <Field.Root>
-                      <Field.Label>Capabilities</Field.Label>
-                      <HStack gap={2}>
-                        <Input
-                          placeholder="Add capability (e.g., email, calendar)"
-                          value={capabilityInput}
-                          onChange={(e) => setCapabilityInput(e.target.value)}
-                          onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addCapability())}
-                        />
-                        <Button onClick={addCapability} disabled={!capabilityInput.trim()}>
-                          Add
-                        </Button>
-                      </HStack>
-                      {formData.capabilities.length > 0 && (
-                        <HStack gap={2} mt={2} flexWrap="wrap">
-                          {formData.capabilities.map((cap) => (
-                            <Badge
-                              key={cap}
-                              colorPalette="blue"
-                              variant="solid"
-                              cursor="pointer"
-                              onClick={() => removeCapability(cap)}
-                            >
-                              {cap} ×
-                            </Badge>
-                          ))}
-                        </HStack>
-                      )}
-                    </Field.Root>
-
-                    <Field.Root required>
-                      <Field.Label>Contact Email</Field.Label>
-                      <Input
-                        type="email"
-                        value={formData.contact_email}
-                        onChange={(e) => handleInputChange("contact_email", e.target.value)}
-                      />
-                    </Field.Root>
-
-                    {error && (
-                      <Alert.Root status="error">
-                        <Alert.Icon />
-                        <Alert.Title>Error</Alert.Title>
-                        <Alert.Description>{error}</Alert.Description>
-                      </Alert.Root>
-                    )}
-
-                    <Button
-                      type="submit"
-                      colorPalette="green"
-                      size="lg"
-                      disabled={loading || !formData.domain || !formData.endpoint}
-                      width="full"
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Capabilities
+                  </label>
+                  <div className="flex space-x-2">
+                    <input
+                      type="text"
+                      placeholder="Add capability (e.g., email, calendar)"
+                      value={capabilityInput}
+                      onChange={(e) => setCapabilityInput(e.target.value)}
+                      onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addCapability())}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={addCapability}
+                      disabled={!capabilityInput.trim()}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
                     >
-                      {loading ? (
-                        <>
-                          <Spinner size="sm" mr={2} />
-                          Registering...
-                        </>
-                      ) : (
-                        <>
-                          <Icon mr={2}>
-                            <FaServer />
-                          </Icon>
-                          Register Server
-                        </>
-                      )}
-                    </Button>
-                  </VStack>
-                </form>
-              </Card.Body>
-            </Card.Root>
+                      Add
+                    </button>
+                  </div>
+                  {formData.capabilities.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {formData.capabilities.map((cap) => (
+                        <span
+                          key={cap}
+                          onClick={() => removeCapability(cap)}
+                          className="px-2 py-1 bg-blue-100 text-blue-800 rounded-md cursor-pointer hover:bg-blue-200"
+                        >
+                          {cap} ×
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Contact Email *
+                  </label>
+                  <input
+                    type="email"
+                    value={formData.contact_email}
+                    onChange={(e) => handleInputChange("contact_email", e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+
+                {error && (
+                  <div className="bg-red-50 border border-red-200 rounded-md p-4">
+                    <div className="text-red-800">
+                      <strong>Error:</strong> {error}
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading || !formData.domain || !formData.endpoint}
+                  className="w-full bg-green-600 text-white py-3 px-4 rounded-md hover:bg-green-700 disabled:opacity-50 font-medium"
+                >
+                  {loading ? "Registering..." : "🖥️ Register Server"}
+                </button>
+              </form>
+            </div>
           ) : (
             /* Verification Instructions */
-            <VStack gap={6} align="stretch">
-              <Alert.Root status="success">
-                <Alert.Icon />
-                <Alert.Title>Registration Submitted!</Alert.Title>
-                <Alert.Description>
-                  Your server has been registered. Complete DNS verification to make it discoverable.
-                </Alert.Description>
-              </Alert.Root>
+            <div className="space-y-6">
+              <div className="bg-green-50 border border-green-200 rounded-md p-4">
+                <div className="text-green-800">
+                  <strong>Registration Submitted!</strong> Your server has been registered. Complete DNS verification to make it discoverable.
+                </div>
+              </div>
 
-              <Card.Root>
-                <Card.Body>
-                  <VStack gap={4} align="stretch">
-                    <Heading size="md">DNS Verification Required</Heading>
+              <div className="bg-white rounded-lg shadow-md p-8">
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">DNS Verification Required</h3>
+                  
+                  <p>Add the following TXT record to your DNS configuration:</p>
+                  
+                  <div className="bg-gray-100 p-4 rounded-md">
+                    <div className="space-y-2">
+                      <div><strong>Record Type:</strong> TXT</div>
+                      <div><strong>Name:</strong> <code className="bg-gray-200 px-1 rounded">{verification?.dns_record}</code></div>
+                      <div><strong>Value:</strong> <code className="bg-gray-200 px-1 rounded">{verification?.token}</code></div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center space-x-2">
+                      <span className={verification?.verified ? "text-green-500" : "text-yellow-500"}>
+                        {verification?.verified ? "✅" : "⏰"}
+                      </span>
+                      <span>Status: {verification?.verified ? "Verified" : "Pending"}</span>
+                    </div>
                     
-                    <Text>
-                      Add the following TXT record to your DNS configuration:
-                    </Text>
-                    
-                    <Box p={4} bg="gray.100" _dark={{ bg: "gray.700" }} borderRadius="md">
-                      <VStack gap={2} align="start">
-                        <Text fontWeight="semibold">Record Type: TXT</Text>
-                        <Text>
-                          <strong>Name:</strong> <Code>{verification?.dns_record}</Code>
-                        </Text>
-                        <Text>
-                          <strong>Value:</strong> <Code>{verification?.token}</Code>
-                        </Text>
-                      </VStack>
-                    </Box>
+                    <button
+                      onClick={checkVerification}
+                      className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                    >
+                      Check Status
+                    </button>
+                  </div>
 
-                    <HStack justify="space-between">
-                      <HStack>
-                        <Icon color={verification?.verified ? "green.500" : "yellow.500"}>
-                          {verification?.verified ? <FaCheckCircle /> : <FaClock />}
-                        </Icon>
-                        <Text>
-                          Status: {verification?.verified ? "Verified" : "Pending"}
-                        </Text>
-                      </HStack>
-                      
-                      <Button
-                        onClick={checkVerification}
-                        variant="outline"
-                        size="sm"
-                      >
-                        Check Status
-                      </Button>
-                    </HStack>
-
-                    {verification?.verified && (
-                      <Alert.Root status="success">
-                        <Alert.Icon />
-                        <Alert.Title>Verification Complete!</Alert.Title>
-                        <Alert.Description>
-                          Your server is now discoverable in the MCP registry.
-                        </Alert.Description>
-                      </Alert.Root>
-                    )}
-                  </VStack>
-                </Card.Body>
-              </Card.Root>
-            </VStack>
+                  {verification?.verified && (
+                    <div className="bg-green-50 border border-green-200 rounded-md p-4">
+                      <div className="text-green-800">
+                        <strong>Verification Complete!</strong> Your server is now discoverable in the MCP registry.
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           )}
-        </VStack>
-      </Container>
-    </Box>
+        </div>
+      </div>
+    </div>
   )
 }
