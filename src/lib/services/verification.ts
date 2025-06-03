@@ -48,7 +48,7 @@ export class VerificationService implements IVerificationService {
     const expiresAt = new Date(Date.now() + (this.TOKEN_TTL_HOURS * 60 * 60 * 1000));
     
     const txtRecordName = `${this.VERIFICATION_PREFIX}.${request.domain}`;
-    const txtRecordValue = await this.generateVerificationRecord(request.domain, token);
+    const txtRecordValue = await this.generateTxtRecordValue(request.domain, token);
 
     const challenge: VerificationChallenge = {
       challenge_id: challengeId,
@@ -135,7 +135,16 @@ export class VerificationService implements IVerificationService {
   }
 
   /**
-   * Generate verification record value
+   * Generate TXT record value for DNS verification (format for DNS challenges)
+   */
+  async generateTxtRecordValue(domain: string, token: string): Promise<string> {
+    // Format: mcplookup-verify=token.timestamp
+    const timestamp = Math.floor(Date.now() / 1000);
+    return `mcplookup-verify=${token}.${timestamp}`;
+  }
+
+  /**
+   * Generate verification record value (format for API responses)
    */
   async generateVerificationRecord(domain: string, token: string): Promise<string> {
     // Format: v=mcp1 domain=example.com token=abc123 timestamp=1234567890
