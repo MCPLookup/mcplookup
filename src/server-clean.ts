@@ -20,10 +20,10 @@ import {
   type VerificationChallenge,
   type MCPServerRecord,
   type HealthMetrics
-} from './lib/schemas/discovery.js';
+} from './lib/schemas/discovery';
 
-import { DiscoveryService, type IDiscoveryService } from './lib/services/discovery.js';
-import { VerificationService, type IVerificationService } from './lib/services/verification.js';
+import { DiscoveryService, type IDiscoveryService } from './lib/services/discovery';
+import { VerificationService, type IVerificationService } from './lib/services/verification';
 
 /**
  * THE ONE RING MCP SERVER
@@ -243,6 +243,151 @@ class MCPLookupServer {
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
     console.error('🔗 The One Ring MCP Server is running...');
+  }
+
+  /**
+   * Get the internal MCP Server instance
+   */
+  get mcpServer(): Server {
+    return this.server;
+  }
+
+  /**
+   * Initialize the Vercel adapter server with our tools and resources
+   */
+  async initializeWithServer(adapterServer: any): Promise<void> {
+    // Register discovery tool
+    adapterServer.tool('discover_mcp_servers', {
+      description: 'Discover MCP servers by domain, capability, intent, or category. Returns complete server information for immediate connection.',
+      parameters: {
+        type: 'object',
+        properties: {
+          domain: {
+            type: 'string',
+            description: 'Exact domain match (e.g., "gmail.com", "github.com")'
+          },
+          capability: {
+            type: 'string',
+            description: 'Required capability (e.g., "email_send", "file_read")'
+          },
+          category: {
+            type: 'string',
+            enum: ['communication', 'productivity', 'data', 'development', 'content', 'integration', 'analytics', 'security', 'finance', 'ecommerce', 'social', 'other'],
+            description: 'Capability category filter'
+          },
+          intent: {
+            type: 'string',
+            description: 'Natural language intent (e.g., "check my email", "create a document")'
+          },
+          keywords: {
+            type: 'array',
+            items: { type: 'string' },
+            description: 'Search keywords'
+          },
+          limit: {
+            type: 'number',
+            minimum: 1,
+            maximum: 100,
+            default: 10,
+            description: 'Maximum number of results'
+          }
+        }
+      }
+    }, async (params: DiscoveryRequest) => {
+      try {
+        const result = await this.discoveryService.discoverServers(params);
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(result, null, 2)
+            }
+          ]
+        };
+      } catch (error) {
+        throw new Error(`Discovery failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    });
+
+    // Register server registry tool
+    adapterServer.tool('register_mcp_server', {
+      description: 'Register a new MCP server for discovery. Initiates DNS verification process.',
+      parameters: {
+        type: 'object',
+        properties: {
+          domain: {
+            type: 'string',
+            description: 'Domain to register (e.g., "api.example.com")'
+          },
+          endpoint: {
+            type: 'string',
+            format: 'uri',
+            description: 'MCP endpoint URL (must be HTTPS)'
+          },
+          contact_email: {
+            type: 'string',
+            format: 'email',
+            description: 'Contact email for verification notifications'
+          },
+          description: {
+            type: 'string',
+            description: 'Server description and purpose'
+          }
+        },
+        required: ['domain', 'endpoint', 'contact_email']
+      }
+    }, async (params: RegistrationRequest) => {
+      try {
+        const challenge = await this.verificationService.initiateDNSVerification(params);
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `DNS verification challenge created for ${params.domain}.\n\nTo verify ownership, add this DNS TXT record:\n\nName: ${challenge.txt_record_name}\nValue: ${challenge.txt_record_value}\n\nChallenge ID: ${challenge.challenge_id}\nExpires: ${challenge.expires_at}`
+            }
+          ]
+        };
+      } catch (error) {
+        throw new Error(`Registration failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    });
+
+    // Register verification tool
+    adapterServer.tool('verify_domain_ownership', {
+      description: 'Check DNS verification status for a domain registration challenge.',
+      parameters: {
+        type: 'object',
+        properties: {
+          challenge_id: {
+            type: 'string',
+            format: 'uuid',
+            description: 'Verification challenge ID from registration'
+          }
+        },
+        required: ['challenge_id']
+      }
+    }, async (params: { challenge_id: string }) => {
+      try {
+        const result = await this.verificationService.verifyDNSChallenge(params.challenge_id);
+        return {
+          content: [
+            {
+              type: 'text',
+              text: result 
+                ? '✅ Domain verification successful! Your MCP server has been registered and is now discoverable.'
+                : '❌ Domain verification failed. Please ensure the DNS record is properly configured and try again.'
+            }
+          ]
+        };
+      } catch (error) {
+        throw new Error(`Verification failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    });
+
+    // Register resources
+    adapterServer.resource('mcplookup://servers/all', 'All Registered Servers', 'Complete list of all registered MCP servers', 'application/json');
+    adapterServer.resource('mcplookup://capabilities/taxonomy', 'Capability Taxonomy', 'Hierarchical structure of MCP capabilities', 'application/json');
+    adapterServer.resource('mcplookup://stats/discovery', 'Discovery Statistics', 'Usage and performance statistics', 'application/json');
   }
 }
 

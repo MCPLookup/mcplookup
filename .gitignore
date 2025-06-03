@@ -1,5 +1,5 @@
 node_modules
-<<<<<<< HEAD
-=======
 git 
->>>>>>> 448a68a (ui)
+.next
+.DS_Store
+.env*

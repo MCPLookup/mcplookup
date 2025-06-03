@@ -1,50 +1,21 @@
 {
   "compilerOptions": {
-<<<<<<< HEAD
-    "target": "ES2022",
-=======
     "target": "ESNext",
->>>>>>> 448a68a (ui)
     "lib": [
-      "dom",
+      "dom", 
       "dom.iterable",
-      "es6"
+      "esnext"
     ],
-<<<<<<< HEAD
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "allowJs": true,
-    "jsx": "preserve",
-    "outDir": "./dist",
-=======
     "allowJs": true,
     "skipLibCheck": true,
->>>>>>> 448a68a (ui)
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
     "module": "ESNext",
-    "moduleResolution": "Bundler",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
-    "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "paths": {
-      "@/*": [
-        "./src/*"
-      ]
-    },
-    "forceConsistentCasingInFileNames": true,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
     "incremental": true,
     "plugins": [
       {
@@ -57,23 +28,15 @@
         "./src/*"
       ]
     },
-    "noEmit": true
+    "forceConsistentCasingInFileNames": true
   },
   "include": [
-<<<<<<< HEAD
-    "src/**/*",
-    ".next/types/**/*.ts"
-=======
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts",
-    "src/**/*"
->>>>>>> 448a68a (ui)
+    ".next/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules",
-    "dist",
-    "**/*.test.ts"
+    "node_modules"
   ]
 }

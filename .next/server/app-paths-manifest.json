@@ -1,7 +1,9 @@
 {
-  "/api/mcp/route": "app/api/mcp/route.js",
+  "/_not-found/page": "app/_not-found/page.js",
   "/api/v1/discover/route": "app/api/v1/discover/route.js",
+  "/api/mcp/route": "app/api/mcp/route.js",
   "/api/v1/health/[domain]/route": "app/api/v1/health/[domain]/route.js",
+  "/api/v1/register/verify/[id]/route": "app/api/v1/register/verify/[id]/route.js",
   "/api/v1/register/route": "app/api/v1/register/route.js",
-  "/api/v1/register/verify/[id]/route": "app/api/v1/register/verify/[id]/route.js"
+  "/page": "app/page.js"
 }
