@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { ClientProviders } from "@/components/providers/client-providers"
 
 export const metadata: Metadata = {
   title: "MCPLookup.org - Universal MCP Discovery Service",
@@ -13,7 +14,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
-        {children}
+        <ClientProviders>
+          {children}
+        </ClientProviders>
       </body>
     </html>
   )
