@@ -1,162 +1,115 @@
 // Registry Service - Serverless MCP Server Registry
-// No SQL database - uses external APIs and in-memory caching for serverless deployment
+// Uses storage abstraction layer for seamless provider switching
 
 import { MCPServerRecord, CapabilityCategory } from '../schemas/discovery.js';
 import { IRegistryService } from './discovery.js';
+import { IRegistryStorage } from './storage/interfaces.js';
+import { getRegistryStorage, StorageConfig } from './storage/storage.js';
 
 /**
- * Serverless Registry Service Implementation
- * Uses external APIs and well-known endpoints for discovery
- * No SQL database required - perfect for Vercel deployment
+ * Registry Service with Storage Abstraction
+ * Automatically uses the best available storage provider
  */
 export class RegistryService implements IRegistryService {
-  private cache: Map<string, MCPServerRecord[]> = new Map();
-  private cacheExpiry: Map<string, number> = new Map();
-  private readonly CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+  private storage: IRegistryStorage;
 
-  constructor() {
-    // Initialize with well-known servers
-    this.initializeWellKnownServers();
+  constructor(storageConfig?: StorageConfig) {
+    this.storage = getRegistryStorage(storageConfig);
   }
 
   /**
-   * Check if cache entry is still valid
-   */
-  private isCacheValid(key: string): boolean {
-    const expiry = this.cacheExpiry.get(key);
-    return expiry ? expiry > Date.now() : false;
-  }
-
-  /**
-   * Get all servers (for search functionality)
+   * Get all servers (from storage only)
    */
   async getAllServers(): Promise<MCPServerRecord[]> {
-    const cacheKey = 'all_servers';
+    return this.storage.getAllServers();
+  }
 
-    // Check cache first
-    if (this.cache.has(cacheKey) && this.isCacheValid(cacheKey)) {
-      return this.cache.get(cacheKey) || [];
+  /**
+   * Register a new MCP server
+   */
+  async registerServer(server: MCPServerRecord): Promise<void> {
+    await this.storage.storeServer(server.domain, server);
+  }
+
+  /**
+   * Update an existing server
+   */
+  async updateServer(domain: string, updates: Partial<MCPServerRecord>): Promise<void> {
+    const existing = await this.storage.getServer(domain);
+    if (!existing) {
+      throw new Error(`Server ${domain} not found`);
     }
 
-    // Get all servers from well-known list
-    const servers = this.getWellKnownServers();
+    const updated = { ...existing, ...updates, updated_at: new Date().toISOString() };
+    await this.storage.storeServer(domain, updated);
+  }
 
-    // Cache the results
-    this.cache.set(cacheKey, servers);
-    this.cacheExpiry.set(cacheKey, Date.now() + this.CACHE_TTL_MS);
+  /**
+   * Unregister a server
+   */
+  async unregisterServer(domain: string): Promise<void> {
+    await this.storage.deleteServer(domain);
+  }
 
-    return servers;
+  /**
+   * Get registry statistics
+   */
+  async getRegistryStats(): Promise<{ 
+    totalServers: number; 
+    registeredServers: number;
+    wellKnownServers: number;
+    categories: Record<string, number> 
+  }> {
+    const storageStats = await this.storage.getStats();
+    return {
+      totalServers: storageStats.totalServers,
+      registeredServers: storageStats.totalServers,
+      wellKnownServers: 0, // No hardcoded servers
+      categories: storageStats.categories
+    };
   }
 
   /**
    * Get servers by exact domain match
    */
   async getServersByDomain(domain: string): Promise<MCPServerRecord[]> {
-    const cacheKey = `domain:${domain}`;
-    
-    // Check cache first
-    const cached = this.getCachedResult(cacheKey);
-    if (cached) return cached;
-
-    // First check existing verified servers
-    const allServers = await this.getAllVerifiedServers();
-    const existingServers = allServers.filter(server => server.domain === domain);
-
-    // If we found existing servers, return them
-    if (existingServers.length > 0) {
-      this.setCachedResult(cacheKey, existingServers);
-      return existingServers;
+    // First check if it's stored
+    const stored = await this.storage.getServer(domain);
+    if (stored) {
+      return [stored];
     }
 
-    // Otherwise, try well-known endpoint discovery
-    const discoveredServers = await this.discoverWellKnownEndpoint(domain);
-    
-    // Cache and return
-    this.setCachedResult(cacheKey, discoveredServers);
-    return discoveredServers;
+    // Try real-time discovery
+    return this.discoverWellKnownEndpoint(domain);
   }
 
   /**
    * Get servers by capability
    */
   async getServersByCapability(capability: string): Promise<MCPServerRecord[]> {
-    const cacheKey = `capability:${capability}`;
-    
-    const cached = this.getCachedResult(cacheKey);
-    if (cached) return cached;
-
-    const allServers = await this.getAllVerifiedServers();
-    const filtered = allServers.filter(server =>
-      server.capabilities.subcategories.some(subcategory =>
-        subcategory.toLowerCase().includes(capability.toLowerCase())
-      ) ||
-      server.capabilities.category === capability
-    );
-
-    this.setCachedResult(cacheKey, filtered);
-    return filtered;
+    return this.storage.getServersByCapability(capability);
   }
 
   /**
    * Get servers by category
    */
   async getServersByCategory(category: CapabilityCategory): Promise<MCPServerRecord[]> {
-    const cacheKey = `category:${category}`;
-    
-    const cached = this.getCachedResult(cacheKey);
-    if (cached) return cached;
-
-    const allServers = await this.getAllVerifiedServers();
-    const filtered = allServers.filter(server =>
-      server.capabilities.category === category
-    );
-
-    this.setCachedResult(cacheKey, filtered);
-    return filtered;
+    return this.storage.getServersByCategory(category);
   }
 
   /**
-   * Search servers by keywords
+   * Search servers by text query
    */
   async searchServers(keywords: string[]): Promise<MCPServerRecord[]> {
-    const cacheKey = `search:${keywords.join(',')}`;
-    
-    const cached = this.getCachedResult(cacheKey);
-    if (cached) return cached;
-
-    const allServers = await this.getAllVerifiedServers();
-    const searchTerms = keywords.map(k => k.toLowerCase());
-    
-    const filtered = allServers.filter(server => {
-      const searchableText = [
-        server.name,
-        server.description,
-        ...server.capabilities.subcategories,
-        ...server.capabilities.use_cases
-      ].join(' ').toLowerCase();
-
-      return searchTerms.some(term => searchableText.includes(term));
-    });
-
-    this.setCachedResult(cacheKey, filtered);
-    return filtered;
+    const query = keywords.join(' ');
+    return this.storage.searchServers(query);
   }
 
   /**
-   * Get all verified servers
+   * Get all verified servers (alias for getAllServers)
    */
   async getAllVerifiedServers(): Promise<MCPServerRecord[]> {
-    const cacheKey = 'all_verified';
-    
-    const cached = this.getCachedResult(cacheKey);
-    if (cached) return cached;
-
-    // For now, return well-known servers
-    // In production, this would query the registry database
-    const servers = this.getWellKnownServers();
-    
-    this.setCachedResult(cacheKey, servers);
-    return servers;
+    return this.getAllServers();
   }
 
   /**
@@ -189,21 +142,6 @@ export class RegistryService implements IRegistryService {
   // ========================================================================
   // PRIVATE METHODS
   // ========================================================================
-
-  private getCachedResult(key: string): MCPServerRecord[] | null {
-    const expiry = this.cacheExpiry.get(key);
-    if (!expiry || Date.now() > expiry) {
-      this.cache.delete(key);
-      this.cacheExpiry.delete(key);
-      return null;
-    }
-    return this.cache.get(key) || null;
-  }
-
-  private setCachedResult(key: string, servers: MCPServerRecord[]): void {
-    this.cache.set(key, servers);
-    this.cacheExpiry.set(key, Date.now() + this.CACHE_TTL_MS);
-  }
 
   /**
    * Try to discover MCP server at well-known endpoint
@@ -296,222 +234,8 @@ export class RegistryService implements IRegistryService {
     };
   }
 
-  private initializeWellKnownServers(): void {
-    // Initialize cache with well-known servers
-    const servers = this.getWellKnownServers();
-    this.setCachedResult('all_verified', servers);
-  }
-
   private getWellKnownServers(): MCPServerRecord[] {
-    return [
-      {
-        domain: "gmail.com",
-        endpoint: "https://gmail.com/api/mcp",
-        name: "Gmail MCP Server",
-        description: "Access and manage Gmail emails, compose messages, and handle attachments",
-        server_info: {
-          name: "gmail-mcp",
-          version: "2.1.0",
-          protocolVersion: "2024-11-05",
-          capabilities: { tools: true, resources: true }
-        },
-        tools: [],
-        resources: [],
-        transport: "streamable_http" as const,
-        capabilities: {
-          category: "communication" as CapabilityCategory,
-          subcategories: ["email_send", "email_read", "email_compose", "email_search", "attachment_download"],
-          intent_keywords: ["email", "gmail", "send", "inbox", "compose"],
-          use_cases: ["Send emails", "Read inbox", "Manage attachments", "Email automation"]
-        },
-        auth: {
-          type: "oauth2" as const,
-          oauth2: {
-            authorizationUrl: "https://accounts.google.com/oauth2/auth",
-            tokenUrl: "https://oauth2.googleapis.com/token",
-            scopes: ["https://www.googleapis.com/auth/gmail.modify"]
-          }
-        },
-        cors_enabled: true,
-        health: {
-          status: "healthy" as const,
-          uptime_percentage: 99.97,
-          avg_response_time_ms: 45,
-          error_rate: 0.001,
-          last_check: "2025-01-03T10:00:00Z",
-          consecutive_failures: 0
-        },
-        verification: {
-          dns_verified: true,
-          endpoint_verified: true,
-          ssl_verified: true,
-          last_verification: "2025-01-01T00:00:00Z",
-          verification_method: "dns-txt-challenge"
-        },
-        created_at: "2025-01-01T00:00:00Z",
-        updated_at: "2025-01-03T09:00:00Z",
-        maintainer: {
-          name: "Google",
-          email: "mcp-support@gmail.com",
-          url: "https://developers.google.com/gmail/mcp"
-        }
-      },
-      {
-        domain: "github.com",
-        endpoint: "https://api.github.com/mcp",
-        name: "GitHub MCP Server",
-        description: "Interact with GitHub repositories, issues, pull requests, and workflows",
-        server_info: {
-          name: "github-mcp",
-          version: "1.8.0",
-          protocolVersion: "2024-11-05",
-          capabilities: { tools: true, resources: true }
-        },
-        tools: [],
-        resources: [],
-        transport: "streamable_http" as const,
-        capabilities: {
-          category: "development" as CapabilityCategory,
-          subcategories: ["repo_create", "issue_create", "pr_create", "file_read", "commit_create"],
-          intent_keywords: ["github", "repository", "code", "git", "issue"],
-          use_cases: ["Repository management", "Issue tracking", "Code collaboration", "CI/CD automation"]
-        },
-        auth: {
-          type: "oauth2" as const,
-          oauth2: {
-            authorizationUrl: "https://github.com/login/oauth/authorize",
-            tokenUrl: "https://github.com/login/oauth/access_token",
-            scopes: ["repo", "user"]
-          }
-        },
-        cors_enabled: true,
-        health: {
-          status: "healthy" as const,
-          uptime_percentage: 99.95,
-          avg_response_time_ms: 120,
-          error_rate: 0.002,
-          last_check: "2025-01-03T10:00:00Z",
-          consecutive_failures: 0
-        },
-        verification: {
-          dns_verified: true,
-          endpoint_verified: true,
-          ssl_verified: true,
-          last_verification: "2025-01-01T00:00:00Z",
-          verification_method: "dns-txt-challenge"
-        },
-        created_at: "2025-01-01T00:00:00Z",
-        updated_at: "2025-01-03T09:00:00Z",
-        maintainer: {
-          name: "GitHub",
-          email: "mcp@github.com",
-          url: "https://docs.github.com/mcp"
-        }
-      },
-      {
-        domain: "dropbox.com",
-        endpoint: "https://api.dropbox.com/mcp",
-        name: "Dropbox MCP Server",
-        description: "File storage, sharing, and collaboration through Dropbox",
-        server_info: {
-          name: "dropbox-mcp",
-          version: "1.5.0",
-          protocolVersion: "2024-11-05",
-          capabilities: { tools: true, resources: true }
-        },
-        tools: [],
-        resources: [],
-        transport: "streamable_http" as const,
-        capabilities: {
-          category: "data" as CapabilityCategory,
-          subcategories: ["file_read", "file_write", "file_share", "folder_create"],
-          intent_keywords: ["dropbox", "file", "storage", "share", "upload"],
-          use_cases: ["File storage", "Document sharing", "Backup", "Collaboration"]
-        },
-        auth: {
-          type: "oauth2" as const,
-          oauth2: {
-            authorizationUrl: "https://www.dropbox.com/oauth2/authorize",
-            tokenUrl: "https://api.dropbox.com/oauth2/token",
-            scopes: ["files.content.write", "files.content.read"]
-          }
-        },
-        cors_enabled: true,
-        health: {
-          status: "healthy" as const,
-          uptime_percentage: 99.9,
-          avg_response_time_ms: 85,
-          error_rate: 0.003,
-          last_check: "2025-01-03T10:00:00Z",
-          consecutive_failures: 0
-        },
-        verification: {
-          dns_verified: true,
-          endpoint_verified: true,
-          ssl_verified: true,
-          last_verification: "2025-01-01T00:00:00Z",
-          verification_method: "dns-txt-challenge"
-        },
-        created_at: "2025-01-01T00:00:00Z",
-        updated_at: "2025-01-03T09:00:00Z",
-        maintainer: {
-          name: "Dropbox",
-          email: "api-support@dropbox.com",
-          url: "https://developers.dropbox.com/mcp"
-        }
-      },
-      {
-        domain: "slack.com",
-        endpoint: "https://slack.com/api/mcp",
-        name: "Slack MCP Server",
-        description: "Team communication, messaging, and workspace management",
-        server_info: {
-          name: "slack-mcp",
-          version: "2.0.0",
-          protocolVersion: "2024-11-05",
-          capabilities: { tools: true, resources: true }
-        },
-        tools: [],
-        resources: [],
-        transport: "streamable_http" as const,
-        capabilities: {
-          category: "communication" as CapabilityCategory,
-          subcategories: ["chat", "messaging", "notifications", "channel_create"],
-          intent_keywords: ["slack", "chat", "message", "team", "workspace"],
-          use_cases: ["Team communication", "Notifications", "Workflow automation", "Channel management"]
-        },
-        auth: {
-          type: "oauth2" as const,
-          oauth2: {
-            authorizationUrl: "https://slack.com/oauth/v2/authorize",
-            tokenUrl: "https://slack.com/api/oauth.v2.access",
-            scopes: ["chat:write", "channels:read", "users:read"]
-          }
-        },
-        cors_enabled: true,
-        health: {
-          status: "healthy" as const,
-          uptime_percentage: 99.95,
-          avg_response_time_ms: 65,
-          error_rate: 0.002,
-          last_check: "2025-01-03T10:00:00Z",
-          consecutive_failures: 0
-        },
-        verification: {
-          dns_verified: true,
-          endpoint_verified: true,
-          ssl_verified: true,
-          last_verification: "2025-01-01T00:00:00Z",
-          verification_method: "dns-txt-challenge"
-        },
-        created_at: "2025-01-01T00:00:00Z",
-        updated_at: "2025-01-03T09:00:00Z",
-        maintainer: {
-          name: "Slack Technologies",
-          email: "api@slack.com",
-          url: "https://api.slack.com/mcp"
-        }
-      }
-    ];
+    // No hardcoded servers - rely on real-time discovery and user registration
+    return [];
   }
 }

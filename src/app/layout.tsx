@@ -3,8 +3,8 @@ import { ClientProviders } from "@/components/providers/client-providers"
 import "./globals.css"
 
 export const metadata: Metadata = {
-  title: "MCPLookup.org - Universal MCP Discovery Service",
-  description: "The One Ring MCP Server - Discover and register Model Context Protocol servers",
+  title: "MCPLookup.org - Serverless MCP Discovery Service",
+  description: "The One Ring MCP Server - Discover and register Model Context Protocol servers. Zero infrastructure, no database required.",
 }
 
 export default function RootLayout({

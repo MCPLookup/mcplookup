@@ -3,6 +3,8 @@
 
 import dns from 'dns/promises';
 import { randomUUID } from 'crypto';
+import { getVerificationStorage, StorageConfig } from './storage/storage.js';
+import { IVerificationStorage, VerificationChallengeData } from './storage/interfaces.js';
 import { VerificationChallenge, RegistrationRequest } from '../schemas/discovery.js';
 
 export interface IVerificationService {
@@ -32,10 +34,10 @@ export class VerificationService implements IVerificationService {
   private mcpService: IMCPValidationService;
 
   constructor(
-    storageService: IVerificationStorage,
-    mcpService: IMCPValidationService
+    mcpService: IMCPValidationService,
+    storageConfig?: StorageConfig
   ) {
-    this.storageService = storageService;
+    this.storageService = getVerificationStorage(storageConfig);
     this.mcpService = mcpService;
   }
 
@@ -281,75 +283,10 @@ Once the record is active, click "Verify" to complete the process.
 // SERVICE INTERFACES
 // ============================================================================
 
-export interface IVerificationStorage {
-  storeChallenge(challengeId: string, challenge: VerificationChallengeData): Promise<void>;
-  getChallenge(challengeId: string): Promise<VerificationChallengeData | null>;
-  deleteChallenge(challengeId: string): Promise<void>;
-  markChallengeVerified(challengeId: string): Promise<void>;
-  getVerifiedDomains(): Promise<string[]>;
-}
-
 export interface IMCPValidationService {
   validateMCPEndpoint(endpoint: string): Promise<boolean>;
   getMCPServerInfo(endpoint: string): Promise<any>;
   testMCPConnection(endpoint: string): Promise<boolean>;
-}
-
-export interface VerificationChallengeData extends VerificationChallenge {
-  endpoint: string;
-  contact_email: string;
-  token: string;
-  created_at: string;
-  verified_at?: string;
-}
-
-// ============================================================================
-// SERVERLESS-FRIENDLY STORAGE IMPLEMENTATION
-// ============================================================================
-
-/**
- * In-memory verification storage for serverless environments
- * In production, this would be replaced with Redis, DynamoDB, etc.
- */
-export class InMemoryVerificationStorage implements IVerificationStorage {
-  private challenges = new Map<string, VerificationChallengeData>();
-
-  async storeChallenge(challengeId: string, challenge: VerificationChallengeData): Promise<void> {
-    this.challenges.set(challengeId, challenge);
-    
-    // Auto-cleanup expired challenges
-    setTimeout(() => {
-      this.challenges.delete(challengeId);
-    }, 24 * 60 * 60 * 1000); // 24 hours
-  }
-
-  async getChallenge(challengeId: string): Promise<VerificationChallengeData | null> {
-    return this.challenges.get(challengeId) || null;
-  }
-
-  async deleteChallenge(challengeId: string): Promise<void> {
-    this.challenges.delete(challengeId);
-  }
-
-  async markChallengeVerified(challengeId: string): Promise<void> {
-    const challenge = this.challenges.get(challengeId);
-    if (challenge) {
-      challenge.verified_at = new Date().toISOString();
-      this.challenges.set(challengeId, challenge);
-    }
-  }
-
-  async getVerifiedDomains(): Promise<string[]> {
-    const verifiedDomains: string[] = [];
-    
-    for (const challenge of this.challenges.values()) {
-      if (challenge.verified_at) {
-        verifiedDomains.push(challenge.domain);
-      }
-    }
-    
-    return [...new Set(verifiedDomains)]; // Remove duplicates
-  }
 }
 
 // ============================================================================

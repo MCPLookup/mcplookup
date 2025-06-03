@@ -1,0 +1,66 @@
+# Docker Compose for MCPLookup.org Development
+# Provides local Redis instance and the Next.js application
+
+version: '3.8'
+
+services:
+  # Redis database for local development
+  redis:
+    image: redis:7-alpine
+    container_name: mcplookup-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # MCPLookup Next.js application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mcplookup-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - REDIS_URL=redis://redis:6379
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_SECRET=dev-secret-change-in-production
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      # Mount source code for development hot-reload
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    develop:
+      watch:
+        - action: sync
+          path: ./src
+          target: /app/src
+        - action: rebuild
+          path: package.json
+
+  # Redis CLI for easy database access
+  redis-cli:
+    image: redis:7-alpine
+    container_name: mcplookup-redis-cli
+    profiles: ["tools"]
+    depends_on:
+      - redis
+    command: redis-cli -h redis
+    tty: true
+    stdin_open: true
+
+volumes:
+  redis_data:
+    driver: local

@@ -1,28 +1,32 @@
 # MCPLOOKUP.ORG - COMPLETE ARCHITECTURE SPECIFICATION
 
-**Technology Stack: TypeScript + Next.js + Vercel + Zod + OpenAPI + Serverless**
+**Technology Stack: TypeScript + Next.js 15 + Vercel + Zod + OpenAPI + Serverless + No-SQL**
 
 ---
 
 ## 🎯 **CORE ARCHITECTURAL DECISIONS**
 
 ### **Tech Stack**
-- **Frontend**: Next.js 14 (App Router)
-- **Backend**: Next.js API Routes (Serverless)
+- **Frontend**: Next.js 15 (App Router)
+- **Backend**: Next.js API Routes (Serverless Functions)
 - **Language**: TypeScript (100%)
-- **Validation**: Zod schemas
-- **API Documentation**: OpenAPI/Swagger
-- **Deployment**: Vercel
-- **Database**: NO SQL - External APIs only
+- **Validation**: Zod schemas with full type safety
+- **API Documentation**: OpenAPI/Swagger auto-generated
+- **Deployment**: Vercel (serverless platform)
+- **Database**: **NONE** - Fully serverless architecture
+- **Storage**: In-memory + DNS + External API discovery
+- **Authentication**: Auth.js v5 (serverless-compatible)
 - **Open Source**: MIT License
 
-### **Design Principles**
-1. **Serverless-First**: Every component scales automatically
-2. **Pluggable Services**: Modular, replaceable components
-3. **DRY Classes**: Small, focused, reusable modules
-4. **Zero SQL**: Use external APIs and services
-5. **Semantic Strength**: Every API field is justified and complete
-6. **One-Call Completeness**: Single request provides all needed data
+### **Serverless Design Principles**
+1. **Zero Infrastructure**: No databases, Redis, or persistent storage
+2. **Stateless Functions**: Each API call is independent and self-contained
+3. **DNS-Based Verification**: Use TXT records for domain ownership proof
+4. **Real-Time Discovery**: Live endpoint testing instead of static registry
+5. **In-Memory Caching**: TTL-based caching with automatic expiration
+6. **External API Integration**: Leverage existing services (GitHub, etc.)
+7. **Pluggable Services**: Modular, replaceable service architecture
+8. **One-Call Completeness**: Single request provides all needed data
 
 ---
 
@@ -82,11 +86,66 @@ mcplookup.org/
 
 ---
 
+## 🗄️ **SERVERLESS DATA ARCHITECTURE**
+
+### **No Database Required**
+This architecture completely eliminates the need for traditional databases:
+
+```typescript
+// Instead of SQL databases, we use:
+interface ServerlessDataSources {
+  // 1. Well-known server registry (in-memory)
+  wellKnownServers: MCPServerRecord[];
+  
+  // 2. DNS TXT records for verification
+  dnsVerification: {
+    recordName: string;    // _mcplookup-verify.domain.com
+    recordValue: string;   // mcplookup-verify=token.timestamp
+  };
+  
+  // 3. Real-time endpoint discovery
+  liveDiscovery: {
+    endpoint: string;      // https://domain.com/.well-known/mcp-server
+    healthCheck: boolean;  // Live connectivity test
+  };
+  
+  // 4. External API integration
+  externalSources: {
+    github: 'api.github.com';      // Repository discovery
+    npm: 'registry.npmjs.org';     // Package discovery
+    // Add more sources as needed
+  };
+}
+```
+
+### **Data Flow Architecture**
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│  Discovery      │───▶│  In-Memory       │───▶│  Live Testing   │
+│  Request        │    │  Registry        │    │  & Validation   │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+                                ▲                        │
+                                │                        ▼
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│  Well-Known     │───▶│  Cache Layer     │◀───│  DNS Queries    │
+│  Servers        │    │  (TTL-based)     │    │  & Health       │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+```
+
+### **Storage Strategy**
+1. **Static Data**: Well-known servers (Gmail, GitHub, etc.) - hardcoded
+2. **Dynamic Discovery**: Real-time `.well-known` endpoint checks
+3. **Verification**: DNS TXT records (no persistent storage needed)
+4. **Caching**: In-memory with TTL (automatic cleanup)
+5. **Health Data**: Live checks only (no historical storage)
+
+---
+
 ## 📊 **DATA STRUCTURE SPECIFICATION**
 
 ### **MCPServerRecord (Complete Discovery Response)**
 
-Based on MCP specification research, here's the semantically justified schema:
+Based on MCP specification research and serverless architecture:
 
 ```typescript
 import { z } from 'zod';

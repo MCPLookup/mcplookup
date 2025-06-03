@@ -59,8 +59,8 @@ mcp connect https://mcplookup.org/mcp
 
 ## 🏗️ **ARCHITECTURE**
 
-### The Master MCP Server
-This repository contains **THE MCP server that discovers all other MCP servers**:
+### The Master MCP Server (Serverless)
+This repository contains **THE MCP server that discovers all other MCP servers** using a **serverless, no-database architecture**:
 
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
@@ -68,17 +68,25 @@ This repository contains **THE MCP server that discovers all other MCP servers**
 │                 │    │                  │    │                 │
 │ • Claude        │    │ • Discovery API  │    │ • gmail.com/mcp │
 │ • ChatGPT       │    │ • DNS Verify     │    │ • github.com/   │
-│ • Custom Agents │    │ • Registry DB    │    │ • slack.com/    │
+│ • Custom Agents │    │ • Registry Cache │    │ • slack.com/    │
 └─────────────────┘    └──────────────────┘    └─────────────────┘
 ```
+
+### Serverless Architecture
+
+**🚀 Zero Infrastructure Dependencies**
+- **No Database**: In-memory registry with well-known server discovery
+- **No Redis**: Intelligent caching with TTL-based expiration
+- **No File System**: Stateless verification using DNS + API calls
+- **Serverless Ready**: Deploys to Vercel, Netlify, Cloudflare Workers
 
 ### Core Components
 
 1. **MCP Server**: The "One Ring" that provides discovery tools to AI agents
-2. **REST API**: HTTP endpoints for registration and discovery
-3. **DNS Verification**: Cryptographic proof of domain ownership
-4. **Serverless Registry**: In-memory directory with external API integration
-5. **Health Monitoring**: Real-time server status and performance
+2. **REST API**: HTTP endpoints for registration and discovery (Next.js API routes)
+3. **DNS Verification**: Cryptographic proof using TXT records (no storage needed)
+4. **In-Memory Registry**: Well-known servers + real-time discovery
+5. **Health Monitoring**: Live endpoint testing (no historical data storage)
 
 ---
 
@@ -86,7 +94,8 @@ This repository contains **THE MCP server that discovers all other MCP servers**
 
 ### Prerequisites
 - Node.js 20+
-- No database required (serverless architecture)
+- **No database required** (serverless architecture)
+- **No external services** (self-contained)
 
 ### Local Development
 ```bash
@@ -97,7 +106,7 @@ cd mcplookup.org
 # Install dependencies
 npm install
 
-# Set up environment (optional)
+# Set up environment (optional - no database setup needed)
 cp .env.example .env
 # Edit .env with your configuration if needed
 

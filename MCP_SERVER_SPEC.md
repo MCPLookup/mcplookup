@@ -1,30 +1,41 @@
-# THE ONE RING: MASTER MCP SERVER SPECIFICATION
+# THE ONE RING: SERVERLESS MASTER MCP SERVER SPECIFICATION
 
-**The MCP Server that discovers all other MCP servers**  
-*The Registry. The Discovery Engine. The One Ring to Rule Them All.*
+**The Serverless MCP Server that discovers all other MCP servers**  
+*The Registry. The Discovery Engine. The One Ring to Rule Them All.*  
+*Zero Infrastructure. Zero Database. Maximum Discovery.*
 
 ---
 
-## 🎯 PURPOSE
+## 🎯 PURPOSE & ARCHITECTURE
 
-This is THE MCP server that:
-- **AI agents connect to for discovery**
-- **Manages the global registry of MCP servers** 
-- **Handles DNS verification for domain ownership**
-- **Provides intelligent matching and recommendations**
+This is THE serverless MCP server that:
+- **AI agents connect to for discovery** (no setup required)
+- **Manages the global registry without databases** (in-memory + DNS)
+- **Handles DNS verification with no storage** (stateless verification)
+- **Provides intelligent matching in real-time** (live discovery)
 
 **Endpoint**: `https://mcplookup.org/mcp`
+
+### Serverless Benefits
+- ✅ **Zero Setup**: No database configuration needed
+- ✅ **Global Scale**: Vercel Edge Network deployment
+- ✅ **Self-Healing**: Automatic restarts with fresh state
+- ✅ **Cost Effective**: Pay only for usage, not infrastructure
+- ✅ **Zero Maintenance**: No database backups or patches
 
 ---
 
 ## 🔧 MCP SERVER CAPABILITIES
 
-### Server Information
+### Server Information (Serverless)
 ```json
 {
-  "name": "MCPLookup Registry",
+  "name": "MCPLookup Registry (Serverless)",
   "version": "1.0.0",
   "protocolVersion": "2025-03-26",
+  "architecture": "serverless",
+  "database": "none",
+  "storage": "in-memory + dns",
   "capabilities": {
     "tools": {},
     "resources": {},
@@ -32,20 +43,22 @@ This is THE MCP server that:
   },
   "serverInfo": {
     "name": "mcplookup-registry",
-    "version": "1.0.0"
+    "version": "1.0.0",
+    "deployment": "vercel-edge",
+    "infrastructure": "zero"
   }
 }
 ```
 
-### Available Tools
+### Available Tools (Serverless Implementation)
 
 #### 1. `discover_mcp_servers`
-**Find MCP servers by various criteria**
+**Find MCP servers using real-time discovery (no database queries)**
 
 ```json
 {
   "name": "discover_mcp_servers",
-  "description": "Discover MCP servers by domain, capability, or natural language intent. The universal directory for AI tool discovery.",
+  "description": "Discover MCP servers by domain, capability, or natural language intent. Uses serverless architecture with in-memory registry + live endpoint discovery.",
   "inputSchema": {
     "type": "object",
     "properties": {

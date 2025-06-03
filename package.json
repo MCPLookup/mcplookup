@@ -1,7 +1,7 @@
 {
   "name": "mcplookup-registry",
   "version": "1.0.0",
-  "description": "The One Ring MCP Server - Universal MCP Discovery Service",
+  "description": "The One Ring MCP Server - Universal MCP Discovery Service (Serverless, No Database)",
   "main": "dist/server.js",
   "type": "module",
   "scripts": {
@@ -10,10 +10,12 @@
     "dev": "next dev",
     "dev:mcp": "tsx watch src/server.ts",
     "test": "jest",
+    "test:watch": "jest --watch",
     "lint": "eslint src/**/*.ts",
     "format": "prettier --write src/**/*.ts",
     "type-check": "tsc --noEmit",
-    "openapi": "swagger-jsdoc -d swaggerDef.js src/pages/api/**/*.ts -o public/openapi.json"
+    "openapi": "swagger-jsdoc -d swaggerDef.js src/pages/api/**/*.ts -o public/openapi.json",
+    "deploy": "vercel --prod"
   },
   "keywords": [
     "mcp",
@@ -21,9 +23,12 @@
     "discovery",
     "registry",
     "ai-tools",
-    "streamable-http",
     "serverless",
-    "vercel"
+    "no-database",
+    "zero-infrastructure",
+    "vercel",
+    "dns-verification",
+    "real-time-discovery"
   ],
   "author": "MCPLookup.org",
   "license": "MIT",
@@ -32,6 +37,7 @@
     "@emotion/react": "^11.14.0",
     "@hookform/resolvers": "^3.9.1",
     "@modelcontextprotocol/sdk": "^1.12.1",
+    "@upstash/redis": "^1.35.0",
     "autoprefixer": "^10.4.21",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

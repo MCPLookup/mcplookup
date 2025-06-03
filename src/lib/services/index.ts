@@ -6,6 +6,7 @@ import { HealthService, EnhancedHealthService } from './health';
 import { IntentService, EnhancedIntentService } from './intent';
 import { VerificationService } from './verification';
 import { DiscoveryService } from './discovery';
+import { StorageConfig } from './storage/storage.js';
 
 /**
  * Service Configuration Options
@@ -15,6 +16,7 @@ export interface ServiceConfig {
   cacheEnabled?: boolean;
   healthCheckInterval?: number;
   intentAIEnabled?: boolean;
+  storage?: StorageConfig;
 }
 
 /**
@@ -57,7 +59,7 @@ export class ServiceFactory {
    */
   getRegistryService(): RegistryService {
     if (!this.registryService) {
-      this.registryService = new RegistryService();
+      this.registryService = new RegistryService(this.config.storage);
     }
     return this.registryService;
   }
@@ -91,10 +93,9 @@ export class ServiceFactory {
    */
   getVerificationService(): VerificationService {
     if (!this.verificationService) {
-      const { InMemoryVerificationStorage, MCPValidationService } = require('./verification');
-      const storage = new InMemoryVerificationStorage();
+      const { MCPValidationService } = require('./verification');
       const mcpService = new MCPValidationService();
-      this.verificationService = new VerificationService(storage, mcpService);
+      this.verificationService = new VerificationService(mcpService, this.config.storage);
     }
     return this.verificationService;
   }
@@ -169,6 +170,24 @@ export function getDevelopmentServices() {
 }
 
 /**
+ * Get services for testing with mock storage
+ */
+export function getTestServices() {
+  // Configure to use memory storage for testing
+  const factory = ServiceFactory.getInstance({
+    storage: { provider: 'memory' }
+  });
+  
+  return {
+    registry: factory.getRegistryService(),
+    health: factory.getHealthService(),
+    intent: factory.getIntentService(),
+    discovery: factory.getDiscoveryService(),
+    verification: factory.getVerificationService()
+  };
+}
+
+/**
  * Get services for serverless deployment (optimized)
  */
 export function getServerlessServices() {
@@ -226,7 +245,6 @@ export {
 
 // Export verification dependencies
 export {
-  InMemoryVerificationStorage,
   MCPValidationService
 } from './verification';
 

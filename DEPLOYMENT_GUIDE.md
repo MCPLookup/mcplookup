@@ -1,12 +1,12 @@
 # DEPLOYMENT GUIDE - MCPLOOKUP.ORG
 
-**Serverless deployment architecture for the MCP discovery service**
+**Zero-infrastructure serverless deployment for the MCP discovery service**
 
 ---
 
 ## 🏗️ SERVERLESS ARCHITECTURE OVERVIEW
 
-### Production Stack
+### Zero-Infrastructure Stack
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
 │   CLOUDFLARE    │───▶│     VERCEL       │───▶│  EDGE FUNCTIONS │
@@ -14,29 +14,39 @@
 └─────────────────┘    └──────────────────┘    └─────────────────┘
                                 ▼
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│  IN-MEMORY      │    │   EXTERNAL APIs  │    │   MONITORING    │
-│  (Registry)     │    │ (DNS/Health)     │    │ (Vercel Analytics)│
+│  IN-MEMORY      │    │   DNS QUERIES    │    │   MONITORING    │
+│  (Registry)     │    │ (TXT Records)    │    │ (Vercel Analytics)│
+│  NO DATABASE    │    │ NO EXTERNAL DB   │    │ NO PERSISTENCE  │
 └─────────────────┘    └──────────────────┘    └─────────────────┘
 ```
 
+### Key Benefits
+- ✅ **Zero Infrastructure**: No databases, Redis, or external services
+- ✅ **Auto-Scaling**: Handles traffic spikes automatically
+- ✅ **Global Edge**: <100ms response times worldwide
+- ✅ **Zero Configuration**: Deploy without setup
+- ✅ **Zero Maintenance**: No database backups or patches
+
 ---
 
-## 🚀 VERCEL DEPLOYMENT
+## 🚀 VERCEL DEPLOYMENT (Zero Setup Required)
 
-### Project Configuration
+### Project Configuration (vercel.json)
 ```json
 {
   "name": "mcplookup-registry",
   "version": 2,
+  "framework": "nextjs",
   "builds": [
     {
-      "src": "src/app/**/*.ts",
+      "src": "next.config.js",
       "use": "@vercel/next"
     }
   ],
   "functions": {
     "src/app/api/**/*.ts": {
-      "maxDuration": 30
+      "maxDuration": 30,
+      "memory": 1024
     }
   },
   "rewrites": [
@@ -67,7 +77,7 @@
 }
 ```
 
-### Deployment Steps
+### Deployment Steps (Zero Setup Required)
 ```bash
 # 1. Install Vercel CLI
 npm i -g vercel
@@ -78,33 +88,46 @@ vercel login
 # 3. Link project (first time)
 vercel link
 
-# 4. Set environment variables
-vercel env add DNS_RESOLVER_URL
-vercel env add HEALTH_CHECK_TIMEOUT
-vercel env add NEXT_PUBLIC_APP_URL
-
-# 5. Deploy to production
+# 4. Deploy to production (no database setup needed!)
 vercel --prod
 
-# 6. Set custom domain (optional)
+# 5. Set custom domain (optional)
 vercel domains add mcplookup.org
+
+# That's it! No database migrations, no external services to configure.
 ```
 
-### Environment Variables
+### Environment Variables (All Optional)
 ```bash
-# Required for production
+# Optional configuration (system works without these)
 NEXT_PUBLIC_APP_URL=https://mcplookup.org
 NEXT_PUBLIC_API_VERSION=v1
 
-# Optional configuration
+# DNS and health check tuning (optional)
 DNS_RESOLVER_URL=https://cloudflare-dns.com/dns-query
 HEALTH_CHECK_TIMEOUT=5000
 VERIFICATION_TOKEN_TTL=86400
 
-# Feature flags
+# Feature flags (optional)
 ENABLE_AUTO_DISCOVERY=true
 ENABLE_ANALYTICS=true
+ENABLE_EXTERNAL_APIS=true
+
+# Authentication (optional - for UI only)
+NEXTAUTH_URL=https://mcplookup.org
+NEXTAUTH_SECRET=your-secret-key
+GITHUB_CLIENT_ID=your-github-client-id
+GITHUB_CLIENT_SECRET=your-github-client-secret
 ```
+
+### No Database Setup Required ✅
+Unlike traditional applications, this service requires:
+- ❌ **No PostgreSQL setup**
+- ❌ **No Redis configuration**  
+- ❌ **No MongoDB connection**
+- ❌ **No database migrations**
+- ❌ **No backup strategies**
+- ✅ **Zero infrastructure dependencies**
 
 ---
 

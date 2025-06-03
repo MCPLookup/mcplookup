@@ -1,6 +1,23 @@
 # API SPECIFICATIONS - MCPLOOKUP.ORG
 
-**REST API + MCP Server Hybrid Architecture**
+**Serverless REST API + MCP Server Hybrid Architecture (No Database)**
+
+---
+
+## 🏗️ **SERVERLESS API ARCHITECTURE**
+
+### Zero Infrastructure Design
+- ✅ **No Database**: All data retrieved in real-time or from memory
+- ✅ **No Redis**: In-memory caching with TTL-based expiration  
+- ✅ **No External Storage**: DNS records + well-known endpoints
+- ✅ **Stateless Functions**: Each API call is independent
+- ✅ **Global Edge**: Deployed on Vercel's edge network
+
+### Data Sources (No Persistence)
+1. **Well-Known Servers**: Hardcoded popular services (Gmail, GitHub, etc.)
+2. **Live Discovery**: Real-time `.well-known/mcp-server` endpoint checks
+3. **DNS Verification**: TXT record queries (no storage of challenges)
+4. **Health Checks**: Live endpoint testing (no historical data)
 
 ---
 
@@ -9,15 +26,15 @@
 ### Authentication
 ```http
 # No auth required for discovery (public service)
-# API key required for registration and management
+# API key optional for enhanced features
 Authorization: Bearer mcp_api_key_xyz123
 ```
 
 ---
 
-## 🔍 DISCOVERY ENDPOINTS
+## 🔍 DISCOVERY ENDPOINTS (Serverless)
 
-### 1. Domain Lookup
+### 1. Domain Lookup (No Database Query)
 ```http
 GET /api/v1/discover/domain/{domain}
 
@@ -26,23 +43,26 @@ GET /api/v1/discover/domain/gmail.com
 GET /api/v1/discover/domain/github.com
 ```
 
-**Response:**
+**Response (Generated in Real-Time):**
 ```json
 {
   "domain": "gmail.com",
   "endpoint": "https://gmail.com/mcp",
   "verified": true,
-  "verification_date": "2025-05-15T09:30:00Z",
+  "verification_method": "dns_txt_record",
+  "last_verified": "2025-06-03T10:30:00Z",
   "capabilities": ["email_read", "email_send", "calendar"],
   "category": "communication",
   "auth_type": "oauth2",
   "health": {
     "status": "healthy",
     "uptime_percentage": 99.97,
-    "avg_response_time_ms": 45
+    "response_time_ms": 45,
+    "last_check": "2025-06-03T10:29:55Z"
   },
   "trust_score": 98,
-  "description": "Official Gmail MCP server"
+  "description": "Official Gmail MCP server",
+  "data_source": "well_known_registry"
 }
 ```
 

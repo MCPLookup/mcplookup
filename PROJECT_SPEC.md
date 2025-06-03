@@ -32,21 +32,23 @@ After:  AI → mcplookup.org → Dynamic Tool Discovery → Live Connection
 
 ---
 
-## 🏗️ **SYSTEM ARCHITECTURE**
+## 🏗️ **SERVERLESS SYSTEM ARCHITECTURE**
 
-### High-Level Overview
+### High-Level Overview (Zero Infrastructure)
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    MCPLOOKUP.ORG ECOSYSTEM                     │
+│                MCPLOOKUP.ORG SERVERLESS ECOSYSTEM              │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
 │  ┌─────────────┐    ┌───────────────┐    ┌─────────────────┐   │
 │  │ AI AGENTS   │───▶│  DISCOVERY    │───▶│ MCP SERVERS     │   │
 │  │             │    │  SERVICE      │    │                 │   │
-│  │ • Claude    │    │               │    │ • gmail.com/mcp │   │
-│  │ • ChatGPT   │    │ ┌───────────┐ │    │ • github.com/   │   │
-│  │ • Custom    │    │ │ ONE RING  │ │    │ • slack.com/    │   │
-│  │ • Cursor    │    │ │MCP SERVER │ │    │ • custom.com/   │   │
+│  │ • Claude    │    │  NO DATABASE │    │ • gmail.com/mcp │   │
+│  │ • ChatGPT   │    │               │    │ • github.com/   │   │
+│  │ • Custom    │    │ ┌───────────┐ │    │ • slack.com/    │   │
+│  │ • Cursor    │    │ │ ONE RING  │ │    │ • custom.com/   │   │
+│  │             │    │ │MCP SERVER │ │    │                 │   │
+│  │             │    │ │SERVERLESS │ │    │                 │   │
 │  │             │    │ └───────────┘ │    │                 │   │
 │  └─────────────┘    │               │    └─────────────────┘   │
 │                     │ ┌───────────┐ │                          │
@@ -90,13 +92,15 @@ After:  AI → mcplookup.org → Dynamic Tool Discovery → Live Connection
 - **Multi-resolver Validation**: Prevents DNS cache attacks
 - **Time-limited Challenges**: 24-hour expiration for security
 
-#### 4. Serverless Registry
-**Global directory of verified MCP servers**
+#### 4. Serverless Registry (Zero Database)
+**Global directory with no persistent storage required**
 
-- **In-Memory Storage**: Fast access with TTL-based caching
-- **External API Integration**: For persistent data when needed
-- **Well-Known Servers**: Pre-configured popular services
+- **In-Memory Storage**: Fast access with TTL-based caching (no Redis needed)
+- **Well-Known Servers**: Pre-configured popular services (hardcoded)
+- **DNS-Based Discovery**: Live `.well-known` endpoint checks
 - **Real-Time Discovery**: Live server introspection and health checks
+- **Stateless Verification**: DNS TXT records (no database storage)
+- **External API Integration**: Optional GitHub/NPM discovery (no data persistence)
 
 #### 5. Health Monitoring
 **Real-time server status and performance tracking**
