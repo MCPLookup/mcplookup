@@ -220,10 +220,9 @@ export class DiscoveryService implements IDiscoveryService {
       );
     }
 
-    // Filter out unhealthy servers by default
-    filtersApplied.push('health_status_filter');
-    filtered = filtered.filter(server => 
-      server.health.status !== 'down'
+    // Filter out unhealthy servers by default    filtersApplied.push('health_status_filter');
+    filtered = filtered.filter(server =>
+      server.health.status !== 'unhealthy'
     );
 
     return filtered;

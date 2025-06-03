@@ -472,48 +472,37 @@ const rateLimits = {
 
 ### Environment Variables
 ```bash
-# Database
-DATABASE_URL=postgresql://mcplookup:password@db:5432/registry
-REDIS_URL=redis://redis:6379
-
-# DNS Resolution
-DNS_RESOLVER=8.8.8.8
+# Serverless Configuration (all optional)
+DNS_RESOLVER_URL=https://cloudflare-dns.com/dns-query
 DNS_TIMEOUT_MS=5000
 
-# Rate Limiting  
-RATE_LIMIT_REDIS_URL=redis://redis:6379
-RATE_LIMIT_WINDOW_MS=3600000
-
-# Security
-JWT_SECRET=your-secret-key
-ENCRYPTION_KEY=your-encryption-key
-
 # Health Checks
-HEALTH_CHECK_INTERVAL_MS=300000  # 5 minutes
 HEALTH_CHECK_TIMEOUT_MS=10000    # 10 seconds
 
 # Features
 ENABLE_AUTO_DISCOVERY=true
-ENABLE_COMMUNITY_RATINGS=true
 ENABLE_ANALYTICS=true
+
+# Next.js Configuration
+NEXT_PUBLIC_APP_URL=https://mcplookup.org
+NEXT_PUBLIC_API_VERSION=v1
 ```
 
-### Docker Configuration
-```dockerfile
-FROM node:20-alpine
-
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci --only=production
-
-COPY src/ ./src/
-COPY dist/ ./dist/
-
-EXPOSE 3000
-CMD ["node", "dist/server.js"]
-
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:3000/health || exit 1
+### Vercel Configuration
+```json
+{
+  "functions": {
+    "src/app/api/**/*.ts": {
+      "maxDuration": 30
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/mcp",
+      "destination": "/api/mcp"
+    }
+  ]
+}
 ```
 
 ---

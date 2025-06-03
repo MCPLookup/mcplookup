@@ -90,13 +90,13 @@ After:  AI → mcplookup.org → Dynamic Tool Discovery → Live Connection
 - **Multi-resolver Validation**: Prevents DNS cache attacks
 - **Time-limited Challenges**: 24-hour expiration for security
 
-#### 4. Registry Database
+#### 4. Serverless Registry
 **Global directory of verified MCP servers**
 
-- **Server Records**: Domain, endpoint, capabilities, health status
-- **Verification History**: DNS challenge records and status
-- **Analytics Data**: Discovery patterns and usage metrics
-- **Trust Scoring**: Reliability and performance ratings
+- **In-Memory Storage**: Fast access with TTL-based caching
+- **External API Integration**: For persistent data when needed
+- **Well-Known Servers**: Pre-configured popular services
+- **Real-Time Discovery**: Live server introspection and health checks
 
 #### 5. Health Monitoring
 **Real-time server status and performance tracking**
@@ -241,47 +241,39 @@ Body: {
 
 ---
 
-## 💾 DATABASE SCHEMA
+## 🗄️ SERVERLESS DATA ARCHITECTURE
 
-### MCP Servers Registry
-```sql
-CREATE TABLE mcp_servers (
-  id SERIAL PRIMARY KEY,
-  domain VARCHAR(255) UNIQUE NOT NULL,
-  endpoint VARCHAR(500) NOT NULL,
-  capabilities TEXT[], -- Array of capability strings
-  auth_type VARCHAR(50), -- 'none', 'api_key', 'oauth2'
-  verified BOOLEAN DEFAULT FALSE,
-  verification_token VARCHAR(255),
-  health_status VARCHAR(20) DEFAULT 'unknown', -- 'healthy', 'degraded', 'down'
-  last_health_check TIMESTAMP,
-  response_time_ms INTEGER,
-  trust_score INTEGER DEFAULT 0, -- 0-100
-  uptime_percentage DECIMAL(5,2),
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
+### In-Memory Registry
+```typescript
+// No SQL database - serverless architecture
+interface ServerRegistry {
+  // Well-known servers (pre-configured)
+  wellKnownServers: Map<string, MCPServerRecord>;
 
-CREATE INDEX idx_domain ON mcp_servers(domain);
-CREATE INDEX idx_capabilities ON mcp_servers USING GIN(capabilities);
-CREATE INDEX idx_health ON mcp_servers(health_status, verified);
+  // Cached discovery results (TTL-based)
+  discoveryCache: Map<string, CachedResult>;
+
+  // DNS verification challenges (temporary)
+  verificationChallenges: Map<string, VerificationChallenge>;
+
+  // Health check results (real-time)
+  healthMetrics: Map<string, HealthMetrics>;
+}
 ```
 
-### Capability Taxonomy
-```sql
-CREATE TABLE capabilities (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR(100) UNIQUE NOT NULL,
-  category VARCHAR(50), -- 'communication', 'productivity', 'development'
-  description TEXT,
-  usage_count INTEGER DEFAULT 0
-);
+### External API Integration
+```typescript
+// For persistent storage when needed
+interface ExternalStorage {
+  // Redis for caching (optional)
+  redis?: RedisClient;
 
-CREATE TABLE server_capabilities (
-  server_id INTEGER REFERENCES mcp_servers(id),
-  capability_id INTEGER REFERENCES capabilities(id),
-  PRIMARY KEY (server_id, capability_id)
-);
+  // DynamoDB for verification history (optional)
+  dynamodb?: DynamoDBClient;
+
+  // External APIs for server discovery
+  wellKnownEndpoints: string[];
+}
 ```
 
 ---

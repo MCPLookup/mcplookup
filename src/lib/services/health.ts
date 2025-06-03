@@ -171,7 +171,7 @@ export class HealthService implements IHealthService {
    * Calculate health status based on response time and error rate
    */
   private calculateHealthStatus(responseTime: number, errorRate: number): HealthMetrics['status'] {
-    if (errorRate > 0.1) return 'down';
+    if (errorRate > 0.1) return 'unhealthy';
     if (errorRate > 0.05 || responseTime > 5000) return 'degraded';
     return 'healthy';
   }
@@ -183,7 +183,7 @@ export class HealthService implements IHealthService {
     switch (status) {
       case 'healthy': return 99.0 + Math.random() * 0.99; // 99.0-99.99%
       case 'degraded': return 95.0 + Math.random() * 4.0; // 95.0-99.0%
-      case 'down': return 80.0 + Math.random() * 15.0; // 80.0-95.0%
+      case 'unhealthy': return 80.0 + Math.random() * 15.0; // 80.0-95.0%
       case 'unknown': return 0;
       default: return 90.0;
     }
@@ -196,7 +196,7 @@ export class HealthService implements IHealthService {
     switch (status) {
       case 'healthy': return Math.random() * 0.01; // 0-1%
       case 'degraded': return 0.01 + Math.random() * 0.04; // 1-5%
-      case 'down': return 0.1 + Math.random() * 0.9; // 10-100%
+      case 'unhealthy': return 0.1 + Math.random() * 0.9; // 10-100%
       case 'unknown': return 1.0;
       default: return 0.05;
     }
@@ -258,7 +258,7 @@ export class EnhancedHealthService extends HealthService {
     // Calculate consecutive failures
     let consecutiveFailures = 0;
     for (let i = history.length - 1; i >= 0; i--) {
-      if (history[i].status === 'down' || history[i].status === 'degraded') {
+      if (history[i].status === 'unhealthy' || history[i].status === 'degraded') {
         consecutiveFailures++;
       } else {
         break;
