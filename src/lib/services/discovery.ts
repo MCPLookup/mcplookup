@@ -1,0 +1,337 @@
+// Discovery Service - Core discovery logic with semantic intent matching
+// NO SQL - Uses external APIs and in-memory processing
+
+import { DiscoveryRequest, DiscoveryResponse, MCPServerRecord, CapabilityCategory } from '../schemas/discovery.js';
+
+export interface IDiscoveryService {
+  discoverServers(request: DiscoveryRequest): Promise<DiscoveryResponse>;
+  discoverByDomain(domain: string): Promise<MCPServerRecord | null>;
+  discoverByIntent(intent: string): Promise<MCPServerRecord[]>;
+  discoverByCapability(capability: string): Promise<MCPServerRecord[]>;
+}
+
+/**
+ * Main Discovery Service Implementation
+ * Pluggable, serverless-ready, no SQL dependencies
+ */
+export class DiscoveryService implements IDiscoveryService {
+  private registryService: IRegistryService;
+  private healthService: IHealthService;
+  private intentService: IIntentService;
+
+  constructor(
+    registryService: IRegistryService,
+    healthService: IHealthService,
+    intentService: IIntentService
+  ) {
+    this.registryService = registryService;
+    this.healthService = healthService;
+    this.intentService = intentService;
+  }
+
+  /**
+   * Main discovery method - handles all discovery patterns
+   */
+  async discoverServers(request: DiscoveryRequest): Promise<DiscoveryResponse> {
+    const startTime = Date.now();
+    const filtersApplied: string[] = [];
+
+    try {
+      // Get base server list
+      let servers = await this.getBaseServerList(request, filtersApplied);
+
+      // Apply semantic filters
+      servers = await this.applySemanticFilters(servers, request, filtersApplied);
+
+      // Apply technical filters
+      servers = this.applyTechnicalFilters(servers, request, filtersApplied);
+
+      // Apply health filters if requested
+      if (request.include_health) {
+        servers = await this.applyHealthFilters(servers, request, filtersApplied);
+      }
+
+      // Sort results
+      servers = this.sortResults(servers, request.sort_by || 'relevance');
+
+      // Apply pagination
+      const totalCount = servers.length;
+      const offset = request.offset || 0;
+      const limit = request.limit || 10;
+      const paginatedServers = servers.slice(offset, offset + limit);
+
+      // Enhance results with real-time data if requested
+      const enhancedServers = await this.enhanceResults(paginatedServers, request);
+
+      const queryTime = Date.now() - startTime;
+
+      return {
+        servers: enhancedServers,
+        pagination: {
+          total_count: totalCount,
+          returned_count: enhancedServers.length,
+          offset,
+          has_more: offset + limit < totalCount
+        },
+        query_metadata: {
+          query_time_ms: queryTime,
+          cache_hit: false, // TODO: Implement caching
+          filters_applied: filtersApplied
+        },
+        suggestions: totalCount === 0 ? await this.generateSuggestions(request) : undefined
+      };
+
+    } catch (error) {
+      throw new Error(`Discovery failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Direct domain lookup
+   */
+  async discoverByDomain(domain: string): Promise<MCPServerRecord | null> {
+    const servers = await this.registryService.getServersByDomain(domain);
+    return servers.length > 0 ? servers[0] : null;
+  }
+
+  /**
+   * Intent-based discovery using NLP matching
+   */
+  async discoverByIntent(intent: string): Promise<MCPServerRecord[]> {
+    const capabilities = await this.intentService.intentToCapabilities(intent);
+    const servers: MCPServerRecord[] = [];
+
+    for (const capability of capabilities) {
+      const capabilityServers = await this.discoverByCapability(capability);
+      servers.push(...capabilityServers);
+    }
+
+    // Remove duplicates and return
+    return this.deduplicateServers(servers);
+  }
+
+  /**
+   * Capability-based discovery
+   */
+  async discoverByCapability(capability: string): Promise<MCPServerRecord[]> {
+    return await this.registryService.getServersByCapability(capability);
+  }
+
+  // ========================================================================
+  // PRIVATE METHODS
+  // ========================================================================
+
+  private async getBaseServerList(request: DiscoveryRequest, filtersApplied: string[]): Promise<MCPServerRecord[]> {
+    // Priority-based selection of base query
+    if (request.domain) {
+      filtersApplied.push('domain_exact');
+      return await this.registryService.getServersByDomain(request.domain);
+    }
+
+    if (request.capability) {
+      filtersApplied.push('capability_exact');
+      return await this.registryService.getServersByCapability(request.capability);
+    }
+
+    if (request.category) {
+      filtersApplied.push('category_filter');
+      return await this.registryService.getServersByCategory(request.category);
+    }
+
+    if (request.intent) {
+      filtersApplied.push('intent_matching');
+      return await this.discoverByIntent(request.intent);
+    }
+
+    if (request.keywords && request.keywords.length > 0) {
+      filtersApplied.push('keyword_search');
+      return await this.registryService.searchServers(request.keywords);
+    }
+
+    // No specific filters - return all verified servers
+    filtersApplied.push('all_verified');
+    return await this.registryService.getAllVerifiedServers();
+  }
+
+  private async applySemanticFilters(
+    servers: MCPServerRecord[], 
+    request: DiscoveryRequest, 
+    filtersApplied: string[]
+  ): Promise<MCPServerRecord[]> {
+    let filtered = servers;
+
+    if (request.use_case) {
+      filtersApplied.push('use_case_match');
+      filtered = filtered.filter(server => 
+        server.capabilities.use_cases.some(useCase => 
+          useCase.toLowerCase().includes(request.use_case!.toLowerCase())
+        )
+      );
+    }
+
+    return filtered;
+  }
+
+  private applyTechnicalFilters(
+    servers: MCPServerRecord[], 
+    request: DiscoveryRequest, 
+    filtersApplied: string[]
+  ): MCPServerRecord[] {
+    let filtered = servers;
+
+    if (request.auth_types && request.auth_types.length > 0) {
+      filtersApplied.push('auth_type_filter');
+      filtered = filtered.filter(server => 
+        request.auth_types!.includes(server.auth.type)
+      );
+    }
+
+    if (request.transport) {
+      filtersApplied.push('transport_filter');
+      filtered = filtered.filter(server => server.transport === request.transport);
+    }
+
+    if (request.cors_required) {
+      filtersApplied.push('cors_required');
+      filtered = filtered.filter(server => server.cors_enabled);
+    }
+
+    return filtered;
+  }
+
+  private async applyHealthFilters(
+    servers: MCPServerRecord[], 
+    request: DiscoveryRequest, 
+    filtersApplied: string[]
+  ): Promise<MCPServerRecord[]> {
+    let filtered = servers;
+
+    if (request.min_uptime !== undefined) {
+      filtersApplied.push('min_uptime_filter');
+      filtered = filtered.filter(server => 
+        server.health.uptime_percentage >= request.min_uptime!
+      );
+    }
+
+    if (request.max_response_time !== undefined) {
+      filtersApplied.push('max_response_time_filter');
+      filtered = filtered.filter(server => 
+        server.health.avg_response_time_ms <= request.max_response_time!
+      );
+    }
+
+    // Filter out unhealthy servers by default
+    filtersApplied.push('health_status_filter');
+    filtered = filtered.filter(server => 
+      server.health.status !== 'down'
+    );
+
+    return filtered;
+  }
+
+  private sortResults(servers: MCPServerRecord[], sortBy: string): MCPServerRecord[] {
+    switch (sortBy) {
+      case 'uptime':
+        return servers.sort((a, b) => b.health.uptime_percentage - a.health.uptime_percentage);
+      
+      case 'response_time':
+        return servers.sort((a, b) => a.health.avg_response_time_ms - b.health.avg_response_time_ms);
+      
+      case 'created_at':
+        return servers.sort((a, b) => 
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+      
+      case 'relevance':
+      default:
+        // TODO: Implement proper relevance scoring
+        return servers.sort((a, b) => {
+          // Simple relevance: verified > unverified, healthy > unhealthy
+          const aScore = (a.verification.dns_verified ? 2 : 0) + 
+                        (a.health.status === 'healthy' ? 1 : 0);
+          const bScore = (b.verification.dns_verified ? 2 : 0) + 
+                        (b.health.status === 'healthy' ? 1 : 0);
+          return bScore - aScore;
+        });
+    }
+  }
+
+  private async enhanceResults(servers: MCPServerRecord[], request: DiscoveryRequest): Promise<MCPServerRecord[]> {
+    // Enhance with real-time health data if requested
+    if (request.include_health) {
+      const healthPromises = servers.map(async server => {
+        try {
+          const realtimeHealth = await this.healthService.checkServerHealth(server.endpoint);
+          return {
+            ...server,
+            health: realtimeHealth
+          };
+        } catch {
+          // Keep existing health data if real-time check fails
+          return server;
+        }
+      });
+
+      return await Promise.all(healthPromises);
+    }
+
+    return servers;
+  }
+
+  private deduplicateServers(servers: MCPServerRecord[]): MCPServerRecord[] {
+    const seen = new Set<string>();
+    return servers.filter(server => {
+      if (seen.has(server.domain)) {
+        return false;
+      }
+      seen.add(server.domain);
+      return true;
+    });
+  }
+
+  private async generateSuggestions(request: DiscoveryRequest): Promise<string[]> {
+    const suggestions: string[] = [];
+
+    if (request.intent) {
+      // Suggest related intents
+      const relatedIntents = await this.intentService.getSimilarIntents(request.intent);
+      suggestions.push(...relatedIntents.map(intent => `Try: "${intent}"`));
+    }
+
+    if (request.capability) {
+      // Suggest related capabilities  
+      const relatedCapabilities = await this.registryService.getRelatedCapabilities(request.capability);
+      suggestions.push(...relatedCapabilities.map(cap => `Try capability: "${cap}"`));
+    }
+
+    if (request.category) {
+      // Suggest other categories
+      suggestions.push("Try other categories: communication, productivity, data");
+    }
+
+    return suggestions.slice(0, 3); // Limit to 3 suggestions
+  }
+}
+
+// ============================================================================
+// SERVICE INTERFACES (Pluggable Architecture)
+// ============================================================================
+
+export interface IRegistryService {
+  getServersByDomain(domain: string): Promise<MCPServerRecord[]>;
+  getServersByCapability(capability: string): Promise<MCPServerRecord[]>;
+  getServersByCategory(category: CapabilityCategory): Promise<MCPServerRecord[]>;
+  searchServers(keywords: string[]): Promise<MCPServerRecord[]>;
+  getAllVerifiedServers(): Promise<MCPServerRecord[]>;
+  getRelatedCapabilities(capability: string): Promise<string[]>;
+}
+
+export interface IHealthService {
+  checkServerHealth(endpoint: string): Promise<import('../schemas/discovery.js').HealthMetrics>;
+  batchHealthCheck(endpoints: string[]): Promise<Map<string, import('../schemas/discovery.js').HealthMetrics>>;
+}
+
+export interface IIntentService {
+  intentToCapabilities(intent: string): Promise<string[]>;
+  getSimilarIntents(intent: string): Promise<string[]>;
+}
