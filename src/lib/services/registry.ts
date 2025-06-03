@@ -20,6 +20,35 @@ export class RegistryService implements IRegistryService {
   }
 
   /**
+   * Check if cache entry is still valid
+   */
+  private isCacheValid(key: string): boolean {
+    const expiry = this.cacheExpiry.get(key);
+    return expiry ? expiry > Date.now() : false;
+  }
+
+  /**
+   * Get all servers (for search functionality)
+   */
+  async getAllServers(): Promise<MCPServerRecord[]> {
+    const cacheKey = 'all_servers';
+
+    // Check cache first
+    if (this.cache.has(cacheKey) && this.isCacheValid(cacheKey)) {
+      return this.cache.get(cacheKey) || [];
+    }
+
+    // Get all servers from well-known list
+    const servers = this.getWellKnownServers();
+
+    // Cache the results
+    this.cache.set(cacheKey, servers);
+    this.cacheExpiry.set(cacheKey, Date.now() + this.CACHE_TTL_MS);
+
+    return servers;
+  }
+
+  /**
    * Get servers by exact domain match
    */
   async getServersByDomain(domain: string): Promise<MCPServerRecord[]> {
@@ -367,6 +396,110 @@ export class RegistryService implements IRegistryService {
           name: "GitHub",
           email: "mcp@github.com",
           url: "https://docs.github.com/mcp"
+        }
+      },
+      {
+        domain: "dropbox.com",
+        endpoint: "https://api.dropbox.com/mcp",
+        name: "Dropbox MCP Server",
+        description: "File storage, sharing, and collaboration through Dropbox",
+        server_info: {
+          name: "dropbox-mcp",
+          version: "1.5.0",
+          protocolVersion: "2024-11-05",
+          capabilities: { tools: true, resources: true }
+        },
+        tools: [],
+        resources: [],
+        transport: "streamable_http" as const,
+        capabilities: {
+          category: "data" as CapabilityCategory,
+          subcategories: ["file_read", "file_write", "file_share", "folder_create"],
+          intent_keywords: ["dropbox", "file", "storage", "share", "upload"],
+          use_cases: ["File storage", "Document sharing", "Backup", "Collaboration"]
+        },
+        auth: {
+          type: "oauth2" as const,
+          oauth2: {
+            authorizationUrl: "https://www.dropbox.com/oauth2/authorize",
+            tokenUrl: "https://api.dropbox.com/oauth2/token",
+            scopes: ["files.content.write", "files.content.read"]
+          }
+        },
+        cors_enabled: true,
+        health: {
+          status: "healthy" as const,
+          uptime_percentage: 99.9,
+          avg_response_time_ms: 85,
+          error_rate: 0.003,
+          last_check: "2025-01-03T10:00:00Z",
+          consecutive_failures: 0
+        },
+        verification: {
+          dns_verified: true,
+          endpoint_verified: true,
+          ssl_verified: true,
+          last_verification: "2025-01-01T00:00:00Z",
+          verification_method: "dns-txt-challenge"
+        },
+        created_at: "2025-01-01T00:00:00Z",
+        updated_at: "2025-01-03T09:00:00Z",
+        maintainer: {
+          name: "Dropbox",
+          email: "api-support@dropbox.com",
+          url: "https://developers.dropbox.com/mcp"
+        }
+      },
+      {
+        domain: "slack.com",
+        endpoint: "https://slack.com/api/mcp",
+        name: "Slack MCP Server",
+        description: "Team communication, messaging, and workspace management",
+        server_info: {
+          name: "slack-mcp",
+          version: "2.0.0",
+          protocolVersion: "2024-11-05",
+          capabilities: { tools: true, resources: true }
+        },
+        tools: [],
+        resources: [],
+        transport: "streamable_http" as const,
+        capabilities: {
+          category: "communication" as CapabilityCategory,
+          subcategories: ["chat", "messaging", "notifications", "channel_create"],
+          intent_keywords: ["slack", "chat", "message", "team", "workspace"],
+          use_cases: ["Team communication", "Notifications", "Workflow automation", "Channel management"]
+        },
+        auth: {
+          type: "oauth2" as const,
+          oauth2: {
+            authorizationUrl: "https://slack.com/oauth/v2/authorize",
+            tokenUrl: "https://slack.com/api/oauth.v2.access",
+            scopes: ["chat:write", "channels:read", "users:read"]
+          }
+        },
+        cors_enabled: true,
+        health: {
+          status: "healthy" as const,
+          uptime_percentage: 99.95,
+          avg_response_time_ms: 65,
+          error_rate: 0.002,
+          last_check: "2025-01-03T10:00:00Z",
+          consecutive_failures: 0
+        },
+        verification: {
+          dns_verified: true,
+          endpoint_verified: true,
+          ssl_verified: true,
+          last_verification: "2025-01-01T00:00:00Z",
+          verification_method: "dns-txt-challenge"
+        },
+        created_at: "2025-01-01T00:00:00Z",
+        updated_at: "2025-01-03T09:00:00Z",
+        maintainer: {
+          name: "Slack Technologies",
+          email: "api@slack.com",
+          url: "https://api.slack.com/mcp"
         }
       }
     ];

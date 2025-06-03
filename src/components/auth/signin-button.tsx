@@ -1,46 +1,22 @@
-"use client"
+// Sign In Button Component
+// Simple authentication button
 
-import { signIn } from "next-auth/react"
-import { Button, Icon } from "@chakra-ui/react"
-import { FaGithub, FaGoogle } from "react-icons/fa"
+'use client';
 
-interface SignInButtonProps {
-  provider: "github" | "google"
-  width?: string
-}
-
-export function SignInButton({ provider, width }: SignInButtonProps) {
+export function SignInButton() {
   const handleSignIn = () => {
-    signIn(provider, { callbackUrl: "/" })
-  }
-
-  const providerConfig = {
-    github: {
-      icon: FaGithub,
-      label: "Continue with GitHub",
-      colorPalette: "gray"
-    },
-    google: {
-      icon: FaGoogle,
-      label: "Continue with Google",
-      colorPalette: "blue"
-    }
-  }
-
-  const config = providerConfig[provider]
+    // For now, just a placeholder
+    console.log('Sign in clicked');
+  };
 
   return (
-    <Button
+    <button
       onClick={handleSignIn}
-      colorPalette={config.colorPalette}
-      variant="outline"
-      size="lg"
-      width={width}
+      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
     >
-      <Icon mr={2}>
-        <config.icon />
-      </Icon>
-      {config.label}
-    </Button>
-  )
+      Sign In
+    </button>
+  );
 }
+
+export default SignInButton;

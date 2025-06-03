@@ -58,6 +58,14 @@ export class HealthService implements IHealthService {
   }
 
   /**
+   * Check multiple servers (alias for batchHealthCheck)
+   */
+  async checkMultipleServers(endpoints: string[]): Promise<{ endpoint: string; health: HealthMetrics }[]> {
+    const results = await this.batchHealthCheck(endpoints);
+    return Array.from(results.entries()).map(([endpoint, health]) => ({ endpoint, health }));
+  }
+
+  /**
    * Batch health check for multiple endpoints
    */
   async batchHealthCheck(endpoints: string[]): Promise<Map<string, HealthMetrics>> {

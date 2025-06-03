@@ -50,7 +50,7 @@ export async function GET(
     // Additional health checks
     const capabilitiesWorking = await checkCapabilities(server.endpoint);
     const sslValid = await checkSSL(server.endpoint);
-    
+
     const response = {
       domain: server.domain,
       endpoint: server.endpoint,
@@ -90,80 +90,96 @@ export async function OPTIONS() {
   });
 }
 
-// ========================================================================
-// HELPER FUNCTIONS
-// ========================================================================
-
+/**
+ * Check if server capabilities are working
+ */
 async function checkCapabilities(endpoint: string): Promise<boolean> {
   try {
-    const response = await fetch(endpoint, {
+    const response = await fetch(`${endpoint}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({
         jsonrpc: '2.0',
-        id: 'capability-check',
+        id: 1,
         method: 'tools/list',
         params: {}
-      })
+      }),
+      signal: AbortSignal.timeout(5000) // 5 second timeout
     });
 
-    if (!response.ok) return false;
+    if (!response.ok) {
+      return false;
+    }
 
     const data = await response.json();
-    return data.jsonrpc === '2.0' && data.result && Array.isArray(data.result.tools);
-
-  } catch {
+    return data.result && Array.isArray(data.result.tools);
+  } catch (error) {
+    console.warn('Capability check failed:', error);
     return false;
   }
 }
 
+/**
+ * Check SSL certificate validity
+ */
 async function checkSSL(endpoint: string): Promise<boolean> {
   try {
     const url = new URL(endpoint);
 
+    // Only check HTTPS endpoints
     if (url.protocol !== 'https:') {
       return false;
     }
 
+    // Simple SSL check by making a request
     const response = await fetch(endpoint, {
       method: 'HEAD',
       signal: AbortSignal.timeout(5000)
     });
 
-    return response.status < 500;
-
-  } catch {
+    // If we can make the request without SSL errors, SSL is valid
+    return true;
+  } catch (error) {
+    // SSL errors will cause fetch to fail
+    console.warn('SSL check failed:', error);
     return false;
   }
 }
 
+/**
+ * Calculate overall trust score
+ */
 function calculateTrustScore(
-  health: any,
+  healthMetrics: any,
   capabilitiesWorking: boolean,
   sslValid: boolean,
-  verified: boolean
+  dnsVerified: boolean
 ): number {
   let score = 0;
 
-  // Base score for verification
-  if (verified) score += 40;
+  // DNS verification (40 points)
+  if (dnsVerified) score += 40;
 
-  // Health-based scoring
-  switch (health.status) {
-    case 'healthy': score += 30; break;
-    case 'degraded': score += 15; break;
-    case 'down': score += 0; break;
-    default: score += 10;
-  }
+  // Health status (25 points)
+  if (healthMetrics?.status === 'healthy') score += 25;
+  else if (healthMetrics?.status === 'degraded') score += 15;
+  else if (healthMetrics?.status === 'unhealthy') score += 5;
 
-  // Uptime scoring
-  score += Math.min(health.uptime_percentage * 0.2, 20);
+  // SSL validity (20 points)
+  if (sslValid) score += 20;
 
-  // SSL scoring
-  if (sslValid) score += 5;
+  // Capabilities working (10 points)
+  if (capabilitiesWorking) score += 10;
 
-  // Capabilities scoring
-  if (capabilitiesWorking) score += 5;
+  // Response time bonus (5 points)
+  const responseTime = healthMetrics?.response_time_ms || 1000;
+  if (responseTime < 100) score += 5;
+  else if (responseTime < 500) score += 3;
+  else if (responseTime < 1000) score += 1;
 
-  return Math.min(Math.round(score), 100);
+  return Math.min(score, 100);
 }
+
+

@@ -83,17 +83,21 @@ export async function GET(
       );
     }
 
-    // TODO: Implement challenge status lookup
-    const mockStatus = {
-      challenge_id: challengeId,
-      domain: 'example.com',
-      status: 'pending' as const,
-      expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-      txt_record_name: '_mcplookup-verify.example.com',
-      txt_record_value: 'mcplookup-verify=abc123def456'
-    };
+    // Initialize verification service
+    const { createVerificationService } = await import('@/lib/services');
+    const verificationService = createVerificationService();
 
-    return NextResponse.json(mockStatus, {
+    // Get challenge status
+    const challenge = await verificationService.getChallengeStatus(challengeId);
+
+    if (!challenge) {
+      return NextResponse.json(
+        { error: 'Challenge not found or expired' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(challenge, {
       headers: {
         'Cache-Control': 'public, s-maxage=60',
         'Access-Control-Allow-Origin': '*',

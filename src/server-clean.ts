@@ -450,6 +450,10 @@ export function createMCPLookupServer(): MCPLookupServer {
     
     async generateVerificationRecord(domain: string, token: string): Promise<string> {
       return `v=mcp1 domain=${domain} token=${token}`;
+    },
+
+    async getChallengeStatus(challengeId: string): Promise<VerificationChallenge | null> {
+      return null; // Mock: no challenges found
     }
   };
 

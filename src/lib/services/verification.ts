@@ -10,6 +10,7 @@ export interface IVerificationService {
   verifyDNSChallenge(challengeId: string): Promise<boolean>;
   verifyMCPEndpoint(endpoint: string): Promise<boolean>;
   generateVerificationRecord(domain: string, token: string): Promise<string>;
+  getChallengeStatus(challengeId: string): Promise<VerificationChallenge | null>;
 }
 
 /**
@@ -24,7 +25,7 @@ export class VerificationService implements IVerificationService {
     '208.67.222.222'  // OpenDNS
   ];
 
-  private readonly VERIFICATION_PREFIX = '_mcp-verify';
+  private readonly VERIFICATION_PREFIX = '_mcplookup-verify';
   private readonly TOKEN_TTL_HOURS = 24;
   
   private storageService: IVerificationStorage;
@@ -140,6 +141,41 @@ export class VerificationService implements IVerificationService {
     // Format: v=mcp1 domain=example.com token=abc123 timestamp=1234567890
     const timestamp = Math.floor(Date.now() / 1000);
     return `v=mcp1 domain=${domain} token=${token} timestamp=${timestamp}`;
+  }
+
+  /**
+   * Get challenge status by ID
+   */
+  async getChallengeStatus(challengeId: string): Promise<VerificationChallenge | null> {
+    try {
+      const challengeData = await this.storageService.getChallenge(challengeId);
+
+      if (!challengeData) {
+        return null;
+      }
+
+      // Check if challenge has expired
+      const expiresAt = new Date(challengeData.expires_at);
+      if (expiresAt < new Date()) {
+        await this.storageService.deleteChallenge(challengeId);
+        return null;
+      }
+
+      // Return the challenge without sensitive data
+      return {
+        challenge_id: challengeData.challenge_id,
+        domain: challengeData.domain,
+        txt_record_name: challengeData.txt_record_name,
+        txt_record_value: challengeData.txt_record_value,
+        expires_at: challengeData.expires_at,
+        instructions: challengeData.instructions,
+        status: challengeData.verified_at ? 'verified' : 'pending'
+      };
+
+    } catch (error) {
+      console.error('Error getting challenge status:', error);
+      return null;
+    }
   }
 
   // ========================================================================

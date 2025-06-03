@@ -262,7 +262,8 @@ export const VerificationChallengeSchema = z.object({
   txt_record_name: z.string().describe("DNS TXT record name to create"),
   txt_record_value: z.string().describe("DNS TXT record value to set"),
   expires_at: z.string().datetime().describe("Challenge expiration time"),
-  instructions: z.string().describe("Human-readable setup instructions")
+  instructions: z.string().describe("Human-readable setup instructions"),
+  status: z.enum(['pending', 'verified', 'failed', 'expired']).optional().describe("Challenge status")
 });
 
 // ============================================================================
