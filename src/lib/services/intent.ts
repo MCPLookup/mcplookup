@@ -146,12 +146,14 @@ export class IntentService implements IIntentService {
 
     this.intentPatterns.set('calendar_create', [
       'create event', 'schedule meeting', 'add calendar', 'book appointment',
-      'create appointment', 'schedule event', 'add meeting', 'calendar entry'
+      'create appointment', 'schedule event', 'add meeting', 'calendar entry',
+      'manage calendar', 'calendar management', 'organize calendar'
     ]);
 
     this.intentPatterns.set('calendar_read', [
       'check calendar', 'view calendar', 'see schedule', 'check schedule',
-      'calendar events', 'upcoming meetings', 'my schedule'
+      'calendar events', 'upcoming meetings', 'my schedule',
+      'manage calendar', 'calendar management'
     ]);
 
     this.intentPatterns.set('file_read', [

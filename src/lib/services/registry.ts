@@ -58,12 +58,22 @@ export class RegistryService implements IRegistryService {
     const cached = this.getCachedResult(cacheKey);
     if (cached) return cached;
 
-    // Try well-known endpoint discovery
-    const servers = await this.discoverWellKnownEndpoint(domain);
+    // First check existing verified servers
+    const allServers = await this.getAllVerifiedServers();
+    const existingServers = allServers.filter(server => server.domain === domain);
+
+    // If we found existing servers, return them
+    if (existingServers.length > 0) {
+      this.setCachedResult(cacheKey, existingServers);
+      return existingServers;
+    }
+
+    // Otherwise, try well-known endpoint discovery
+    const discoveredServers = await this.discoverWellKnownEndpoint(domain);
     
     // Cache and return
-    this.setCachedResult(cacheKey, servers);
-    return servers;
+    this.setCachedResult(cacheKey, discoveredServers);
+    return discoveredServers;
   }
 
   /**
