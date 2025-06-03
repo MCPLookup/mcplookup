@@ -80,9 +80,10 @@ export const AuthConfigSchema = z.object({
  * Justified: Agents need to select reliable servers
  */
 export const HealthMetricsSchema = z.object({
-  status: z.enum(['healthy', 'degraded', 'down', 'unknown']).describe("Current operational status"),
+  status: z.enum(['healthy', 'degraded', 'unhealthy', 'unknown']).describe("Current operational status"),
   uptime_percentage: z.number().min(0).max(100).describe("Uptime over last 30 days"),
   avg_response_time_ms: z.number().min(0).describe("Average response time in milliseconds"),
+  response_time_ms: z.number().min(0).describe("Current response time in milliseconds").optional(),
   error_rate: z.number().min(0).max(1).describe("Error rate over last 24 hours"),
   last_check: z.string().datetime().describe("ISO 8601 timestamp of last health check"),
   consecutive_failures: z.number().min(0).describe("Current consecutive failed checks")
