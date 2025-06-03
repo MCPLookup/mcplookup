@@ -75,9 +75,9 @@ This repository contains **THE MCP server that discovers all other MCP servers**
 ### Core Components
 
 1. **MCP Server**: The "One Ring" that provides discovery tools to AI agents
-2. **REST API**: HTTP endpoints for registration and discovery  
+2. **REST API**: HTTP endpoints for registration and discovery
 3. **DNS Verification**: Cryptographic proof of domain ownership
-4. **Registry Database**: Global directory of MCP servers
+4. **Serverless Registry**: In-memory directory with external API integration
 5. **Health Monitoring**: Real-time server status and performance
 
 ---
@@ -85,38 +85,40 @@ This repository contains **THE MCP server that discovers all other MCP servers**
 ## 🔧 **INSTALLATION**
 
 ### Prerequisites
-- Node.js 18+ 
-- PostgreSQL 15+
-- Redis 7+
-- Docker (optional)
+- Node.js 20+
+- No database required (serverless architecture)
 
 ### Local Development
 ```bash
 # Clone the repository
-git clone https://github.com/mcplookup/registry.git
-cd registry
+git clone https://github.com/TSavo/mcplookup.org.git
+cd mcplookup.org
 
 # Install dependencies
 npm install
 
-# Set up environment
+# Set up environment (optional)
 cp .env.example .env
-# Edit .env with your configuration
-
-# Run database migrations
-npm run migrate
+# Edit .env with your configuration if needed
 
 # Start development server
 npm run dev
+
+# Or run the MCP server directly
+npm run dev:mcp
 ```
 
-### Docker Deployment
+### Vercel Deployment
 ```bash
-# Start all services
-docker-compose up -d
+# Deploy to Vercel
+npm run build
+vercel --prod
+
+# Or use Vercel CLI
+vercel deploy --prod
 
 # The MCP server will be available at:
-# http://localhost:3000/mcp
+# https://your-app.vercel.app/api/mcp
 ```
 
 ---
@@ -295,32 +297,26 @@ The server includes sample MCP servers for demonstration:
 
 ## 🚀 **DEPLOYMENT**
 
-### Production Environment
+### Vercel (Recommended)
 ```bash
-# Build production image
-docker build -t mcplookup/registry:latest .
+# Install Vercel CLI
+npm i -g vercel
 
-# Deploy with compose
-docker-compose -f docker-compose.prod.yml up -d
-```
+# Deploy to production
+vercel --prod
 
-### Kubernetes
-```bash
-# Apply manifests
-kubectl apply -f k8s/
+# Set environment variables
+vercel env add DNS_RESOLVER_URL
+vercel env add HEALTH_CHECK_TIMEOUT
 ```
 
 ### Environment Variables
 ```bash
-# Required
-DATABASE_URL=postgresql://user:pass@host:5432/db
-REDIS_URL=redis://host:6379
-JWT_SECRET=your-secret-key
-
-# Optional
-DNS_RESOLVER=8.8.8.8
-HEALTH_CHECK_INTERVAL_MS=300000
-ENABLE_ANALYTICS=true
+# Optional (serverless architecture)
+DNS_RESOLVER_URL=https://cloudflare-dns.com/dns-query
+HEALTH_CHECK_TIMEOUT=5000
+VERIFICATION_TOKEN_TTL=86400
+NEXT_PUBLIC_APP_URL=https://mcplookup.org
 ```
 
 ---
@@ -352,11 +348,14 @@ curl http://localhost:3000/metrics
 # Unit tests
 npm test
 
-# Integration tests  
-npm run test:integration
+# Type checking
+npm run type-check
 
-# Load tests
-npm run test:load
+# Linting
+npm run lint
+
+# Build test
+npm run build
 ```
 
 ### Test Coverage

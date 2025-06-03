@@ -28,7 +28,7 @@ export class HealthService implements IHealthService {
         return {
           status: 'healthy',
           uptime_percentage: 99.0, // Would be calculated from historical data
-          response_time_ms: responseTime,
+          avg_response_time_ms: responseTime,
           error_rate: 0.01, // Would be calculated from historical data
           last_check: new Date().toISOString(),
           consecutive_failures: 0
@@ -37,7 +37,7 @@ export class HealthService implements IHealthService {
         return {
           status: 'degraded',
           uptime_percentage: 95.0,
-          response_time_ms: responseTime,
+          avg_response_time_ms: responseTime,
           error_rate: 0.05,
           last_check: new Date().toISOString(),
           consecutive_failures: 1

@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { ClientProviders } from "@/components/providers/client-providers"
+import "./globals.css"
 
 export const metadata: Metadata = {
   title: "MCPLookup.org - Universal MCP Discovery Service",
