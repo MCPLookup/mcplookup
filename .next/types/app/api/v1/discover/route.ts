@@ -1,4 +1,4 @@
-// File: C:\Users\T\Projects\mcplookup.org\src\app\api\v1\discover\route.ts
+// File: /mnt/persist/workspace/src/app/api/v1/discover/route.ts
 import * as entry from '../../../../../../src/app/api/v1/discover/route.js'
 import type { NextRequest } from 'next/server.js'
 

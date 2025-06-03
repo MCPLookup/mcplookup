@@ -96,117 +96,16 @@ export async function GET(request: NextRequest) {
     };
 
     // Validate request
-    const discoveryRequest = DiscoveryRequestSchema.parse(queryParams);
-    
-    // TODO: Implement actual discovery service
-    // For now, return mock data
-    const mockResponse = {
-      servers: [
-        {
-          domain: "gmail.com",
-          endpoint: "https://gmail.com/api/mcp",
-          name: "Gmail MCP Server",
-          description: "Access and manage Gmail emails, compose messages, and handle attachments",
-          server_info: {
-            name: "gmail-mcp",
-            version: "2.1.0",
-            protocolVersion: "2024-11-05",
-            capabilities: {
-              tools: true,
-              resources: true
-            }
-          },
-          tools: [
-            {
-              name: "list_emails",
-              description: "List emails from Gmail inbox",
-              inputSchema: {
-                type: "object",
-                properties: {
-                  limit: { type: "number", default: 10 },
-                  query: { type: "string", description: "Search query" }
-                }
-              }
-            },
-            {
-              name: "send_email",
-              description: "Send an email through Gmail",
-              inputSchema: {
-                type: "object",
-                properties: {
-                  to: { type: "string", format: "email" },
-                  subject: { type: "string" },
-                  body: { type: "string" }
-                },
-                required: ["to", "subject", "body"]
-              }
-            }
-          ],
-          resources: [
-            {
-              uri: "gmail://emails/inbox",
-              name: "Inbox Emails",
-              description: "Current inbox emails",
-              mimeType: "application/json"
-            }
-          ],
-          transport: "streamable_http" as const,
-          capabilities: {
-            category: "communication" as const,
-            subcategories: ["email", "messaging"],
-            intent_keywords: ["email", "message", "send", "inbox", "gmail"],
-            use_cases: ["Send emails", "Read inbox", "Email management"]
-          },
-          auth: {
-            type: "oauth2" as const,
-            oauth2: {
-              authorizationUrl: "https://accounts.google.com/oauth2/auth",
-              tokenUrl: "https://oauth2.googleapis.com/token",
-              scopes: ["https://www.googleapis.com/auth/gmail.modify"]
-            }
-          },
-          cors_enabled: true,
-          health: {
-            status: "healthy" as const,
-            uptime_percentage: 99.9,
-            avg_response_time_ms: 150,
-            error_rate: 0.001,
-            last_check: new Date().toISOString(),
-            consecutive_failures: 0
-          },
-          verification: {
-            dns_verified: true,
-            endpoint_verified: true,
-            ssl_verified: true,
-            last_verification: new Date().toISOString(),
-            verification_method: "dns-txt-challenge",
-            dns_record: "_mcp-verify.gmail.com TXT \"v=mcp1 domain=gmail.com token=verified\""
-          },
-          created_at: "2024-01-15T10:30:00Z",
-          updated_at: new Date().toISOString(),
-          maintainer: {
-            name: "Google",
-            url: "https://developers.google.com"
-          }
-        }
-      ],
-      pagination: {
-        total_count: 1,
-        returned_count: 1,
-        offset: 0,
-        has_more: false
-      },
-      query_metadata: {
-        query_time_ms: 45,
-        cache_hit: false,
-        filters_applied: discoveryRequest.domain ? ['domain_exact'] : ['all_verified']
-      }
-    };
+    const validatedRequest = DiscoveryRequestSchema.parse(queryParams);
 
-    // Validate response
-    const validatedResponse = DiscoveryResponseSchema.parse(mockResponse);
-    
-    return NextResponse.json(validatedResponse, {
+    // Initialize services using factory
+    const { getServerlessServices } = await import('@/lib/services');
+    const { discovery } = getServerlessServices();
+
+    // Perform discovery
+    const discoveryResponse = await discovery.discoverServers(validatedRequest);
+
+    return NextResponse.json(discoveryResponse, {
       headers: {
         'Cache-Control': 'public, s-maxage=60', // Cache for 1 minute
         'Access-Control-Allow-Origin': '*',
@@ -217,7 +116,7 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('Discovery API error:', error);
-    
+
     if (error instanceof Error && error.name === 'ZodError') {
       return NextResponse.json(
         { error: 'Invalid request parameters', details: error.message },
@@ -231,6 +130,8 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+
 
 export async function OPTIONS() {
   return new NextResponse(null, {

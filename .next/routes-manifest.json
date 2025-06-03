@@ -13,7 +13,24 @@
     }
   ],
   "headers": [],
-  "dynamicRoutes": [],
+  "dynamicRoutes": [
+    {
+      "page": "/api/v1/health/[domain]",
+      "regex": "^/api/v1/health/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPdomain": "nxtPdomain"
+      },
+      "namedRegex": "^/api/v1/health/(?<nxtPdomain>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/v1/register/verify/[id]",
+      "regex": "^/api/v1/register/verify/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/v1/register/verify/(?<nxtPid>[^/]+?)(?:/)?$"
+    }
+  ],
   "staticRoutes": [],
   "dataRoutes": [],
   "rsc": {

@@ -269,23 +269,27 @@ async function handleToolsCall(params: any) {
   
   switch (name) {
     case 'discover_mcp_servers':
-      // Forward to REST API
-      const searchParams = new URLSearchParams();
-      
-      if (args.domain) searchParams.set('domain', args.domain);
-      if (args.capability) searchParams.set('capability', args.capability);
-      if (args.category) searchParams.set('category', args.category);
-      if (args.intent) searchParams.set('intent', args.intent);
-      if (args.keywords) searchParams.set('keywords', args.keywords.join(','));
-      if (args.limit) searchParams.set('limit', args.limit.toString());
-      
-      // In a real implementation, this would be an internal call
-      const apiUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/v1/discover?${searchParams}`;
-      
+      // Use discovery service via factory
+      const { getServerlessServices } = await import('@/lib/services');
+      const { discovery } = getServerlessServices();
+
       try {
-        const response = await fetch(apiUrl);
-        const data = await response.json();
-        
+        const discoveryRequest = {
+          domain: args.domain,
+          capability: args.capability,
+          category: args.category,
+          intent: args.intent,
+          keywords: args.keywords,
+          limit: args.limit || 10,
+          offset: 0,
+          include_health: true,
+          include_tools: true,
+          include_resources: false,
+          sort_by: 'relevance' as const
+        };
+
+        const data = await discovery.discoverServers(discoveryRequest);
+
         return {
           content: [
             {
@@ -299,24 +303,63 @@ async function handleToolsCall(params: any) {
       }
       
     case 'register_mcp_server':
-      return {
-        content: [
-          {
-            type: 'text',
-            text: `DNS verification challenge created for ${args.domain}.\n\nTo verify ownership, add this DNS TXT record:\n\nName: _mcp-verify.${args.domain}\nValue: v=mcp1 domain=${args.domain} token=abc123 timestamp=1234567890\n\nChallenge ID: 123e4567-e89b-12d3-a456-426614174000\nExpires: ${new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()}`
-          }
-        ]
-      };
+      const { createVerificationService } = await import('@/lib/services');
+      const verificationService = createVerificationService();
+
+      try {
+        const registrationRequest = {
+          domain: args.domain,
+          endpoint: args.endpoint,
+          name: args.name || `${args.domain} MCP Server`,
+          description: args.description || `MCP server for ${args.domain}`,
+          contact_email: args.contact_email,
+          documentation_url: args.documentation_url,
+          source_code_url: args.source_code_url
+        };
+
+        const challenge = await verificationService.initiateDNSVerification(registrationRequest);
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `DNS verification challenge created for ${args.domain}.\n\n${challenge.instructions}\n\nChallenge ID: ${challenge.challenge_id}\nExpires: ${challenge.expires_at}`
+            }
+          ]
+        };
+      } catch (error) {
+        throw new Error(`Registration failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
       
     case 'verify_domain_ownership':
-      return {
-        content: [
-          {
-            type: 'text',
-            text: '❌ Domain verification failed. Please ensure the DNS record is properly configured and try again.'
-          }
-        ]
-      };
+      const { createVerificationService: createVerificationService2 } = await import('@/lib/services');
+      const verificationService2 = createVerificationService2();
+
+      try {
+        const verified = await verificationService2.verifyDNSChallenge(args.challenge_id);
+
+        if (verified) {
+          return {
+            content: [
+              {
+                type: 'text',
+                text: '✅ Domain verification successful! Your MCP server has been registered and is now discoverable.'
+              }
+            ]
+          };
+        } else {
+          return {
+            content: [
+              {
+                type: 'text',
+                text: '❌ Domain verification failed. Please ensure the DNS record is properly configured and try again.'
+              }
+            ]
+          };
+        }
+      } catch (error) {
+        throw new Error(`Verification failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
       
     default:
       throw new Error(`Unknown tool: ${name}`);
