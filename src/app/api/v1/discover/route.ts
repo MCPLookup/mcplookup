@@ -2,7 +2,7 @@
 // Serverless function for MCP server discovery
 
 import { NextRequest, NextResponse } from 'next/server';
-import { DiscoveryRequestSchema, DiscoveryResponseSchema } from '../../../lib/schemas/discovery';
+import { DiscoveryRequestSchema, DiscoveryResponseSchema } from '@/lib/schemas/discovery';
 
 /**
  * @swagger

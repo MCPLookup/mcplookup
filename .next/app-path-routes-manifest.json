@@ -1,0 +1,4 @@
+{
+  "/api/mcp/route": "/api/mcp",
+  "/api/v1/discover/route": "/api/v1/discover"
+}
