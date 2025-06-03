@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    appDir: true,
+    optimizePackageImports: ["@chakra-ui/react"],
   },
   // Enable TypeScript path mapping
   webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
