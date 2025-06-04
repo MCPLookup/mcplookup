@@ -126,7 +126,7 @@ export const AnimatedCard = React.forwardRef<HTMLDivElement, AnimatedCardProps>(
 
         <ChakraCard.Root
           bg="white"
-          _dark={{
+          _dark={{ 
             bg: "gray.800",
             borderColor: borderOnHover && isHovered ? "blue.400" : "gray.700"
           }}

@@ -42,7 +42,7 @@ export const Toaster = () => {
             <Toast.Root
               width={{ md: "sm" }}
               bg="white"
-              _dark={{
+              _dark={{ 
                 bg: "gray.800",
                 borderColor: "gray.700"
               }}
@@ -215,17 +215,4 @@ export const createAnimatedToast = {
       duration: undefined, // Persist until manually closed
       closable: false,
     }),
-}
-
-// Hook for using toasts
-export const useToast = () => createAnimatedToast
-
-// Provider component for compatibility
-export const ToasterProvider = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <>
-      {children}
-      <Toaster />
-    </>
-  )
 }

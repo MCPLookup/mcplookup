@@ -80,10 +80,10 @@ export function LoadingOverlay({
           </Text>
           {showProgress && progress !== undefined && (
             <Box width="200px">
-              <Box bg="gray.200" rounded="full" height="8px" overflow="hidden">
-                <Box
-                  bg="blue.500"
-                  height="100%"
+              <Box bg="gray.200" height="8px" rounded="md" overflow="hidden">
+                <Box 
+                  bg="blue.500" 
+                  height="100%" 
                   width={`${progress}%`}
                   transition="width 0.3s ease"
                 />
@@ -345,10 +345,10 @@ export function ProgressiveLoading({
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
     >
-      <Box bg="gray.200" rounded="full" height="8px" overflow="hidden">
-        <Box
+      <Box bg="gray.200" height="8px" rounded="md" overflow="hidden" width="100%">
+        <Box 
           bg={completed ? "green.500" : "blue.500"}
-          height="100%"
+          height="100%" 
           width={`${completed ? 100 : (currentStep / steps.length) * 100}%`}
           transition="width 0.3s ease"
         />
