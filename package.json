@@ -1,7 +1,7 @@
 {
   "name": "mcplookup-registry",
   "version": "1.0.0",
-  "description": "The One Ring MCP Server - Universal MCP Discovery Service (Serverless, No Database)",
+  "description": "The One Ring MCP Server - Universal MCP Discovery Service with Flexible Storage Architecture",
   "main": "dist/server.js",
   "type": "module",
   "scripts": {
@@ -11,6 +11,7 @@
     "dev:mcp": "tsx watch src/server.ts",
     "test": "jest",
     "test:watch": "jest --watch",
+    "test:storage": "tsx scripts/test-storage.ts",
     "lint": "eslint src/**/*.ts",
     "format": "prettier --write src/**/*.ts",
     "type-check": "tsc --noEmit",
@@ -24,11 +25,15 @@
     "registry",
     "ai-tools",
     "serverless",
-    "no-database",
-    "zero-infrastructure",
+    "storage-abstraction",
+    "redis",
+    "upstash",
     "vercel",
     "dns-verification",
-    "real-time-discovery"
+    "real-time-discovery",
+    "typescript",
+    "pagination",
+    "error-handling"
   ],
   "author": "MCPLookup.org",
   "license": "MIT",
@@ -52,6 +57,7 @@
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.57.0",
     "react-icons": "^5.5.0",
+    "redis": "^5.5.5",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-react": "^5.22.0",
     "tailwind-merge": "^2.5.6",
