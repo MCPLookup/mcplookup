@@ -17,7 +17,7 @@ import {
 import { FaSignOutAlt, FaArrowLeft, FaUser } from "react-icons/fa"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
-import { AnimatedCard } from "@/components/ui/animated-card"
+import AnimatedCard from "@/components/ui/animated-card"
 import { AnimatedButton } from "@/components/ui/animated-button"
 import { useColorModeValue } from "@/components/ui/color-mode"
 

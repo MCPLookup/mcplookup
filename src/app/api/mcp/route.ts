@@ -506,7 +506,7 @@ const handler = createMcpHandler(
                 domain: s.domain,
                 capabilities: s.capabilities,
                 trust_score: s.trust_score,
-                category: s.category
+                category: s.capabilities && typeof s.capabilities === 'object' && 'category' in s.capabilities ? s.capabilities.category : 'other'
               })),
             capability_distribution: {},
             category_distribution: {},
