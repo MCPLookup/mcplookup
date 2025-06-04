@@ -68,7 +68,8 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
               {children}
             </pre>
           ),
-          code: ({ inline, children, ...props }) => {
+          code: ({ children, ...props }: any) => {
+            const inline = 'inline' in props ? props.inline : false;
             if (inline) {
               return (
                 <code className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-sm font-mono" {...props}>
