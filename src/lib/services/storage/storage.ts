@@ -4,7 +4,13 @@
 import {
   IRegistryStorage,
   IVerificationStorage,
+  IUserStorage,
   VerificationChallengeData,
+  UserProfile,
+  UserSession,
+  UserRegistration,
+  UserQueryOptions,
+  UserStats,
   StorageResult,
   PaginatedResult,
   SearchOptions,
@@ -493,6 +499,398 @@ class InMemoryVerificationStorage implements IVerificationStorage {
 }
 
 /**
+ * In-memory user storage for development and testing
+ * Implements the full IUserStorage interface with pagination and error handling
+ */
+class InMemoryUserStorage implements IUserStorage {
+  private users = new Map<string, UserProfile>();
+  private sessions = new Map<string, UserSession>();
+  private registrations = new Map<string, UserRegistration>();
+  private emailIndex = new Map<string, string>(); // email -> userId
+  private providerIndex = new Map<string, string>(); // provider:providerId -> userId
+
+  // ==========================================================================
+  // USER PROFILE OPERATIONS
+  // ==========================================================================
+
+  async storeUser(userId: string, user: UserProfile): Promise<StorageResult<void>> {
+    try {
+      this.users.set(userId, { ...user, updated_at: new Date().toISOString() });
+      this.emailIndex.set(user.email, userId);
+      this.providerIndex.set(`${user.provider}:${user.provider_id}`, userId);
+      return createSuccessResult(undefined);
+    } catch (error) {
+      return createErrorResult(`Failed to store user: ${error}`, 'STORE_ERROR');
+    }
+  }
+
+  async getUser(userId: string): Promise<StorageResult<UserProfile | null>> {
+    try {
+      const user = this.users.get(userId) || null;
+      return createSuccessResult(user);
+    } catch (error) {
+      return createErrorResult(`Failed to get user: ${error}`, 'GET_ERROR');
+    }
+  }
+
+  async getUserByEmail(email: string): Promise<StorageResult<UserProfile | null>> {
+    try {
+      const userId = this.emailIndex.get(email);
+      if (!userId) {
+        return createSuccessResult(null);
+      }
+      const user = this.users.get(userId) || null;
+      return createSuccessResult(user);
+    } catch (error) {
+      return createErrorResult(`Failed to get user by email: ${error}`, 'GET_ERROR');
+    }
+  }
+
+  async getUserByProvider(provider: string, providerId: string): Promise<StorageResult<UserProfile | null>> {
+    try {
+      const userId = this.providerIndex.get(`${provider}:${providerId}`);
+      if (!userId) {
+        return createSuccessResult(null);
+      }
+      const user = this.users.get(userId) || null;
+      return createSuccessResult(user);
+    } catch (error) {
+      return createErrorResult(`Failed to get user by provider: ${error}`, 'GET_ERROR');
+    }
+  }
+
+  async updateUser(userId: string, updates: Partial<UserProfile>): Promise<StorageResult<void>> {
+    try {
+      const existingUser = this.users.get(userId);
+      if (!existingUser) {
+        return createErrorResult('User not found', 'NOT_FOUND');
+      }
+
+      const updatedUser = {
+        ...existingUser,
+        ...updates,
+        updated_at: new Date().toISOString()
+      };
+
+      this.users.set(userId, updatedUser);
+
+      // Update indexes if email or provider changed
+      if (updates.email && updates.email !== existingUser.email) {
+        this.emailIndex.delete(existingUser.email);
+        this.emailIndex.set(updates.email, userId);
+      }
+
+      return createSuccessResult(undefined);
+    } catch (error) {
+      return createErrorResult(`Failed to update user: ${error}`, 'UPDATE_ERROR');
+    }
+  }
+
+  async deleteUser(userId: string): Promise<StorageResult<void>> {
+    try {
+      const user = this.users.get(userId);
+      if (user) {
+        this.users.delete(userId);
+        this.emailIndex.delete(user.email);
+        this.providerIndex.delete(`${user.provider}:${user.provider_id}`);
+
+        // Delete user sessions
+        for (const [sessionId, session] of this.sessions) {
+          if (session.user_id === userId) {
+            this.sessions.delete(sessionId);
+          }
+        }
+
+        // Delete user registrations
+        for (const [regId, registration] of this.registrations) {
+          if (registration.user_id === userId) {
+            this.registrations.delete(regId);
+          }
+        }
+      }
+      return createSuccessResult(undefined);
+    } catch (error) {
+      return createErrorResult(`Failed to delete user: ${error}`, 'DELETE_ERROR');
+    }
+  }
+
+  // ==========================================================================
+  // SESSION MANAGEMENT
+  // ==========================================================================
+
+  async storeSession(sessionId: string, session: UserSession): Promise<StorageResult<void>> {
+    try {
+      this.sessions.set(sessionId, session);
+      return createSuccessResult(undefined);
+    } catch (error) {
+      return createErrorResult(`Failed to store session: ${error}`, 'STORE_ERROR');
+    }
+  }
+
+  async getSession(sessionId: string): Promise<StorageResult<UserSession | null>> {
+    try {
+      const session = this.sessions.get(sessionId) || null;
+      return createSuccessResult(session);
+    } catch (error) {
+      return createErrorResult(`Failed to get session: ${error}`, 'GET_ERROR');
+    }
+  }
+
+  async deleteSession(sessionId: string): Promise<StorageResult<void>> {
+    try {
+      this.sessions.delete(sessionId);
+      return createSuccessResult(undefined);
+    } catch (error) {
+      return createErrorResult(`Failed to delete session: ${error}`, 'DELETE_ERROR');
+    }
+  }
+
+  async deleteUserSessions(userId: string): Promise<StorageResult<void>> {
+    try {
+      for (const [sessionId, session] of this.sessions) {
+        if (session.user_id === userId) {
+          this.sessions.delete(sessionId);
+        }
+      }
+      return createSuccessResult(undefined);
+    } catch (error) {
+      return createErrorResult(`Failed to delete user sessions: ${error}`, 'DELETE_ERROR');
+    }
+  }
+
+  // ==========================================================================
+  // REGISTRATION TRACKING
+  // ==========================================================================
+
+  async storeRegistration(registrationId: string, registration: UserRegistration): Promise<StorageResult<void>> {
+    try {
+      this.registrations.set(registrationId, registration);
+      return createSuccessResult(undefined);
+    } catch (error) {
+      return createErrorResult(`Failed to store registration: ${error}`, 'STORE_ERROR');
+    }
+  }
+
+  async getRegistrationsByUser(
+    userId: string,
+    options?: UserQueryOptions
+  ): Promise<StorageResult<PaginatedResult<UserRegistration>>> {
+    try {
+      const opts = { ...options };
+      let registrations = Array.from(this.registrations.values()).filter(r => r.user_id === userId);
+
+      // Apply status filter
+      if (opts.status) {
+        registrations = registrations.filter(r => r.status === opts.status);
+      }
+
+      // Apply pagination
+      const total = registrations.length;
+      const start = opts.offset || 0;
+      const limit = opts.limit || 50;
+      const items = registrations.slice(start, start + limit);
+      const hasMore = start + limit < total;
+
+      return createSuccessResult({
+        items,
+        total,
+        hasMore,
+        nextCursor: hasMore ? String(start + limit) : undefined
+      });
+    } catch (error) {
+      return createErrorResult(`Failed to get registrations by user: ${error}`, 'GET_ERROR');
+    }
+  }
+
+  async getRegistrationsByDomain(domain: string): Promise<StorageResult<UserRegistration[]>> {
+    try {
+      const registrations = Array.from(this.registrations.values()).filter(r => r.domain === domain);
+      return createSuccessResult(registrations);
+    } catch (error) {
+      return createErrorResult(`Failed to get registrations by domain: ${error}`, 'GET_ERROR');
+    }
+  }
+
+  // ==========================================================================
+  // SEARCH & FILTERING
+  // ==========================================================================
+
+  async getAllUsers(options?: UserQueryOptions): Promise<StorageResult<PaginatedResult<UserProfile>>> {
+    try {
+      const opts = { ...options };
+      let users = Array.from(this.users.values());
+
+      // Apply filters
+      if (opts.role) {
+        users = users.filter(u => u.role === opts.role);
+      }
+      if (opts.provider) {
+        users = users.filter(u => u.provider === opts.provider);
+      }
+      if (opts.is_active !== undefined) {
+        users = users.filter(u => u.is_active === opts.is_active);
+      }
+      if (opts.email_verified !== undefined) {
+        users = users.filter(u => u.email_verified === opts.email_verified);
+      }
+
+      // Apply pagination
+      const total = users.length;
+      const start = opts.offset || 0;
+      const limit = opts.limit || 50;
+      const items = users.slice(start, start + limit);
+      const hasMore = start + limit < total;
+
+      return createSuccessResult({
+        items,
+        total,
+        hasMore,
+        nextCursor: hasMore ? String(start + limit) : undefined
+      });
+    } catch (error) {
+      return createErrorResult(`Failed to get all users: ${error}`, 'GET_ERROR');
+    }
+  }
+
+  async searchUsers(
+    query: string,
+    options?: UserQueryOptions
+  ): Promise<StorageResult<PaginatedResult<UserProfile>>> {
+    try {
+      const searchTerms = query.toLowerCase().split(/\s+/);
+      let users = Array.from(this.users.values()).filter(user => {
+        const searchText = [
+          user.name || '',
+          user.email,
+          user.provider
+        ].join(' ').toLowerCase();
+
+        return searchTerms.some(term => searchText.includes(term));
+      });
+
+      // Apply additional filters
+      const opts = { ...options };
+      if (opts.role) {
+        users = users.filter(u => u.role === opts.role);
+      }
+
+      // Apply pagination
+      const total = users.length;
+      const start = opts.offset || 0;
+      const limit = opts.limit || 50;
+      const items = users.slice(start, start + limit);
+      const hasMore = start + limit < total;
+
+      return createSuccessResult({
+        items,
+        total,
+        hasMore,
+        nextCursor: hasMore ? String(start + limit) : undefined
+      });
+    } catch (error) {
+      return createErrorResult(`Failed to search users: ${error}`, 'SEARCH_ERROR');
+    }
+  }
+
+  // ==========================================================================
+  // MONITORING & MAINTENANCE
+  // ==========================================================================
+
+  async getStats(): Promise<StorageResult<UserStats>> {
+    try {
+      const users = Array.from(this.users.values());
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+      const usersByProvider: Record<string, number> = {};
+      const usersByRole: Record<string, number> = {};
+      let activeUsers = 0;
+      let verifiedUsers = 0;
+      let registrationsToday = 0;
+      let registrationsThisWeek = 0;
+      let registrationsThisMonth = 0;
+
+      users.forEach(user => {
+        // Count by provider
+        usersByProvider[user.provider] = (usersByProvider[user.provider] || 0) + 1;
+
+        // Count by role
+        usersByRole[user.role] = (usersByRole[user.role] || 0) + 1;
+
+        // Count active and verified
+        if (user.is_active) activeUsers++;
+        if (user.email_verified) verifiedUsers++;
+
+        // Count registrations by time period
+        const createdAt = new Date(user.created_at);
+        if (createdAt >= today) registrationsToday++;
+        if (createdAt >= weekAgo) registrationsThisWeek++;
+        if (createdAt >= monthAgo) registrationsThisMonth++;
+      });
+
+      return createSuccessResult({
+        totalUsers: users.length,
+        activeUsers,
+        verifiedUsers,
+        usersByProvider,
+        usersByRole,
+        registrationsToday,
+        registrationsThisWeek,
+        registrationsThisMonth,
+        lastUpdated: new Date().toISOString()
+      });
+    } catch (error) {
+      return createErrorResult(`Failed to get user stats: ${error}`, 'STATS_ERROR');
+    }
+  }
+
+  async healthCheck(): Promise<HealthCheckResult> {
+    return createHealthCheckResult(true, 0, {
+      provider: 'in-memory',
+      userCount: this.users.size,
+      sessionCount: this.sessions.size,
+      registrationCount: this.registrations.size
+    });
+  }
+
+  async cleanup(dryRun?: boolean): Promise<StorageResult<{ removedCount: number; freedSpace?: string }>> {
+    try {
+      const now = new Date();
+      let removedCount = 0;
+
+      // Clean up expired sessions
+      for (const [sessionId, session] of this.sessions) {
+        if (new Date(session.expires_at) < now) {
+          if (!dryRun) {
+            this.sessions.delete(sessionId);
+          }
+          removedCount++;
+        }
+      }
+
+      const freedSpace = `${Math.round(removedCount * 100 / 1024)}KB`;
+
+      return createSuccessResult({
+        removedCount,
+        freedSpace
+      });
+    } catch (error) {
+      return createErrorResult(`Cleanup failed: ${error}`, 'CLEANUP_ERROR');
+    }
+  }
+
+  getProviderInfo() {
+    return {
+      name: 'in-memory',
+      version: '1.0.0',
+      capabilities: ['fast-access', 'no-persistence', 'development-only']
+    };
+  }
+}
+
+/**
  * Get registry storage based on environment
  */
 export function getRegistryStorage(config?: StorageConfig): IRegistryStorage {
@@ -525,6 +923,26 @@ export function getVerificationStorage(config?: StorageConfig): IVerificationSto
       return new InMemoryVerificationStorage();
     default:
       return new InMemoryVerificationStorage();
+  }
+}
+
+/**
+ * Get user storage based on environment
+ */
+export function getUserStorage(config?: StorageConfig): IUserStorage {
+  const provider = config?.provider || detectStorageProvider();
+
+  switch (provider) {
+    case 'upstash':
+      // TODO: Implement UpstashUserStorage
+      return new InMemoryUserStorage();
+    case 'local':
+      // TODO: Implement LocalRedisUserStorage
+      return new InMemoryUserStorage();
+    case 'memory':
+      return new InMemoryUserStorage();
+    default:
+      return new InMemoryUserStorage();
   }
 }
 
