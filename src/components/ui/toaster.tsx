@@ -42,11 +42,13 @@ export const Toaster = () => {
             <Toast.Root
               width={{ md: "sm" }}
               bg="white"
-              _dark={{ bg: "gray.800" }}
+              _dark={{ 
+                bg: "gray.800",
+                borderColor: "gray.700"
+              }}
               shadow="xl"
               border="1px"
               borderColor="gray.200"
-              _dark={{ borderColor: "gray.700" }}
               rounded="lg"
               overflow="hidden"
             >
@@ -140,16 +142,7 @@ export const Toaster = () => {
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
-                      <Toast.ActionTrigger
-                        size="sm"
-                        variant="outline"
-                        colorPalette={
-                          toast.type === "success" ? "green" :
-                          toast.type === "error" ? "red" :
-                          toast.type === "warning" ? "yellow" :
-                          "blue"
-                        }
-                      >
+                      <Toast.ActionTrigger>
                         {toast.action.label}
                       </Toast.ActionTrigger>
                     </MotionBox>
@@ -163,16 +156,7 @@ export const Toaster = () => {
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                     >
-                      <Toast.CloseTrigger
-                        size="sm"
-                        variant="ghost"
-                        color="gray.500"
-                        _hover={{ color: "gray.700", bg: "gray.100" }}
-                        _dark={{
-                          color: "gray.400",
-                          _hover: { color: "gray.200", bg: "gray.700" }
-                        }}
-                      />
+                      <Toast.CloseTrigger />
                     </MotionBox>
                   )}
                 </Stack>
@@ -228,7 +212,7 @@ export const createAnimatedToast = {
       title,
       description,
       type: "loading",
-      duration: null, // Persist until manually closed
+      duration: undefined, // Persist until manually closed
       closable: false,
     }),
 }
