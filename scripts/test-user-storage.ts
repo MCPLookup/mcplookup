@@ -25,10 +25,10 @@ async function testUserStorage() {
       const healthResult = await userStorage.healthCheck();
       console.log(`   Status: ${healthResult.healthy ? '✅ Healthy' : '❌ Unhealthy'}`);
       console.log(`   Latency: ${healthResult.latency}ms`);
-      if (healthResult.metadata) {
-        console.log(`   Provider: ${healthResult.metadata.provider}`);
-        if (healthResult.metadata.userCount !== undefined) {
-          console.log(`   Users: ${healthResult.metadata.userCount}`);
+      if (healthResult.details) {
+        console.log(`   Provider: ${healthResult.details.provider}`);
+        if (healthResult.details.userCount !== undefined) {
+          console.log(`   Users: ${healthResult.details.userCount}`);
         }
       }
 
