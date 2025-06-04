@@ -25,7 +25,7 @@ import { LoadingCard, SearchLoading, StaggeredListLoading } from "@/components/u
 import { AnimatedCardNamespace as AnimatedCard, AnimatedList } from "@/components/ui/animated-card"
 import { AnimatedButton } from "@/components/ui/animated-button"
 import { useToast } from "@/components/ui/toaster"
-import { FaSearch, FaServer, FaCheckCircle, FaExclamationTriangle, FaFilter, FaTimes } from "react-icons/fa"
+import { FaSearch, FaServer, FaCheckCircle, FaExclamationTriangle, FaFilter, FaTimes, FaCode, FaStream, FaShieldAlt, FaCog, FaBook, FaPlug, FaDatabase } from "react-icons/fa"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { useColorModeValue } from "@/components/ui/color-mode"
@@ -33,16 +33,71 @@ import { useColorModeValue } from "@/components/ui/color-mode"
 interface MCPServer {
   domain: string
   endpoint: string
+  name?: string
+  description?: string
   capabilities: string[]
   verified: boolean
   health: "healthy" | "degraded" | "down"
   trust_score: number
   response_time_ms: number
+  transport?: string
+  transport_capabilities?: {
+    primary_transport: string
+    supported_methods: string[]
+    sse_support?: {
+      supports_sse: boolean
+      supports_get_streaming: boolean
+      supports_post_streaming: boolean
+    }
+    session_support?: {
+      supports_sessions: boolean
+      session_header_name?: string
+    }
+    cors_details?: {
+      cors_enabled: boolean
+      allowed_origins: string[]
+      allowed_methods: string[]
+    }
+    performance?: {
+      avg_response_time_ms: number
+      supports_compression: boolean
+    }
+  }
+  openapi_documentation?: {
+    discovered_at: string
+    spec_url?: string
+    openapi_version: string
+    api_info: {
+      title: string
+      version: string
+      description?: string
+    }
+    endpoints_summary: {
+      total_paths: number
+      total_operations: number
+      methods: Record<string, number>
+      tags: string[]
+      has_authentication: boolean
+    }
+    validation: {
+      is_valid: boolean
+      validation_errors: string[]
+    }
+  }
+  tools?: Array<{
+    name: string
+    description: string
+  }>
+  resources?: Array<{
+    name: string
+    description: string
+    uri: string
+  }>
 }
 
 export default function DiscoverPage() {
   const [searchQuery, setSearchQuery] = useState("")
-  const [searchType, setSearchType] = useState<"domain" | "capability">("domain")
+  const [searchType, setSearchType] = useState<"domain" | "capability" | "smart">("domain")
   const [servers, setServers] = useState<MCPServer[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -55,7 +110,16 @@ export default function DiscoverPage() {
     health: "",
     minTrustScore: 0
   })
+
+  const [includeMetadata, setIncludeMetadata] = useState({
+    transport_capabilities: true,
+    openapi_documentation: true,
+    tools: true,
+    resources: true,
+    health: true
+  })
   const [showFilters, setShowFilters] = useState(false)
+  const [aiMetadata, setAiMetadata] = useState<any>(null)
   const toast = useToast()
 
   const bgGradient = useColorModeValue(
@@ -68,41 +132,82 @@ export default function DiscoverPage() {
 
     setLoading(true)
     setError(null)
+    setAiMetadata(null)
 
     try {
-      const params = new URLSearchParams({
-        q: searchQuery,
-        type: searchType,
-        page: page.toString(),
-        limit: itemsPerPage.toString(),
-        ...(filters.verified && { verified: 'true' }),
-        ...(filters.health && { health: filters.health }),
-        ...(filters.minTrustScore > 0 && { min_trust_score: filters.minTrustScore.toString() })
-      })
+      if (searchType === "smart") {
+        // AI-powered smart search
+        const response = await fetch('/api/v1/discover/smart', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            intent: searchQuery,
+            context: {
+              user_type: filters.verified ? 'business' : 'personal',
+              max_results: itemsPerPage
+            },
+            include: includeMetadata
+          })
+        })
 
-      const response = await fetch(`/api/v1/discover?${params}`)
+        if (!response.ok) {
+          throw new Error(`AI search failed: ${response.status}`)
+        }
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const data = await response.json()
-
-      if (data.servers) {
-        setServers(data.servers)
-        setTotalItems(data.pagination?.total_count || data.servers.length)
-        setTotalPages(Math.ceil((data.pagination?.total_count || data.servers.length) / itemsPerPage))
-        setCurrentPage(page)
+        const data = await response.json()
+        setServers(data.servers || [])
+        setAiMetadata(data.metadata)
+        setTotalItems(data.servers?.length || 0)
+        setTotalPages(1) // AI search returns pre-filtered results
+        setCurrentPage(1)
 
         toast.success(
-          "Search completed",
-          `Found ${data.servers.length} servers`
+          "🧠 AI Search completed",
+          `Found ${data.servers?.length || 0} relevant servers (${Math.round(data.confidence * 100)}% confidence)`
         )
       } else {
-        setServers([])
-        setTotalItems(0)
-        setTotalPages(1)
-        setCurrentPage(1)
+        // Traditional keyword search
+        const params = new URLSearchParams({
+          q: searchQuery,
+          type: searchType,
+          page: page.toString(),
+          limit: itemsPerPage.toString(),
+          ...(filters.verified && { verified: 'true' }),
+          ...(filters.health && { health: filters.health }),
+          ...(filters.minTrustScore > 0 && { min_trust_score: filters.minTrustScore.toString() }),
+          ...(includeMetadata.transport_capabilities && { include_transport_capabilities: 'true' }),
+          ...(includeMetadata.openapi_documentation && { include_openapi_documentation: 'true' }),
+          ...(includeMetadata.tools && { include_tools: 'true' }),
+          ...(includeMetadata.resources && { include_resources: 'true' }),
+          ...(includeMetadata.health && { include_health: 'true' })
+        })
+
+        const response = await fetch(`/api/v1/discover?${params}`)
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+
+        const data = await response.json()
+
+        if (data.servers) {
+          setServers(data.servers)
+          setTotalItems(data.pagination?.total_count || data.servers.length)
+          setTotalPages(Math.ceil((data.pagination?.total_count || data.servers.length) / itemsPerPage))
+          setCurrentPage(page)
+
+          toast.success(
+            "Search completed",
+            `Found ${data.servers.length} servers`
+          )
+        } else {
+          setServers([])
+          setTotalItems(0)
+          setTotalPages(1)
+          setCurrentPage(1)
+        }
       }
     } catch (err) {
       console.error('Search error:', err)
@@ -169,7 +274,7 @@ export default function DiscoverPage() {
           <VStack gap={4} textAlign="center">
             <Heading size="xl">Discover MCP Servers</Heading>
             <Text fontSize="lg" color="gray.600" _dark={{ color: "gray.300" }}>
-              Find Model Context Protocol servers by domain or capability
+              Find Model Context Protocol servers by domain, capability, or natural language with AI
             </Text>
           </VStack>
 
@@ -192,14 +297,23 @@ export default function DiscoverPage() {
                   >
                     Capability
                   </Button>
+                  <Button
+                    variant={searchType === "smart" ? "solid" : "outline"}
+                    colorPalette="purple"
+                    onClick={() => setSearchType("smart")}
+                  >
+                    🧠 AI Smart
+                  </Button>
                 </HStack>
                 
                 <HStack gap={2} width="full">
                   <Input
                     placeholder={
-                      searchType === "domain" 
-                        ? "Enter domain (e.g., gmail.com)" 
-                        : "Enter capability (e.g., email)"
+                      searchType === "domain"
+                        ? "Enter domain (e.g., gmail.com)"
+                        : searchType === "capability"
+                        ? "Enter capability (e.g., email)"
+                        : "Ask in natural language (e.g., 'Find email servers like Gmail but more private')"
                     }
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -288,6 +402,57 @@ export default function DiscoverPage() {
                         Clear Filters
                       </Button>
                     </HStack>
+
+                    {/* Metadata Inclusion Options */}
+                    <VStack gap={3} align="start" width="full">
+                      <Text fontSize="sm" fontWeight="semibold">Include Metadata:</Text>
+                      <HStack gap={4} flexWrap="wrap">
+                        <HStack gap={2}>
+                          <input
+                            type="checkbox"
+                            checked={includeMetadata.transport_capabilities}
+                            onChange={(e) => setIncludeMetadata(prev => ({
+                              ...prev,
+                              transport_capabilities: e.target.checked
+                            }))}
+                          />
+                          <Text fontSize="sm">Transport Capabilities</Text>
+                        </HStack>
+                        <HStack gap={2}>
+                          <input
+                            type="checkbox"
+                            checked={includeMetadata.openapi_documentation}
+                            onChange={(e) => setIncludeMetadata(prev => ({
+                              ...prev,
+                              openapi_documentation: e.target.checked
+                            }))}
+                          />
+                          <Text fontSize="sm">OpenAPI Docs</Text>
+                        </HStack>
+                        <HStack gap={2}>
+                          <input
+                            type="checkbox"
+                            checked={includeMetadata.tools}
+                            onChange={(e) => setIncludeMetadata(prev => ({
+                              ...prev,
+                              tools: e.target.checked
+                            }))}
+                          />
+                          <Text fontSize="sm">Tools</Text>
+                        </HStack>
+                        <HStack gap={2}>
+                          <input
+                            type="checkbox"
+                            checked={includeMetadata.resources}
+                            onChange={(e) => setIncludeMetadata(prev => ({
+                              ...prev,
+                              resources: e.target.checked
+                            }))}
+                          />
+                          <Text fontSize="sm">Resources</Text>
+                        </HStack>
+                      </HStack>
+                    </VStack>
                   </VStack>
                 )}
               </VStack>
@@ -314,14 +479,35 @@ export default function DiscoverPage() {
           {/* Results */}
           {!loading && servers.length > 0 && (
             <VStack gap={6} align="stretch">
-              <HStack justify="space-between" align="center">
-                <Heading size="md">
-                  Found {totalItems} server{totalItems !== 1 ? "s" : ""}
-                </Heading>
-                <Text fontSize="sm" color="gray.600" _dark={{ color: "gray.300" }}>
-                  Page {currentPage} of {totalPages}
-                </Text>
-              </HStack>
+              <VStack gap={4} align="stretch">
+                <HStack justify="space-between" align="center">
+                  <Heading size="md">
+                    Found {totalItems} server{totalItems !== 1 ? "s" : ""}
+                  </Heading>
+                  <Text fontSize="sm" color="gray.600" _dark={{ color: "gray.300" }}>
+                    {searchType === "smart" ? "AI-curated results" : `Page ${currentPage} of ${totalPages}`}
+                  </Text>
+                </HStack>
+
+                {/* AI Metadata */}
+                {aiMetadata && searchType === "smart" && (
+                  <Card.Root size="sm">
+                    <Card.Body>
+                      <VStack gap={2} align="start">
+                        <HStack gap={2}>
+                          <Text fontSize="sm" fontWeight="semibold">🧠 AI Analysis:</Text>
+                          <Badge colorPalette="purple" variant="outline">
+                            {Math.round(aiMetadata.confidence * 100)}% confidence
+                          </Badge>
+                        </HStack>
+                        <Text fontSize="sm" color="gray.600" _dark={{ color: "gray.300" }}>
+                          Processed in {aiMetadata.processing_time_ms}ms using {aiMetadata.ai_provider}
+                        </Text>
+                      </VStack>
+                    </Card.Body>
+                  </Card.Root>
+                )}
+              </VStack>
 
               <AnimatedList staggerDelay={0.1} direction="up">
                 <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={6}>
@@ -335,58 +521,210 @@ export default function DiscoverPage() {
                       glowOnHover={server.verified}
                     >
                       <AnimatedCard.Body staggerChildren staggerDelay={0.05}>
-                        <VStack gap={3} align="start">
-                          <HStack justify="space-between" width="full">
-                            <Heading size="sm">{server.domain}</Heading>
-                            {server.verified && (
-                              <Badge colorPalette="green" variant="solid">
-                                Verified
-                              </Badge>
+                        <VStack gap={4} align="start">
+                          {/* Header */}
+                          <VStack gap={2} align="start" width="full">
+                            <HStack justify="space-between" width="full">
+                              <VStack align="start" gap={1}>
+                                <Heading size="sm">{server.name || server.domain}</Heading>
+                                <Text fontSize="xs" color="gray.500">
+                                  {server.domain}
+                                </Text>
+                              </VStack>
+                              <VStack align="end" gap={1}>
+                                {server.verified && (
+                                  <Badge colorPalette="green" variant="solid" size="sm">
+                                    ✓ Verified
+                                  </Badge>
+                                )}
+                                <Badge
+                                  colorPalette={getHealthColor(server.health)}
+                                  variant="outline"
+                                  size="sm"
+                                >
+                                  {server.health}
+                                </Badge>
+                              </VStack>
+                            </HStack>
+
+                            {server.description && (
+                              <Text fontSize="sm" color="gray.600" _dark={{ color: "gray.300" }}>
+                                {server.description}
+                              </Text>
                             )}
-                          </HStack>
+                          </VStack>
 
-                        <Text fontSize="sm" color="gray.600" _dark={{ color: "gray.300" }}>
-                          {server.endpoint}
-                        </Text>
+                          {/* Transport & Performance */}
+                          <VStack gap={2} align="start" width="full">
+                            <HStack gap={4} width="full">
+                              <HStack gap={1}>
+                                <Icon color="blue.500"><FaPlug /></Icon>
+                                <Text fontSize="xs" fontWeight="semibold">
+                                  {server.transport || 'HTTP'}
+                                </Text>
+                              </HStack>
+                              <HStack gap={1}>
+                                <Icon color="green.500"><FaCheckCircle /></Icon>
+                                <Text fontSize="xs">
+                                  {server.response_time_ms}ms
+                                </Text>
+                              </HStack>
+                              <HStack gap={1}>
+                                <Icon color="purple.500"><FaShieldAlt /></Icon>
+                                <Text fontSize="xs">
+                                  {server.trust_score}/100
+                                </Text>
+                              </HStack>
+                            </HStack>
 
-                        <HStack>
-                          <Icon color={`${getHealthColor(server.health)}.500`}>
-                            {React.createElement(getHealthIcon(server.health))}
-                          </Icon>
-                          <Text fontSize="sm" textTransform="capitalize">
-                            {server.health}
-                          </Text>
-                          <Text fontSize="sm" color="gray.500">
-                            ({server.response_time_ms}ms)
-                          </Text>
-                        </HStack>
+                            {/* Transport Capabilities */}
+                            {server.transport_capabilities && (
+                              <HStack gap={1} flexWrap="wrap">
+                                {server.transport_capabilities.sse_support?.supports_sse && (
+                                  <Badge colorPalette="blue" variant="outline" size="sm">
+                                    <Icon><FaStream /></Icon> SSE
+                                  </Badge>
+                                )}
+                                {server.transport_capabilities.session_support?.supports_sessions && (
+                                  <Badge colorPalette="green" variant="outline" size="sm">
+                                    <Icon><FaCog /></Icon> Sessions
+                                  </Badge>
+                                )}
+                                {server.transport_capabilities.cors_details?.cors_enabled && (
+                                  <Badge colorPalette="orange" variant="outline" size="sm">
+                                    🌐 CORS
+                                  </Badge>
+                                )}
+                                {server.transport_capabilities.performance?.supports_compression && (
+                                  <Badge colorPalette="purple" variant="outline" size="sm">
+                                    📦 Gzip
+                                  </Badge>
+                                )}
+                              </HStack>
+                            )}
+                          </VStack>
 
-                        <VStack gap={2} align="start" width="full">
-                          <Text fontSize="sm" fontWeight="semibold">
-                            Capabilities:
-                          </Text>
-                          <HStack gap={1} flexWrap="wrap">
-                            {server.capabilities.map((cap) => (
-                              <Badge key={cap} variant="outline" size="sm">
-                                {cap}
-                              </Badge>
-                            ))}
-                          </HStack>
-                        </VStack>
+                          {/* OpenAPI Documentation */}
+                          {server.openapi_documentation && (
+                            <VStack gap={2} align="start" width="full">
+                              <HStack gap={2}>
+                                <Icon color="indigo.500"><FaBook /></Icon>
+                                <Text fontSize="sm" fontWeight="semibold">API Documentation</Text>
+                                <Badge
+                                  colorPalette={server.openapi_documentation.validation.is_valid ? "green" : "red"}
+                                  variant="outline"
+                                  size="sm"
+                                >
+                                  {server.openapi_documentation.openapi_version}
+                                </Badge>
+                              </HStack>
+                              <VStack gap={1} align="start" width="full">
+                                <Text fontSize="xs" color="gray.600" _dark={{ color: "gray.300" }}>
+                                  {server.openapi_documentation.api_info.title} v{server.openapi_documentation.api_info.version}
+                                </Text>
+                                <HStack gap={2} fontSize="xs">
+                                  <Text>{server.openapi_documentation.endpoints_summary.total_paths} paths</Text>
+                                  <Text>•</Text>
+                                  <Text>{server.openapi_documentation.endpoints_summary.total_operations} operations</Text>
+                                  {server.openapi_documentation.endpoints_summary.has_authentication && (
+                                    <>
+                                      <Text>•</Text>
+                                      <Text color="orange.500">🔐 Auth Required</Text>
+                                    </>
+                                  )}
+                                </HStack>
+                                {server.openapi_documentation.endpoints_summary.tags.length > 0 && (
+                                  <HStack gap={1} flexWrap="wrap">
+                                    {server.openapi_documentation.endpoints_summary.tags.slice(0, 3).map((tag) => (
+                                      <Badge key={tag} variant="subtle" size="sm" colorPalette="gray">
+                                        {tag}
+                                      </Badge>
+                                    ))}
+                                    {server.openapi_documentation.endpoints_summary.tags.length > 3 && (
+                                      <Text fontSize="xs" color="gray.500">
+                                        +{server.openapi_documentation.endpoints_summary.tags.length - 3} more
+                                      </Text>
+                                    )}
+                                  </HStack>
+                                )}
+                              </VStack>
+                            </VStack>
+                          )}
 
-                          <HStack justify="space-between" width="full">
-                            <Text fontSize="sm">
-                              Trust Score: <strong>{server.trust_score}/100</strong>
-                            </Text>
-                            <AnimatedButton
-                              size="sm"
-                              variant="outline"
-                              hoverScale={1.05}
-                              clickScale={0.95}
-                              rippleEffect
-                            >
-                              Connect
-                            </AnimatedButton>
+                          {/* Tools & Resources */}
+                          {(server.tools?.length || server.resources?.length) && (
+                            <VStack gap={2} align="start" width="full">
+                              <HStack gap={4} width="full">
+                                {server.tools?.length && (
+                                  <HStack gap={1}>
+                                    <Icon color="blue.500"><FaCog /></Icon>
+                                    <Text fontSize="xs" fontWeight="semibold">
+                                      {server.tools.length} tools
+                                    </Text>
+                                  </HStack>
+                                )}
+                                {server.resources?.length && (
+                                  <HStack gap={1}>
+                                    <Icon color="green.500"><FaDatabase /></Icon>
+                                    <Text fontSize="xs" fontWeight="semibold">
+                                      {server.resources.length} resources
+                                    </Text>
+                                  </HStack>
+                                )}
+                              </HStack>
+                            </VStack>
+                          )}
+
+                          {/* MCP Capabilities */}
+                          {server.capabilities.length > 0 && (
+                            <VStack gap={2} align="start" width="full">
+                              <Text fontSize="sm" fontWeight="semibold">
+                                MCP Capabilities:
+                              </Text>
+                              <HStack gap={1} flexWrap="wrap">
+                                {server.capabilities.map((cap) => (
+                                  <Badge key={cap} variant="outline" size="sm" colorPalette="blue">
+                                    {cap}
+                                  </Badge>
+                                ))}
+                              </HStack>
+                            </VStack>
+                          )}
+
+                          {/* Actions */}
+                          <HStack justify="space-between" width="full" pt={2}>
+                            <VStack align="start" gap={0}>
+                              <Text fontSize="xs" color="gray.500">
+                                {server.endpoint}
+                              </Text>
+                            </VStack>
+                            <HStack gap={2}>
+                              {server.openapi_documentation?.spec_url && (
+                                <AnimatedButton
+                                  size="sm"
+                                  variant="outline"
+                                  colorPalette="indigo"
+                                  hoverScale={1.05}
+                                  clickScale={0.95}
+                                  rippleEffect
+                                  onClick={() => window.open(server.openapi_documentation?.spec_url, '_blank')}
+                                >
+                                  <Icon><FaBook /></Icon>
+                                  API Docs
+                                </AnimatedButton>
+                              )}
+                              <AnimatedButton
+                                size="sm"
+                                variant="solid"
+                                colorPalette="blue"
+                                hoverScale={1.05}
+                                clickScale={0.95}
+                                rippleEffect
+                              >
+                                <Icon><FaPlug /></Icon>
+                                Connect
+                              </AnimatedButton>
+                            </HStack>
                           </HStack>
                         </VStack>
                       </AnimatedCard.Body>
@@ -396,7 +734,7 @@ export default function DiscoverPage() {
               </AnimatedList>
 
               {/* Pagination */}
-              {totalPages > 1 && (
+              {totalPages > 1 && searchType !== "smart" && (
                 <Pagination
                   currentPage={currentPage}
                   totalPages={totalPages}

@@ -151,7 +151,7 @@ export default function HomePage() {
                   <div className="text-4xl text-blue-500 mb-4 animate-bounce-in" style={{ animationDelay: '0.8s' }}>🚀</div>
                   <h3 className="text-lg font-semibold mb-2">Dynamic Discovery</h3>
                   <p className="text-sm text-gray-600">
-                    Real-time server discovery - no hardcoded lists
+                    AI-powered search with real-time discovery - no hardcoded lists
                   </p>
                 </div>
               </AnimatedCard.Body>
@@ -168,7 +168,7 @@ export default function HomePage() {
                   <div className="text-4xl text-red-500 mb-4 animate-bounce-in" style={{ animationDelay: '1.0s' }}>💀</div>
                   <h3 className="text-lg font-semibold mb-2">Kill Static Lists</h3>
                   <p className="text-sm text-gray-600">
-                    End the era of manual server configuration
+                    End the era of manual server configuration with auto-discovery
                   </p>
                 </div>
               </AnimatedCard.Body>
