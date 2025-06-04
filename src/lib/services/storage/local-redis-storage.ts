@@ -606,11 +606,11 @@ export class LocalRedisVerificationStorage implements IVerificationStorage {
   /**
    * Store verification challenge with automatic expiration
    */
-  async storeChallenge(challenge: VerificationChallengeData): Promise<StorageResult<void>> {
+  async storeChallenge(challengeId: string, challenge: VerificationChallengeData): Promise<StorageResult<void>> {
     try {
       await this.ensureConnection();
 
-      const key = `challenge:${challenge.id}`;
+      const key = `challenge:${challengeId}`;
       const domainKey = `domain:${challenge.domain}`;
 
       // Use pipeline for atomic operations
@@ -620,11 +620,11 @@ export class LocalRedisVerificationStorage implements IVerificationStorage {
       multi.setEx(key, this.TTL_SECONDS, JSON.stringify(challenge));
 
       // Add to domain index for efficient domain-based queries
-      multi.sAdd(domainKey, challenge.id);
+      multi.sAdd(domainKey, challengeId);
       multi.expire(domainKey, this.TTL_SECONDS);
 
       // Add to global challenges set
-      multi.sAdd('challenges:all', challenge.id);
+      multi.sAdd('challenges:all', challengeId);
 
       await multi.exec();
       return createSuccessResult(undefined);
@@ -657,7 +657,7 @@ export class LocalRedisVerificationStorage implements IVerificationStorage {
   /**
    * Remove verification challenge
    */
-  async removeChallenge(challengeId: string): Promise<StorageResult<void>> {
+  async deleteChallenge(challengeId: string): Promise<StorageResult<void>> {
     try {
       await this.ensureConnection();
 
@@ -697,10 +697,10 @@ export class LocalRedisVerificationStorage implements IVerificationStorage {
       const challenge = challengeResult.data;
       const updatedChallenge = {
         ...challenge,
-        verified: true
+        verified_at: new Date().toISOString()
       };
 
-      return await this.storeChallenge(updatedChallenge);
+      return await this.storeChallenge(challengeId, updatedChallenge);
     } catch (error) {
       return createErrorResult(`Failed to mark challenge verified: ${error}`, 'LOCAL_REDIS_VERIFY_ERROR');
     }
@@ -724,10 +724,10 @@ export class LocalRedisVerificationStorage implements IVerificationStorage {
       };
 
       if (success) {
-        updatedChallenge.verified = true;
+        updatedChallenge.verified_at = new Date().toISOString();
       }
 
-      return await this.storeChallenge(updatedChallenge);
+      return await this.storeChallenge(challengeId, updatedChallenge);
     } catch (error) {
       return createErrorResult(`Failed to record attempt: ${error}`, 'LOCAL_REDIS_ATTEMPT_ERROR');
     }
@@ -773,10 +773,10 @@ export class LocalRedisVerificationStorage implements IVerificationStorage {
       if (opts.status) {
         challenges = challenges.filter(c => {
           switch (opts.status) {
-            case 'pending': return !c.verified;
-            case 'verified': return !!c.verified;
-            case 'expired': return c.expiresAt < new Date();
-            case 'failed': return (c as any).attempts > 0 && !c.verified;
+            case 'pending': return !c.verified_at;
+            case 'verified': return !!c.verified_at;
+            case 'expired': return new Date(c.expires_at) < new Date();
+            case 'failed': return (c as any).attempts > 0 && !c.verified_at;
             default: return true;
           }
         });
@@ -784,10 +784,10 @@ export class LocalRedisVerificationStorage implements IVerificationStorage {
 
       // Apply date filters
       if (opts.createdAfter) {
-        challenges = challenges.filter(c => c.createdAt >= opts.createdAfter!);
+        challenges = challenges.filter(c => new Date(c.created_at) >= opts.createdAfter!);
       }
       if (opts.createdBefore) {
-        challenges = challenges.filter(c => c.createdAt <= opts.createdBefore!);
+        challenges = challenges.filter(c => new Date(c.created_at) <= opts.createdBefore!);
       }
 
       // Apply pagination
@@ -833,7 +833,7 @@ export class LocalRedisVerificationStorage implements IVerificationStorage {
         if (result) {
           try {
             const challenge = JSON.parse(result as string);
-            if (challenge.expiresAt < now) {
+            if (new Date(challenge.expires_at) < now) {
               expiredChallenges.push(challengeIds[index]);
             }
           } catch (error) {
@@ -846,7 +846,7 @@ export class LocalRedisVerificationStorage implements IVerificationStorage {
       if (!dryRun && expiredChallenges.length > 0) {
         // Delete expired challenges
         for (const challengeId of expiredChallenges) {
-          await this.removeChallenge(challengeId);
+          await this.deleteChallenge(challengeId);
         }
       }
 
@@ -900,14 +900,14 @@ export class LocalRedisVerificationStorage implements IVerificationStorage {
         .filter((challenge: VerificationChallengeData | null) => challenge !== null) as VerificationChallengeData[];
 
       const now = new Date();
-      const activeChallenges = challenges.filter(c => c.expiresAt > now && !c.verified);
-      const verifiedChallenges = challenges.filter(c => !!c.verified);
-      const expiredChallenges = challenges.filter(c => c.expiresAt < now);
-      const failedChallenges = challenges.filter(c => (c as any).attempts > 0 && !c.verified);
+      const activeChallenges = challenges.filter(c => new Date(c.expires_at) > now && !c.verified_at);
+      const verifiedChallenges = challenges.filter(c => !!c.verified_at);
+      const expiredChallenges = challenges.filter(c => new Date(c.expires_at) < now);
+      const failedChallenges = challenges.filter(c => (c as any).attempts > 0 && !c.verified_at);
 
       const verificationTimes = verifiedChallenges
-        .filter(c => c.verified)
-        .map(c => new Date().getTime() - c.createdAt.getTime());
+        .filter(c => c.verified_at)
+        .map(c => new Date().getTime() - new Date(c.created_at).getTime());
 
       const avgVerificationTime = verificationTimes.length > 0
         ? verificationTimes.reduce((sum, time) => sum + time, 0) / verificationTimes.length / 1000 // Convert to seconds

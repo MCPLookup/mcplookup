@@ -175,7 +175,7 @@ async function testStorageProvider(providerName: string, provider: 'memory' | 'l
     };
 
     // Store challenge
-    const storeChallengeResult = await verificationStorage.storeChallenge(mockChallenge);
+    const storeChallengeResult = await verificationStorage.storeChallenge('test-challenge-123', mockChallenge);
     if (isSuccessResult(storeChallengeResult)) {
       console.log('  ✅ Challenge stored successfully');
     } else {
@@ -187,7 +187,7 @@ async function testStorageProvider(providerName: string, provider: 'memory' | 'l
     const retrieveChallengeResult = await verificationStorage.getChallenge('test-challenge-123');
     if (isSuccessResult(retrieveChallengeResult)) {
       const retrievedChallenge = retrieveChallengeResult.data;
-      console.log(`  ✅ Challenge retrieved: ${retrievedChallenge?.id === 'test-challenge-123' ? 'Match' : 'Mismatch'}`);
+      console.log(`  ✅ Challenge retrieved: ${retrievedChallenge?.challenge_id === 'test-challenge-123' ? 'Match' : 'Mismatch'}`);
     } else {
       console.log(`  ❌ Failed to retrieve challenge: ${retrieveChallengeResult.error}`);
     }
@@ -198,7 +198,7 @@ async function testStorageProvider(providerName: string, provider: 'memory' | 'l
       const verifiedChallengeResult = await verificationStorage.getChallenge('test-challenge-123');
       if (isSuccessResult(verifiedChallengeResult)) {
         const verifiedChallenge = verifiedChallengeResult.data;
-        console.log(`  ✅ Challenge verified: ${verifiedChallenge?.verified ? 'Yes' : 'No'}`);
+        console.log(`  ✅ Challenge verified: ${verifiedChallenge?.verified_at ? 'Yes' : 'No'}`);
       }
     } else {
       console.log(`  ❌ Failed to verify challenge: ${verifyResult.error}`);
@@ -216,7 +216,7 @@ async function testStorageProvider(providerName: string, provider: 'memory' | 'l
     // Cleanup
     console.log('\n🧹 Cleanup:');
     const deleteServerResult = await registryStorage.deleteServer('test-example.com');
-    const deleteChallengeResult = await verificationStorage.removeChallenge('test-challenge-123');
+    const deleteChallengeResult = await verificationStorage.deleteChallenge('test-challenge-123');
 
     if (isSuccessResult(deleteServerResult) && isSuccessResult(deleteChallengeResult)) {
       console.log('  ✅ Test data cleaned up');
