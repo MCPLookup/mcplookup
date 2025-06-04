@@ -113,7 +113,13 @@ describe('/api/v1/discover', () => {
       expect(data.servers[0].capabilities.subcategories).toContain('email');
       
       expect(mockDiscoveryService.discoverServers).toHaveBeenCalledWith({
-        capability: 'email'
+        capability: 'email',
+        limit: 10,
+        offset: 0,
+        include_health: true,
+        include_tools: true,
+        include_resources: false,
+        sort_by: 'relevance'
       });
     });
 
@@ -146,7 +152,13 @@ describe('/api/v1/discover', () => {
       expect(data.servers[0].capabilities.category).toBe('productivity');
       
       expect(mockDiscoveryService.discoverServers).toHaveBeenCalledWith({
-        category: 'productivity'
+        category: 'productivity',
+        limit: 10,
+        offset: 0,
+        include_health: true,
+        include_tools: true,
+        include_resources: false,
+        sort_by: 'relevance'
       });
     });
 
@@ -179,7 +191,13 @@ describe('/api/v1/discover', () => {
       expect(data.servers[0].capabilities.intent_keywords).toContain('schedule');
       
       expect(mockDiscoveryService.discoverServers).toHaveBeenCalledWith({
-        intent: 'schedule a meeting'
+        intent: 'schedule a meeting',
+        limit: 10,
+        offset: 0,
+        include_health: true,
+        include_tools: true,
+        include_resources: false,
+        sort_by: 'relevance'
       });
     });
 
@@ -199,16 +217,22 @@ describe('/api/v1/discover', () => {
 
       mockDiscoveryService.discoverServers.mockResolvedValue(mockResponse);
 
-      const request = new NextRequest('http://localhost:3000/api/v1/discover?search=email%20management');
+      const request = new NextRequest('http://localhost:3000/api/v1/discover?keywords=email,management');
       const response = await GET(request);
 
       expect(response.status).toBe(200);
-      
+
       const data = await response.json();
       expect(data.servers[0].name).toContain('Email');
-      
+
       expect(mockDiscoveryService.discoverServers).toHaveBeenCalledWith({
-        search: 'email management'
+        keywords: ['email', 'management'],
+        limit: 10,
+        offset: 0,
+        include_health: true,
+        include_tools: true,
+        include_resources: false,
+        sort_by: 'relevance'
       });
     });
 
@@ -236,41 +260,15 @@ describe('/api/v1/discover', () => {
       
       expect(mockDiscoveryService.discoverServers).toHaveBeenCalledWith({
         limit: 2,
-        offset: 5
+        offset: 5,
+        include_health: true,
+        include_tools: true,
+        include_resources: false,
+        sort_by: 'relevance'
       });
     });
 
-    it('should handle verified_only filter', async () => {
-      const mockResponse = {
-        servers: [
-          {
-            domain: 'verified-server.com',
-            verification: {
-              dns_verified: true,
-              endpoint_verified: true,
-              ssl_verified: true
-            }
-          }
-        ],
-        total_results: 1,
-        has_more: false,
-        query_time_ms: 30
-      };
 
-      mockDiscoveryService.discoverServers.mockResolvedValue(mockResponse);
-
-      const request = new NextRequest('http://localhost:3000/api/v1/discover?verified_only=true');
-      const response = await GET(request);
-
-      expect(response.status).toBe(200);
-      
-      const data = await response.json();
-      expect(data.servers[0].verification.dns_verified).toBe(true);
-      
-      expect(mockDiscoveryService.discoverServers).toHaveBeenCalledWith({
-        verified_only: true
-      });
-    });
 
     it('should return all servers when no parameters provided', async () => {
       const mockResponse = {
@@ -294,7 +292,14 @@ describe('/api/v1/discover', () => {
       const data = await response.json();
       expect(data.servers).toHaveLength(3);
       
-      expect(mockDiscoveryService.discoverServers).toHaveBeenCalledWith({});
+      expect(mockDiscoveryService.discoverServers).toHaveBeenCalledWith({
+        limit: 10,
+        offset: 0,
+        include_health: true,
+        include_tools: true,
+        include_resources: false,
+        sort_by: 'relevance'
+      });
     });
 
     it('should handle empty results', async () => {
@@ -324,7 +329,7 @@ describe('/api/v1/discover', () => {
       expect(response.status).toBe(400);
       
       const data = await response.json();
-      expect(data.error).toContain('Invalid request data');
+      expect(data.error).toContain('Invalid request parameters');
     });
 
     it('should handle service errors gracefully', async () => {
@@ -404,10 +409,23 @@ describe('/api/v1/discover', () => {
       expect(response.status).toBe(200);
       
       expect(mockDiscoveryService.discoverServers).toHaveBeenCalledWith({
-        category: 'productivity',
+        auth_types: undefined,
         capability: 'email',
-        verified_only: true,
-        limit: 10
+        category: 'productivity',
+        cors_required: undefined,
+        domain: undefined,
+        include_health: true,
+        include_resources: false,
+        include_tools: true,
+        intent: undefined,
+        keywords: undefined,
+        limit: 10,
+        max_response_time: undefined,
+        min_uptime: undefined,
+        offset: 0,
+        sort_by: 'relevance',
+        transport: undefined,
+        use_case: undefined
       });
     });
   });

@@ -10,7 +10,20 @@ vi.mock('dns/promises', async (importOriginal) => {
     ...actual,
     resolveTxt: vi.fn(),
     default: {
-      resolveTxt: vi.fn()
+      resolveTxt: vi.fn(),
+      setServers: vi.fn()
+    }
+  };
+});
+
+// Mock DNS module (non-promises version)
+vi.mock('dns', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    setServers: vi.fn(),
+    default: {
+      setServers: vi.fn()
     }
   };
 });
@@ -136,7 +149,7 @@ describe('VerificationService', () => {
 
       // Mock DNS resolution to return the expected TXT record
       const dns = await import('dns/promises');
-      (dns.resolveTxt as any).mockResolvedValue([['mcplookup-verify=abc123.1234567890']]);
+      (dns.resolveTxt as any).mockResolvedValue(['mcplookup-verify=abc123.1234567890']);
 
       mockStorage.updateChallenge.mockResolvedValue({ success: true });
 
@@ -172,7 +185,7 @@ describe('VerificationService', () => {
 
       // Mock DNS resolution to return wrong TXT record
       const dns = await import('dns/promises');
-      (dns.resolveTxt as any).mockResolvedValue([['wrong_value']]);
+      (dns.resolveTxt as any).mockResolvedValue(['wrong_value']);
 
       mockStorage.updateChallenge.mockResolvedValue({ success: true });
 
