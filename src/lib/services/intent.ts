@@ -232,25 +232,196 @@ export class IntentService implements IIntentService {
 }
 
 /**
- * Enhanced Intent Service with Machine Learning
- * This would use external AI APIs in production
+ * Enhanced Intent Service with Real NLP Support
+ * Supports complex natural language queries with semantic understanding
  */
 export class EnhancedIntentService extends IntentService {
-  private readonly USE_EXTERNAL_AI = false; // Set to true in production
+  private smartAI?: import('./ai/index.js').SmartProvider;
+  private readonly USE_EXTERNAL_AI = this.hasAnyAIProvider();
+
+  private hasAnyAIProvider(): boolean {
+    return !!(process.env.TOGETHER_API_KEY || process.env.OPENROUTER_API_KEY);
+  }
+
+  private async getSmartAI(): Promise<import('./ai/index.js').SmartProvider> {
+    if (!this.smartAI) {
+      const { SmartProvider } = await import('./ai/index.js');
+      this.smartAI = new SmartProvider();
+    }
+    return this.smartAI;
+  }
+
+  /**
+   * Process complex natural language queries
+   */
+  async processNaturalLanguageQuery(query: string): Promise<{
+    capabilities: string[];
+    similarTo?: string;
+    constraints: any;
+    intent: string;
+    confidence: number;
+  }> {
+    if (this.USE_EXTERNAL_AI) {
+      return await this.aiBasedQueryProcessing(query);
+    }
+
+    return await this.ruleBasedQueryProcessing(query);
+  }
 
   async intentToCapabilities(intent: string): Promise<string[]> {
-    if (this.USE_EXTERNAL_AI) {
-      return await this.aiBasedIntentMatching(intent);
-    }
-    
-    return await super.intentToCapabilities(intent);
+    const result = await this.processNaturalLanguageQuery(intent);
+    return result.capabilities;
   }
 
-  private async aiBasedIntentMatching(intent: string): Promise<string[]> {
-    // In production, this would call OpenAI or similar service
-    // For now, fall back to rule-based matching
-    return await super.intentToCapabilities(intent);
+  /**
+   * AI-powered query processing using smart provider cycling
+   */
+  private async aiBasedQueryProcessing(query: string): Promise<any> {
+    try {
+      const smartAI = await this.getSmartAI();
+      const response = await smartAI.processQuery(query);
+
+      console.log(`AI Success: ${response.provider}/${response.model} (${response.cost ? `$${response.cost}` : 'FREE'})`);
+
+      return {
+        capabilities: response.capabilities,
+        similarTo: response.similarTo,
+        constraints: response.constraints,
+        intent: response.intent,
+        confidence: response.confidence
+      };
+    } catch (error) {
+      console.warn('Smart AI processing failed, falling back to rule-based:', error);
+      return await this.ruleBasedQueryProcessing(query);
+    }
   }
+
+  // Old individual provider methods removed - now handled by SmartAIProvider
+
+  /**
+   * Enhanced rule-based processing for complex queries
+   */
+  private async ruleBasedQueryProcessing(query: string): Promise<any> {
+    const normalizedQuery = this.normalizeIntent(query);
+    const capabilities = new Set<string>();
+    let similarTo: string | undefined;
+    const constraints: any = {};
+
+    // Extract similarity references
+    const similarityPatterns = [
+      /like\s+(\w+(?:\.\w+)*)/gi,
+      /similar\s+to\s+(\w+(?:\.\w+)*)/gi,
+      /alternatives?\s+to\s+(\w+(?:\.\w+)*)/gi,
+      /instead\s+of\s+(\w+(?:\.\w+)*)/gi
+    ];
+
+    for (const pattern of similarityPatterns) {
+      const matches = normalizedQuery.match(pattern);
+      if (matches) {
+        const domain = matches[0].replace(/^(like|similar to|alternative to|instead of)\s+/i, '');
+        if (domain.includes('.') || this.isKnownService(domain)) {
+          similarTo = domain.includes('.') ? domain : `${domain}.com`;
+          break;
+        }
+      }
+    }
+
+    // Extract performance constraints
+    if (normalizedQuery.includes('faster') || normalizedQuery.includes('speed')) {
+      constraints.performance = { max_response_time: 100 };
+    }
+    if (normalizedQuery.includes('reliable') || normalizedQuery.includes('uptime')) {
+      constraints.performance = { ...constraints.performance, min_uptime: 99 };
+    }
+    if (normalizedQuery.includes('secure') || normalizedQuery.includes('privacy')) {
+      constraints.performance = { ...constraints.performance, min_trust_score: 80 };
+    }
+
+    // Extract technical requirements
+    if (normalizedQuery.includes('oauth') || normalizedQuery.includes('sso')) {
+      constraints.technical = { auth_types: ['oauth2'] };
+    }
+    if (normalizedQuery.includes('api') || normalizedQuery.includes('integration')) {
+      constraints.technical = { ...constraints.technical, cors_support: true };
+    }
+
+    // Extract capabilities using enhanced patterns
+    const enhancedCapabilities = await this.extractEnhancedCapabilities(normalizedQuery);
+    enhancedCapabilities.forEach(cap => capabilities.add(cap));
+
+    // Fallback to basic pattern matching
+    if (capabilities.size === 0) {
+      const basicCapabilities = await super.intentToCapabilities(query);
+      basicCapabilities.forEach(cap => capabilities.add(cap));
+    }
+
+    return {
+      capabilities: Array.from(capabilities),
+      similarTo,
+      constraints,
+      intent: query,
+      confidence: capabilities.size > 0 ? 0.7 : 0.3
+    };
+  }
+
+  /**
+   * Enhanced capability extraction with context understanding
+   */
+  private async extractEnhancedCapabilities(query: string): Promise<string[]> {
+    const capabilities = new Set<string>();
+
+    // Domain-specific patterns
+    const domainPatterns = {
+      email: /email|mail|inbox|compose|send.*message/gi,
+      calendar: /calendar|schedule|meeting|appointment|event/gi,
+      files: /file|document|storage|upload|download|share/gi,
+      collaboration: /collaborate|team|share|work.*together|real.*time/gi,
+      communication: /chat|message|talk|communicate|discuss/gi,
+      development: /code|repo|git|deploy|ci|cd|development/gi,
+      analytics: /analytics|track|metrics|data|insights/gi,
+      social: /social|post|tweet|share.*content/gi,
+      productivity: /productive|organize|manage|workflow/gi,
+      security: /secure|encrypt|privacy|auth|login/gi
+    };
+
+    for (const [domain, pattern] of Object.entries(domainPatterns)) {
+      if (pattern.test(query)) {
+        const domainCapabilities = this.getDomainCapabilities(domain);
+        domainCapabilities.forEach(cap => capabilities.add(cap));
+      }
+    }
+
+    return Array.from(capabilities);
+  }
+
+  private getDomainCapabilities(domain: string): string[] {
+    const domainMap: Record<string, string[]> = {
+      email: ['email_send', 'email_read', 'email_search'],
+      calendar: ['calendar_create', 'calendar_read', 'scheduling'],
+      files: ['file_read', 'file_write', 'file_storage', 'file_share'],
+      collaboration: ['real_time_editing', 'document_sharing', 'team_collaboration'],
+      communication: ['messaging', 'chat', 'video_calls'],
+      development: ['repo_create', 'ci_cd', 'deployment', 'code_review'],
+      analytics: ['analytics', 'tracking', 'metrics', 'reporting'],
+      social: ['social_media', 'content_posting', 'social_sharing'],
+      productivity: ['task_management', 'project_management', 'workflow'],
+      security: ['authentication', 'encryption', 'access_control']
+    };
+
+    return domainMap[domain] || [];
+  }
+
+  private isKnownService(service: string): boolean {
+    const knownServices = [
+      'gmail', 'outlook', 'slack', 'discord', 'teams', 'zoom',
+      'github', 'gitlab', 'bitbucket', 'jira', 'trello', 'asana',
+      'dropbox', 'gdrive', 'onedrive', 'notion', 'confluence',
+      'stripe', 'paypal', 'shopify', 'salesforce', 'hubspot'
+    ];
+    return knownServices.includes(service.toLowerCase());
+  }
+
+  // Schema and prompt builders moved to SmartAIProvider
 }
 
 /**

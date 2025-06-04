@@ -14,6 +14,8 @@
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:storage": "tsx scripts/test-storage.ts",
+    "test:ai": "tsx scripts/test-ai-setup.js",
+    "setup:ai": "echo 'Choose your AI provider (OpenAI removed - too expensive!):' && echo 'TOGETHER_API_KEY=your-key-here (cheapest)' && echo 'OPENROUTER_API_KEY=your-key-here (most flexible, has free models)'",
     "lint": "eslint src/**/*.ts",
     "format": "prettier --write src/**/*.ts",
     "type-check": "tsc --project tsconfig.typecheck.json",
@@ -42,7 +44,6 @@
   "dependencies": {
     "@chakra-ui/react": "^3.19.2",
     "@emotion/react": "^11.14.0",
-    "@esbuild/win32-x64": "^0.25.5",
     "@hookform/resolvers": "^3.9.1",
     "@modelcontextprotocol/sdk": "^1.12.1",
     "@types/prismjs": "^1.26.5",

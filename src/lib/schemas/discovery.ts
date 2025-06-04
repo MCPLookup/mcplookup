@@ -198,34 +198,107 @@ export const MCPServerRecordSchema = z.object({
 // ============================================================================
 
 /**
- * Discovery Request Schema
- * Justified: Flexible discovery patterns for different use cases
+ * Flexible Discovery Query Schema
+ * Allows agents to express complex search requirements naturally
+ */
+
+// Query Expression Types
+const QueryExpressionSchema = z.object({
+  type: z.enum(['exact', 'fuzzy', 'contains', 'regex', 'semantic']).describe("Matching strategy"),
+  value: z.string().describe("Query value"),
+  weight: z.number().min(0).max(1).default(1).describe("Importance weight (0-1)"),
+  required: z.boolean().default(false).describe("Must match for inclusion")
+});
+
+const CapabilityQuerySchema = z.object({
+  operator: z.enum(['AND', 'OR', 'NOT']).default('AND').describe("Logical operator"),
+  capabilities: z.array(QueryExpressionSchema).describe("Capability expressions"),
+  minimum_match: z.number().min(0).max(1).default(0.5).describe("Minimum match score (0-1)")
+});
+
+const SimilarityQuerySchema = z.object({
+  reference_domain: z.string().describe("Domain to find similar servers to"),
+  similarity_threshold: z.number().min(0).max(1).default(0.7).describe("Similarity threshold"),
+  exclude_reference: z.boolean().default(true).describe("Exclude the reference domain from results")
+});
+
+const PerformanceConstraintsSchema = z.object({
+  min_uptime: z.number().min(0).max(100).optional().describe("Minimum uptime percentage"),
+  max_response_time: z.number().min(0).optional().describe("Maximum response time (ms)"),
+  min_trust_score: z.number().min(0).max(100).optional().describe("Minimum trust score"),
+  verified_only: z.boolean().default(true).describe("Only DNS-verified servers"),
+  healthy_only: z.boolean().default(true).describe("Only healthy servers")
+});
+
+const TechnicalRequirementsSchema = z.object({
+  auth_types: z.array(z.string()).optional().describe("Acceptable auth methods"),
+  transport: z.enum(['streamable_http', 'sse', 'stdio']).optional().describe("Required transport"),
+  cors_support: z.boolean().optional().describe("Requires CORS support"),
+  rate_limits: z.object({
+    min_requests_per_hour: z.number().optional(),
+    max_requests_per_hour: z.number().optional()
+  }).optional().describe("Rate limit requirements"),
+  api_version: z.string().optional().describe("Required API version pattern")
+});
+
+/**
+ * Flexible Discovery Request Schema
+ * Agents can combine multiple query strategies for precise discovery
  */
 export const DiscoveryRequestSchema = z.object({
-  // ---- PRIMARY SELECTORS ----
-  domain: z.string().optional().describe("Exact domain match (e.g., 'github.com')"),
-  capability: z.string().optional().describe("Required capability (e.g., 'email_send')"),
-  category: CapabilityCategoryEnum.optional().describe("Capability category filter"),
-  
-  // ---- INTENT-BASED DISCOVERY ----
-  intent: z.string().optional().describe("Natural language intent (e.g., 'check my email')"),
-  keywords: z.array(z.string()).optional().describe("Search keywords"),
-  use_case: z.string().optional().describe("Specific use case description"),
-  
-  // ---- TECHNICAL FILTERS ----
-  auth_types: z.array(z.string()).optional().describe("Acceptable authentication types"),
-  transport: z.enum(['streamable_http', 'sse', 'stdio']).optional().describe("Required transport"),
-  min_uptime: z.number().min(0).max(100).optional().describe("Minimum uptime percentage"),
-  max_response_time: z.number().min(0).optional().describe("Maximum acceptable response time (ms)"),
-  cors_required: z.boolean().optional().describe("Requires CORS support"),
-  
-  // ---- RESPONSE CONTROL ----
-  limit: z.number().min(1).max(100).default(10).describe("Maximum number of results"),
+  // ---- FLEXIBLE QUERY STRATEGIES ----
+
+  // Natural language query (most flexible)
+  query: z.string().optional().describe("Natural language query: 'Find email servers like Gmail but faster'"),
+
+  // Exact lookups
+  domain: QueryExpressionSchema.optional().describe("Domain matching with strategy"),
+  domains: z.array(z.string()).optional().describe("Multiple exact domain lookups"),
+
+  // Capability-based discovery (flexible combinations)
+  capabilities: CapabilityQuerySchema.optional().describe("Complex capability requirements"),
+
+  // Similarity-based discovery
+  similar_to: SimilarityQuerySchema.optional().describe("Find servers similar to a reference"),
+
+  // Category and keyword search
+  categories: z.array(CapabilityCategoryEnum).optional().describe("Multiple category filters"),
+  keywords: z.array(QueryExpressionSchema).optional().describe("Keyword search with strategies"),
+
+  // Use case and intent
+  use_cases: z.array(z.string()).optional().describe("Multiple use case descriptions"),
+  intent: z.string().optional().describe("High-level intent description"),
+
+  // ---- CONSTRAINTS AND FILTERS ----
+  performance: PerformanceConstraintsSchema.optional().describe("Performance requirements"),
+  technical: TechnicalRequirementsSchema.optional().describe("Technical requirements"),
+
+  // Geographic and temporal
+  regions: z.array(z.string()).optional().describe("Preferred geographic regions"),
+  exclude_domains: z.array(z.string()).optional().describe("Domains to exclude"),
+
+  // ---- RESPONSE CUSTOMIZATION ----
+  limit: z.number().min(1).max(100).default(10).describe("Maximum results"),
   offset: z.number().min(0).default(0).describe("Pagination offset"),
-  include_health: z.boolean().default(true).describe("Include real-time health metrics"),
-  include_tools: z.boolean().default(true).describe("Include tool definitions"),
-  include_resources: z.boolean().default(false).describe("Include resource definitions"),
-  sort_by: z.enum(['relevance', 'uptime', 'response_time', 'created_at']).default('relevance').describe("Sort order")
+
+  // Result enrichment
+  include: z.object({
+    health_metrics: z.boolean().default(true),
+    tool_definitions: z.boolean().default(false),
+    resource_definitions: z.boolean().default(false),
+    usage_statistics: z.boolean().default(false),
+    similar_servers: z.boolean().default(false),
+    alternative_suggestions: z.boolean().default(true)
+  }).optional().describe("What to include in results"),
+
+  // Sorting and ranking
+  sort_by: z.enum(['relevance', 'similarity', 'performance', 'popularity', 'trust_score', 'response_time']).default('relevance'),
+  ranking_weights: z.object({
+    relevance: z.number().min(0).max(1).default(0.4),
+    performance: z.number().min(0).max(1).default(0.3),
+    trust_score: z.number().min(0).max(1).default(0.2),
+    popularity: z.number().min(0).max(1).default(0.1)
+  }).optional().describe("Custom ranking weights")
 });
 
 /**

@@ -1,20 +1,40 @@
-# THE ONE RING: SERVERLESS MASTER MCP SERVER SPECIFICATION
+# THE ONE RING: MCP SERVER SPECIFICATION
 
-**The Serverless MCP Server that discovers all other MCP servers**  
-*The Registry. The Discovery Engine. The One Ring to Rule Them All.*  
-*Zero Infrastructure. Zero Database. Maximum Discovery.*
+**Status**: ✅ **LIVE AND OPERATIONAL**
+**The Master MCP Server that discovers all other MCP servers**
+*The Registry. The Discovery Engine. The One Ring to Rule Them All.*
 
 ---
 
-## 🎯 PURPOSE & ARCHITECTURE
+## 🎯 **ARCHITECTURE & IMPLEMENTATION**
 
-This is THE serverless MCP server that:
-- **AI agents connect to for discovery** (no setup required)
-- **Manages the global registry without databases** (in-memory + DNS)
-- **Handles DNS verification with no storage** (stateless verification)
-- **Provides intelligent matching in real-time** (live discovery)
+**Endpoint**: `https://mcplookup.org/api/mcp`
+**Implementation**: `@vercel/mcp-adapter` with direct service integration
+**Protocol**: Native MCP JSON-RPC over HTTP
 
-**Endpoint**: `https://mcplookup.org/mcp`
+### **🏗️ Technical Stack**
+- **MCP Adapter**: `@vercel/mcp-adapter` for native protocol support
+- **Service Integration**: Direct calls to service layer (no HTTP overhead)
+- **Storage**: Multi-tier Redis with auto-detection (Upstash/Local/Memory)
+- **Deployment**: Vercel serverless functions with global edge network
+
+### **⚡ Performance Architecture**
+```
+AI Agent ──MCP Protocol──▶ @vercel/mcp-adapter ──Direct Calls──▶ Service Layer ──▶ Storage
+   │                              │                        │                    │
+   │                              │                        │                    ├─ Upstash Redis (Prod)
+   │                              │                        │                    ├─ Local Redis (Dev)
+   │                              │                        │                    └─ In-Memory (Test)
+   │                              │                        │
+   │                              │                        ├─ DiscoveryService
+   │                              │                        ├─ RegistryService
+   │                              │                        ├─ VerificationService
+   │                              │                        └─ HealthService
+   │                              │
+   │                              └─ 6 Native MCP Tools
+   │
+   └─ Claude Desktop, Cursor, Windsurf, etc.
+```
 
 ### Serverless Benefits
 - ✅ **Zero Setup**: No database configuration needed

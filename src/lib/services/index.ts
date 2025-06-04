@@ -77,13 +77,25 @@ export class ServiceFactory {
   }
 
   /**
-   * Get Intent Service
+   * Get Intent Service (automatically detects AI capability)
    */
   getIntentService(): IntentService | EnhancedIntentService {
     if (!this.intentService) {
-      this.intentService = this.config.enhanced || this.config.intentAIEnabled
+      // Auto-detect AI capability based on available API keys
+      const hasTogetherKey = !!process.env.TOGETHER_API_KEY;
+      const hasOpenRouterKey = !!process.env.OPENROUTER_API_KEY;
+      const hasAnyAIKey = hasTogetherKey || hasOpenRouterKey;
+      const shouldUseAI = this.config.enhanced || this.config.intentAIEnabled || hasAnyAIKey;
+
+      this.intentService = shouldUseAI
         ? new EnhancedIntentService()
         : new IntentService();
+
+      // Log which service is being used
+      if (process.env.NODE_ENV !== 'test') {
+        const aiProvider = hasTogetherKey ? 'Together AI' : hasOpenRouterKey ? 'OpenRouter' : 'No AI';
+        console.log(`Intent Service: ${shouldUseAI ? 'AI-Powered' : 'Rule-Based'} (${aiProvider} Available)`);
+      }
     }
     return this.intentService;
   }
@@ -187,15 +199,20 @@ export function getTestServices() {
 }
 
 /**
- * Get services for serverless deployment (optimized)
+ * Get services for serverless deployment (optimized but AI-aware)
  */
 export function getServerlessServices() {
+  // Auto-detect AI capability for serverless
+  const hasTogetherKey = !!process.env.TOGETHER_API_KEY;
+  const hasOpenRouterKey = !!process.env.OPENROUTER_API_KEY;
+  const hasAnyAIKey = hasTogetherKey || hasOpenRouterKey;
+
   const factory = ServiceFactory.getInstance({
-    enhanced: false, // Keep it simple for cold starts
+    enhanced: false, // Keep other services simple for cold starts
     cacheEnabled: true,
-    intentAIEnabled: false // Avoid external API calls
+    intentAIEnabled: hasAnyAIKey // Enable AI if available
   });
-  
+
   return factory.getAllServices();
 }
 
