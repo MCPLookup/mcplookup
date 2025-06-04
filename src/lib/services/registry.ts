@@ -29,6 +29,16 @@ export class RegistryService implements IRegistryService {
   }
 
   /**
+   * Get all verified servers (excludes unverified domains)
+   */
+  async getVerifiedServers(): Promise<MCPServerRecord[]> {
+    const allServers = await this.getAllServers();
+    return allServers.filter(server =>
+      server.verification_status !== 'unverified'
+    );
+  }
+
+  /**
    * Register a new MCP server
    */
   async registerServer(server: MCPServerRecord): Promise<void> {
@@ -135,10 +145,10 @@ export class RegistryService implements IRegistryService {
   }
 
   /**
-   * Get all verified servers (alias for getAllServers)
+   * Get all verified servers (excludes unverified domains)
    */
   async getAllVerifiedServers(): Promise<MCPServerRecord[]> {
-    return this.getAllServers();
+    return this.getVerifiedServers();
   }
 
   /**
