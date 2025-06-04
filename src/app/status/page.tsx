@@ -46,20 +46,20 @@ export default function StatusPage() {
           {/* System Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="bg-white rounded-lg shadow-md p-6 text-center">
-              <div className="text-3xl font-bold text-blue-600">1,247</div>
-              <div className="text-sm text-gray-600">Total Servers</div>
+              <div className="text-3xl font-bold text-blue-600">~50</div>
+              <div className="text-sm text-gray-600">Registered Servers</div>
             </div>
             <div className="bg-white rounded-lg shadow-md p-6 text-center">
-              <div className="text-3xl font-bold text-green-600">847</div>
+              <div className="text-3xl font-bold text-green-600">~30</div>
               <div className="text-sm text-gray-600">Verified Servers</div>
             </div>
             <div className="bg-white rounded-lg shadow-md p-6 text-center">
-              <div className="text-3xl font-bold text-orange-600">130ms</div>
-              <div className="text-sm text-gray-600">Avg Response Time</div>
+              <div className="text-3xl font-bold text-orange-600">~120ms</div>
+              <div className="text-sm text-gray-600">Edge Response Time</div>
             </div>
             <div className="bg-white rounded-lg shadow-md p-6 text-center">
-              <div className="text-3xl font-bold text-purple-600">99.85%</div>
-              <div className="text-sm text-gray-600">System Uptime</div>
+              <div className="text-3xl font-bold text-purple-600">99.9%</div>
+              <div className="text-sm text-gray-600">Vercel Uptime</div>
             </div>
           </div>
 
@@ -71,19 +71,26 @@ export default function StatusPage() {
             
             <div className="divide-y divide-gray-200">
               {[
-                { name: "Discovery API", status: "operational", uptime: 99.9, responseTime: 120 },
-                { name: "Registration API", status: "operational", uptime: 99.8, responseTime: 95 },
-                { name: "MCP Server", status: "operational", uptime: 99.95, responseTime: 85 },
+                { name: "Discovery API (Next.js)", status: "operational", uptime: 99.9, responseTime: 120 },
+                { name: "Registration API (Next.js)", status: "operational", uptime: 99.8, responseTime: 95 },
+                { name: "Upstash Redis", status: "operational", uptime: 99.95, responseTime: 85 },
                 { name: "DNS Verification", status: "operational", uptime: 99.7, responseTime: 200 },
-                { name: "Health Monitoring", status: "operational", uptime: 99.85, responseTime: 150 }
+                { name: "Vercel Edge Functions", status: "operational", uptime: 99.9, responseTime: 50 },
+                { name: "MCP Server Endpoint", status: "development", uptime: 0, responseTime: 0 }
               ].map((service) => (
                 <div key={service.name} className="px-6 py-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <span className="text-xl">✅</span>
+                      <span className="text-xl">
+                        {service.status === "operational" ? "✅" :
+                         service.status === "development" ? "🚧" : "❌"}
+                      </span>
                       <div>
                         <h4 className="font-medium text-gray-900">{service.name}</h4>
-                        <p className="text-sm text-green-600 capitalize">
+                        <p className={`text-sm capitalize ${
+                          service.status === "operational" ? "text-green-600" :
+                          service.status === "development" ? "text-yellow-600" : "text-red-600"
+                        }`}>
                           {service.status}
                         </p>
                       </div>
@@ -91,16 +98,20 @@ export default function StatusPage() {
                     
                     <div className="flex space-x-6 text-sm text-gray-600">
                       <div className="text-center">
-                        <div className="font-medium">{service.uptime}%</div>
+                        <div className="font-medium">
+                          {service.status === "development" ? "N/A" : `${service.uptime}%`}
+                        </div>
                         <div>Uptime</div>
                       </div>
                       <div className="text-center">
-                        <div className="font-medium">{service.responseTime}ms</div>
+                        <div className="font-medium">
+                          {service.status === "development" ? "N/A" : `${service.responseTime}ms`}
+                        </div>
                         <div>Response</div>
                       </div>
                       <div className="text-center">
                         <div className="font-medium">
-                          {new Date().toLocaleTimeString()}
+                          {service.status === "development" ? "In Dev" : new Date().toLocaleTimeString()}
                         </div>
                         <div>Last Check</div>
                       </div>
