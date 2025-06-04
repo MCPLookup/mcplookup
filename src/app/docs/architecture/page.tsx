@@ -1,5 +1,6 @@
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
+import { PredefinedDiagram } from "@/components/docs/mermaid-diagram";
 import Link from "next/link";
 
 export default function ArchitecturePage() {
@@ -36,12 +37,11 @@ export default function ArchitecturePage() {
             <li><strong>Security:</strong> DNS-based verification, no stored credentials</li>
           </ul>
 
-<<<<<<< HEAD
           {/* High-Level Architecture Diagram */}
           <section className="space-y-6">
             <h2 className="text-2xl font-bold text-gray-900">🌐 System Architecture</h2>
             <PredefinedDiagram type="architecture" className="mb-6" />
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="text-center space-y-3">
                 <div className="text-3xl">⚡</div>
@@ -321,15 +321,6 @@ export default function ArchitecturePage() {
               </div>
             </div>
           </section>
-=======
-          <h3>Design Principles</h3>
-          <ul>
-            <li><strong>Zero Infrastructure:</strong> No servers to manage, fully serverless</li>
-            <li><strong>Security First:</strong> No API keys or credentials stored</li>
-            <li><strong>Data Ownership:</strong> Servers control their own registration data</li>
-            <li><strong>Performance:</strong> Global edge deployment for fast responses</li>
-          </ul>
->>>>>>> 6f40b1d5753db3f8009af3b63c7ec9fb64a2b1c1
         </div>
       </div>
       <Footer />
