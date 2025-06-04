@@ -605,11 +605,11 @@ export class LocalRedisVerificationStorage implements IVerificationStorage {
   /**
    * Store verification challenge with automatic expiration
    */
-  async storeChallenge(challenge: VerificationChallengeData): Promise<StorageResult<void>> {
+  async storeChallenge(challengeId: string, challenge: VerificationChallengeData): Promise<StorageResult<void>> {
     try {
       await this.ensureConnection();
 
-      const key = `challenge:${challenge.id}`;
+      const key = `challenge:${challengeId}`;
       const domainKey = `domain:${challenge.domain}`;
 
       // Use pipeline for atomic operations
@@ -619,11 +619,11 @@ export class LocalRedisVerificationStorage implements IVerificationStorage {
       multi.setEx(key, this.TTL_SECONDS, JSON.stringify(challenge));
 
       // Add to domain index for efficient domain-based queries
-      multi.sAdd(domainKey, challenge.id);
+      multi.sAdd(domainKey, challengeId);
       multi.expire(domainKey, this.TTL_SECONDS);
 
       // Add to global challenges set
-      multi.sAdd('challenges:all', challenge.id);
+      multi.sAdd('challenges:all', challengeId);
 
       await multi.exec();
       return createSuccessResult(undefined);
