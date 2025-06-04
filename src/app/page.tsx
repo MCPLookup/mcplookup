@@ -39,7 +39,7 @@ export default function HomePage() {
             <div className="flex flex-wrap gap-4 justify-center">
               <Link href="/discover">
                 <AnimatedButton
-                  variant="primary"
+                  variant="solid"
                   size="lg"
                   hoverScale={1.02}
                   clickScale={0.98}
@@ -252,7 +252,7 @@ export default function HomePage() {
                   </div>
                   <Link href="/discover">
                     <AnimatedButton
-                      variant="primary"
+                      variant="solid"
                       size="sm"
                       hoverScale={1.05}
                       clickScale={0.95}
@@ -275,7 +275,7 @@ export default function HomePage() {
                   </div>
                   <Link href="/register">
                     <AnimatedButton
-                      variant="primary"
+                      variant="solid"
                       size="sm"
                       hoverScale={1.05}
                       clickScale={0.95}
@@ -298,7 +298,7 @@ export default function HomePage() {
                   </div>
                   <Link href="https://github.com/TSavo/mcplookup.org">
                     <AnimatedButton
-                      variant="primary"
+                      variant="solid"
                       size="sm"
                       hoverScale={1.05}
                       clickScale={0.95}

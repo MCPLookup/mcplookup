@@ -24,7 +24,7 @@ import { Pagination } from "@/components/ui/pagination"
 import { LoadingCard, SearchLoading, StaggeredListLoading } from "@/components/ui/loading"
 import { AnimatedCardNamespace as AnimatedCard, AnimatedList } from "@/components/ui/animated-card"
 import { AnimatedButton } from "@/components/ui/animated-button"
-import { useToast } from "@/components/ui/toaster"
+import { createAnimatedToast } from "@/components/ui/toaster"
 import { FaSearch, FaServer, FaCheckCircle, FaExclamationTriangle, FaFilter, FaTimes, FaCode, FaStream, FaShieldAlt, FaCog, FaBook, FaPlug, FaDatabase } from "react-icons/fa"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
@@ -120,7 +120,7 @@ export default function DiscoverPage() {
   })
   const [showFilters, setShowFilters] = useState(false)
   const [aiMetadata, setAiMetadata] = useState<any>(null)
-  const toast = useToast()
+
 
   const bgGradient = useColorModeValue(
     "linear-gradient(to bottom right, var(--chakra-colors-blue-50), var(--chakra-colors-purple-50))",
@@ -326,7 +326,7 @@ export default function DiscoverPage() {
                     loadingText="Searching..."
                     hoverScale={1.05}
                     rippleEffect
-                    variant="primary"
+                    variant="solid"
                   >
                     {!loading && (
                       <Icon>

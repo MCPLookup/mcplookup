@@ -12,7 +12,7 @@ import {
   Text,
   Button,
   Icon,
-  Avatar,
+
   SimpleGrid,
   Badge
 } from "@chakra-ui/react"
@@ -136,11 +136,20 @@ export default function DashboardPage() {
           >
             <AnimatedCard.Body>
               <HStack gap={6} align="center">
-                <Avatar
-                  size="lg"
-                  name={session.user?.name || session.user?.email || 'User'}
-                  src={session.user?.image || undefined}
-                />
+                <Box
+                  width="64px"
+                  height="64px"
+                  borderRadius="full"
+                  bg="blue.500"
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                  color="white"
+                  fontSize="xl"
+                  fontWeight="bold"
+                >
+                  {session.user?.name?.[0] || session.user?.email?.[0] || 'U'}
+                </Box>
                 <VStack align="start" gap={1} flex={1}>
                   <Heading size="md">
                     Welcome back, {session.user?.name || 'User'}!
