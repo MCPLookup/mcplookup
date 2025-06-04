@@ -69,7 +69,7 @@ export class LocalRedisRegistryStorage implements IRegistryStorage {
     try {
       await this.ensureConnection();
 
-      const serverWithTimestamp = { ...server, last_updated: new Date().toISOString() };
+      const serverWithTimestamp = { ...server, updated_at: new Date().toISOString() };
       const multi = this.redis.multi();
 
       // 1. Store the full server record
@@ -345,10 +345,14 @@ export class LocalRedisRegistryStorage implements IRegistryStorage {
       // Get memory usage if available
       let memoryUsed = 'N/A';
       try {
-        const memoryInfo = await this.redis.memory('USAGE', 'servers:all');
-        memoryUsed = `${Math.round(memoryInfo / 1024)}KB`;
+        // Use INFO command instead of MEMORY which might not be available
+        const info = await this.redis.info('memory');
+        const match = info.match(/used_memory:(\d+)/);
+        if (match) {
+          memoryUsed = `${Math.round(parseInt(match[1]) / 1024)}KB`;
+        }
       } catch (error) {
-        // Memory command might not be available in all Redis versions
+        // Memory info might not be available in all Redis versions
       }
 
       return createSuccessResult({
@@ -410,8 +414,8 @@ export class LocalRedisRegistryStorage implements IRegistryStorage {
 
       const cutoffDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
       const serversToRemove = servers.filter(server =>
-        !server.last_updated ||
-        new Date(server.last_updated) < cutoffDate ||
+        !server.updated_at ||
+        new Date(server.updated_at) < cutoffDate ||
         server.health?.status === 'unhealthy'
       );
 
@@ -542,7 +546,7 @@ export class LocalRedisRegistryStorage implements IRegistryStorage {
     switch (sortBy) {
       case 'domain': return server.domain;
       case 'name': return server.server_info?.name || server.domain;
-      case 'updated_at': return server.last_updated || '';
+      case 'updated_at': return server.updated_at || '';
       case 'health_score': return String(server.health?.uptime_percentage || 0);
       default: return server.domain;
     }
@@ -911,10 +915,14 @@ export class LocalRedisVerificationStorage implements IVerificationStorage {
       // Get memory usage if available
       let memoryUsed = 'N/A';
       try {
-        const memoryInfo = await this.redis.memory('USAGE', 'challenges:all');
-        memoryUsed = `${Math.round(memoryInfo / 1024)}KB`;
+        // Use INFO command instead of MEMORY which might not be available
+        const info = await this.redis.info('memory');
+        const match = info.match(/used_memory:(\d+)/);
+        if (match) {
+          memoryUsed = `${Math.round(parseInt(match[1]) / 1024)}KB`;
+        }
       } catch (error) {
-        // Memory command might not be available in all Redis versions
+        // Memory info might not be available in all Redis versions
       }
 
       return createSuccessResult({

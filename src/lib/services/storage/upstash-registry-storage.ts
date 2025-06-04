@@ -2,8 +2,8 @@
 // Implements the full IRegistryStorage interface with pagination and error handling
 
 import { Redis } from '@upstash/redis';
-import { MCPServerRecord, CapabilityCategory } from '../../schemas/discovery.js';
-import { 
+import { MCPServerRecord, CapabilityCategory } from '../../schemas/discovery';
+import {
   IRegistryStorage,
   StorageResult,
   PaginatedResult,
@@ -39,7 +39,7 @@ export class UpstashRegistryStorage implements IRegistryStorage {
 
   async storeServer(domain: string, server: MCPServerRecord): Promise<StorageResult<void>> {
     try {
-      const serverWithTimestamp = { ...server, last_updated: new Date().toISOString() };
+      const serverWithTimestamp = { ...server, updated_at: new Date().toISOString() };
       const pipeline = this.redis.pipeline();
       
       // Store the full server record
@@ -318,8 +318,8 @@ export class UpstashRegistryStorage implements IRegistryStorage {
       
       const cutoffDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
       const serversToRemove = servers.filter(server => 
-        !server.last_updated || 
-        new Date(server.last_updated) < cutoffDate ||
+        !server.updated_at ||
+        new Date(server.updated_at) < cutoffDate ||
         server.health?.status === 'unhealthy'
       );
       
@@ -436,7 +436,7 @@ export class UpstashRegistryStorage implements IRegistryStorage {
     switch (sortBy) {
       case 'domain': return server.domain;
       case 'name': return server.server_info?.name || server.domain;
-      case 'updated_at': return server.last_updated || '';
+      case 'updated_at': return server.updated_at || '';
       case 'health_score': return String(server.health?.uptime_percentage || 0);
       default: return server.domain;
     }

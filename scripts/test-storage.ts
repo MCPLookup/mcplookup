@@ -31,14 +31,23 @@ async function testStorageProvider(providerName: string, provider: 'memory' | 'l
     console.log('\n📝 Testing Registry Storage:');
     
     const mockServer: MCPServerRecord = {
+      // Identity
       domain: 'test-example.com',
       endpoint: 'https://test-example.com/.well-known/mcp',
       name: 'Test Server',
       description: 'A test MCP server for storage testing',
+
+      // MCP Protocol Data
       server_info: {
         name: 'Test Server',
         version: '1.0.0',
-        protocolVersion: '2024-11-05'
+        protocolVersion: '2024-11-05',
+        capabilities: {
+          tools: true,
+          resources: false,
+          prompts: false,
+          logging: false
+        }
       },
       tools: [
         {
@@ -52,32 +61,31 @@ async function testStorageProvider(providerName: string, provider: 'memory' | 'l
           }
         }
       ],
-      resources: [
-        {
-          name: 'test_resource',
-          uri: 'test://resource',
-          description: 'A test resource'
-        }
-      ],
+      resources: [],
       transport: 'streamable_http',
+
+      // Semantic Organization
       capabilities: {
         category: 'productivity' as CapabilityCategory,
         subcategories: ['email', 'calendar'],
-        intent_keywords: ['email', 'calendar', 'productivity'],
-        use_cases: ['Email management', 'Calendar scheduling']
+        intent_keywords: ['email', 'calendar', 'schedule', 'meeting'],
+        use_cases: ['Send emails', 'Manage calendar events', 'Schedule meetings']
       },
+
+      // Technical Requirements
       auth: {
-        type: 'none',
-        required: false
+        type: 'none'
       },
       cors_enabled: true,
+
+      // Operational Status
       health: {
         status: 'healthy',
-        last_check: new Date().toISOString(),
-        response_time_ms: 150,
         uptime_percentage: 99.9,
         avg_response_time_ms: 150,
-        error_rate: 0,
+        response_time_ms: 150,
+        error_rate: 0.001,
+        last_check: new Date().toISOString(),
         consecutive_failures: 0
       },
       verification: {
@@ -87,8 +95,14 @@ async function testStorageProvider(providerName: string, provider: 'memory' | 'l
         last_verification: new Date().toISOString(),
         verification_method: 'dns-txt-challenge'
       },
+
+      // Metadata
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
+      maintainer: {
+        name: 'Test Maintainer',
+        email: 'test@example.com'
+      }
     };
 
     // Store server
@@ -146,20 +160,16 @@ async function testStorageProvider(providerName: string, provider: 'memory' | 'l
     console.log('\n🔐 Testing Verification Storage:');
     
     const mockChallenge: VerificationChallengeData = {
-      challenge_id: 'test-challenge-123',
+      id: 'test-challenge-123',
       domain: 'test-example.com',
-      txt_record_name: '_mcp-verify.test-example.com',
-      txt_record_value: 'mcp_verify_test123',
-      expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-      instructions: 'Add the DNS TXT record for testing',
-      endpoint: 'https://test-example.com/.well-known/mcp',
-      contact_email: 'test@example.com',
-      token: 'test123',
-      created_at: new Date().toISOString()
+      challenge: 'mcp_verify_test123',
+      createdAt: new Date(),
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      verified: false
     };
 
     // Store challenge
-    const storeChallengeResult = await verificationStorage.storeChallenge('test-challenge-123', mockChallenge);
+    const storeChallengeResult = await verificationStorage.storeChallenge(mockChallenge);
     if (isSuccessResult(storeChallengeResult)) {
       console.log('  ✅ Challenge stored successfully');
     } else {
@@ -171,7 +181,7 @@ async function testStorageProvider(providerName: string, provider: 'memory' | 'l
     const retrieveChallengeResult = await verificationStorage.getChallenge('test-challenge-123');
     if (isSuccessResult(retrieveChallengeResult)) {
       const retrievedChallenge = retrieveChallengeResult.data;
-      console.log(`  ✅ Challenge retrieved: ${retrievedChallenge?.challenge_id === 'test-challenge-123' ? 'Match' : 'Mismatch'}`);
+      console.log(`  ✅ Challenge retrieved: ${retrievedChallenge?.id === 'test-challenge-123' ? 'Match' : 'Mismatch'}`);
     } else {
       console.log(`  ❌ Failed to retrieve challenge: ${retrieveChallengeResult.error}`);
     }
@@ -182,7 +192,7 @@ async function testStorageProvider(providerName: string, provider: 'memory' | 'l
       const verifiedChallengeResult = await verificationStorage.getChallenge('test-challenge-123');
       if (isSuccessResult(verifiedChallengeResult)) {
         const verifiedChallenge = verifiedChallengeResult.data;
-        console.log(`  ✅ Challenge verified: ${verifiedChallenge?.verified_at ? 'Yes' : 'No'}`);
+        console.log(`  ✅ Challenge verified: ${verifiedChallenge?.verified ? 'Yes' : 'No'}`);
       }
     } else {
       console.log(`  ❌ Failed to verify challenge: ${verifyResult.error}`);
@@ -200,7 +210,7 @@ async function testStorageProvider(providerName: string, provider: 'memory' | 'l
     // Cleanup
     console.log('\n🧹 Cleanup:');
     const deleteServerResult = await registryStorage.deleteServer('test-example.com');
-    const deleteChallengeResult = await verificationStorage.deleteChallenge('test-challenge-123');
+    const deleteChallengeResult = await verificationStorage.removeChallenge('test-challenge-123');
 
     if (isSuccessResult(deleteServerResult) && isSuccessResult(deleteChallengeResult)) {
       console.log('  ✅ Test data cleaned up');

@@ -3,7 +3,7 @@
 
 import { MCPServerRecord, CapabilityCategory } from '../schemas/discovery';
 import { IRegistryService } from './discovery';
-import { IRegistryStorage } from './storage/interfaces';
+import { IRegistryStorage, isSuccessResult } from './storage/interfaces';
 import { getRegistryStorage, StorageConfig } from './storage/storage';
 
 /**
@@ -21,52 +21,69 @@ export class RegistryService implements IRegistryService {
    * Get all servers (from storage only)
    */
   async getAllServers(): Promise<MCPServerRecord[]> {
-    return this.storage.getAllServers();
+    const result = await this.storage.getAllServers();
+    if (isSuccessResult(result)) {
+      return result.data.items;
+    }
+    throw new Error(`Failed to get servers: ${result.error}`);
   }
 
   /**
    * Register a new MCP server
    */
   async registerServer(server: MCPServerRecord): Promise<void> {
-    await this.storage.addServer(server);
+    const result = await this.storage.storeServer(server.domain, server);
+    if (!isSuccessResult(result)) {
+      throw new Error(`Failed to register server: ${result.error}`);
+    }
   }
 
   /**
    * Update an existing server
    */
   async updateServer(domain: string, updates: Partial<MCPServerRecord>): Promise<void> {
-    const existing = await this.storage.getServer(domain);
-    if (!existing) {
+    const getResult = await this.storage.getServer(domain);
+    if (!isSuccessResult(getResult) || !getResult.data) {
       throw new Error(`Server ${domain} not found`);
     }
 
-    const updated = { ...existing, ...updates, updated_at: new Date().toISOString() };
-    await this.storage.updateServer(domain, updated);
+    const updated = { ...getResult.data, ...updates, updated_at: new Date().toISOString() };
+    const updateResult = await this.storage.storeServer(domain, updated);
+    if (!isSuccessResult(updateResult)) {
+      throw new Error(`Failed to update server: ${updateResult.error}`);
+    }
   }
 
   /**
    * Unregister a server
    */
   async unregisterServer(domain: string): Promise<void> {
-    await this.storage.removeServer(domain);
+    const result = await this.storage.deleteServer(domain);
+    if (!isSuccessResult(result)) {
+      throw new Error(`Failed to unregister server: ${result.error}`);
+    }
   }
 
   /**
    * Get registry statistics
    */
-  async getRegistryStats(): Promise<{ 
-    totalServers: number; 
+  async getRegistryStats(): Promise<{
+    totalServers: number;
     registeredServers: number;
     wellKnownServers: number;
-    categories: Record<string, number> 
+    categories: Record<string, number>
   }> {
-    const storageStats = await this.storage.getHealthStats();
-    return {
-      totalServers: storageStats.totalServers,
-      registeredServers: storageStats.totalServers,
-      wellKnownServers: 0, // No hardcoded servers
-      categories: {} // TODO: Implement category counting
-    };
+    const statsResult = await this.storage.getStats();
+    if (isSuccessResult(statsResult)) {
+      const stats = statsResult.data;
+      return {
+        totalServers: stats.totalServers,
+        registeredServers: stats.totalServers,
+        wellKnownServers: 0, // No hardcoded servers
+        categories: stats.categories as Record<string, number>
+      };
+    }
+    throw new Error(`Failed to get stats: ${statsResult.error}`);
   }
 
   /**
@@ -74,9 +91,9 @@ export class RegistryService implements IRegistryService {
    */
   async getServersByDomain(domain: string): Promise<MCPServerRecord[]> {
     // First check if it's stored
-    const stored = await this.storage.getServer(domain);
-    if (stored) {
-      return [stored];
+    const result = await this.storage.getServer(domain);
+    if (isSuccessResult(result) && result.data) {
+      return [result.data];
     }
 
     // Try real-time discovery
@@ -87,14 +104,22 @@ export class RegistryService implements IRegistryService {
    * Get servers by capability
    */
   async getServersByCapability(capability: CapabilityCategory): Promise<MCPServerRecord[]> {
-    return this.storage.getServersByCapability(capability);
+    const result = await this.storage.getServersByCapability(capability);
+    if (isSuccessResult(result)) {
+      return result.data.items;
+    }
+    throw new Error(`Failed to get servers by capability: ${result.error}`);
   }
 
   /**
    * Get servers by category
    */
   async getServersByCategory(category: CapabilityCategory): Promise<MCPServerRecord[]> {
-    return this.storage.getServersByCapability(category);
+    const result = await this.storage.getServersByCategory(category);
+    if (isSuccessResult(result)) {
+      return result.data.items;
+    }
+    throw new Error(`Failed to get servers by category: ${result.error}`);
   }
 
   /**
@@ -102,7 +127,11 @@ export class RegistryService implements IRegistryService {
    */
   async searchServers(keywords: string[]): Promise<MCPServerRecord[]> {
     const query = keywords.join(' ');
-    return this.storage.searchServers(query);
+    const result = await this.storage.searchServers(query);
+    if (isSuccessResult(result)) {
+      return result.data.items;
+    }
+    throw new Error(`Failed to search servers: ${result.error}`);
   }
 
   /**

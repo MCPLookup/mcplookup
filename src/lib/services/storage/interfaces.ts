@@ -1,7 +1,7 @@
 // Storage Interfaces - Unified API for all storage providers
 // Thoughtfully designed for consistency, performance, and maintainability
 
-import { MCPServerRecord, CapabilityCategory, VerificationChallenge } from '../../schemas/discovery.js';
+import { MCPServerRecord, CapabilityCategory, VerificationChallenge } from '../../schemas/discovery';
 
 // =============================================================================
 // COMMON TYPES & UTILITIES

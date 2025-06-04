@@ -40,7 +40,7 @@ class InMemoryRegistryStorage implements IRegistryStorage {
 
   async storeServer(domain: string, server: MCPServerRecord): Promise<StorageResult<void>> {
     try {
-      this.servers.set(domain, { ...server, last_updated: new Date().toISOString() });
+      this.servers.set(domain, { ...server, updated_at: new Date().toISOString() });
       return createSuccessResult(undefined);
     } catch (error) {
       return createErrorResult(`Failed to store server: ${error}`, 'STORE_ERROR');
@@ -91,7 +91,7 @@ class InMemoryRegistryStorage implements IRegistryStorage {
 
       for (const [domain, server] of servers) {
         try {
-          this.servers.set(domain, { ...server, last_updated: new Date().toISOString() });
+          this.servers.set(domain, { ...server, updated_at: new Date().toISOString() });
           successful++;
         } catch (error) {
           failed++;
@@ -257,7 +257,7 @@ class InMemoryRegistryStorage implements IRegistryStorage {
     switch (sortBy) {
       case 'domain': return server.domain;
       case 'name': return server.server_info?.name || server.domain;
-      case 'updated_at': return server.last_updated || '';
+      case 'updated_at': return server.updated_at || '';
       case 'health_score': return String(server.health?.uptime_percentage || 0);
       default: return server.domain;
     }
