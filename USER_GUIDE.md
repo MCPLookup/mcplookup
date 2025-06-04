@@ -1,6 +1,8 @@
 # MCPLookup.org User Guide 📚
 
-Complete guide for discovering, registering, and using MCP servers through MCPLookup.org.
+**🔥 The End of Hardcoded Lists: Complete guide to eliminating static configuration forever**
+
+The comprehensive guide to using **the MCP server that discovers all other MCP servers** - ending the era of hardcoded lists and manual configuration.
 
 ## 🎯 Quick Start
 
