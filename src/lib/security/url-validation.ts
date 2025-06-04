@@ -195,3 +195,83 @@ export function validateAndSanitizeURL(url: string): string | null {
     return null;
   }
 }
+
+// Utility function to check if an IP address is private
+export function isPrivateIP(ip: string): boolean {
+  // IPv4 private ranges
+  const ipv4Regex = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
+  const match = ip.match(ipv4Regex);
+
+  if (match) {
+    const [, a, b, c, d] = match.map(Number);
+
+    // Check for invalid IP ranges
+    if (a > 255 || b > 255 || c > 255 || d > 255) return false;
+
+    // Private IP ranges:
+    // 10.0.0.0/8 (10.0.0.0 to 10.255.255.255)
+    if (a === 10) return true;
+
+    // 172.16.0.0/12 (172.16.0.0 to 172.31.255.255)
+    if (a === 172 && b >= 16 && b <= 31) return true;
+
+    // 192.168.0.0/16 (192.168.0.0 to 192.168.255.255)
+    if (a === 192 && b === 168) return true;
+
+    // Localhost
+    if (a === 127) return true;
+
+    // Link-local (169.254.0.0/16)
+    if (a === 169 && b === 254) return true;
+
+    return false;
+  }
+
+  // IPv6 private ranges (simplified check)
+  if (ip.includes(':')) {
+    const lowerIP = ip.toLowerCase();
+    // Localhost
+    if (lowerIP === '::1') return true;
+    // Link-local (fe80::/10)
+    if (lowerIP.startsWith('fe80:')) return true;
+    // Unique local (fc00::/7)
+    if (lowerIP.startsWith('fc') || lowerIP.startsWith('fd')) return true;
+
+    return false;
+  }
+
+  return false;
+}
+
+// Safe fetch function with security validations
+export async function safeFetch(url: string, options?: RequestInit): Promise<Response> {
+  // Validate URL security
+  const validatedUrl = validateAndSanitizeURL(url);
+  if (!validatedUrl) {
+    throw new Error('Invalid or unsafe URL');
+  }
+
+  // Parse URL to check for additional security concerns
+  const parsedUrl = new URL(validatedUrl);
+
+  // Block private IP addresses
+  if (isPrivateIP(parsedUrl.hostname)) {
+    throw new Error('Access to private IP addresses is not allowed');
+  }
+
+  // Set security headers and options
+  const secureOptions: RequestInit = {
+    ...options,
+    headers: {
+      'User-Agent': 'MCPLookup/1.0',
+      ...options?.headers
+    }
+  };
+
+  // Add timeout if not specified
+  if (!secureOptions.signal) {
+    secureOptions.signal = AbortSignal.timeout(10000); // 10 second timeout
+  }
+
+  return fetch(validatedUrl, secureOptions);
+}

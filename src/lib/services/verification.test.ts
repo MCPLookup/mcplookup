@@ -26,6 +26,7 @@ global.fetch = vi.fn();
 describe('VerificationService', () => {
   let verificationService: VerificationService;
   let mockStorage: any;
+  let mockMCPService: any;
 
   beforeEach(() => {
     mockStorage = {
@@ -38,8 +39,14 @@ describe('VerificationService', () => {
       cleanup: vi.fn()
     };
 
+    mockMCPService = {
+      validateMCPEndpoint: vi.fn().mockResolvedValue(true),
+      getMCPServerInfo: vi.fn().mockResolvedValue({ server_info: { name: 'Test' } }),
+      testMCPConnection: vi.fn().mockResolvedValue(true)
+    };
+
     (getVerificationStorage as any).mockReturnValue(mockStorage);
-    verificationService = new VerificationService();
+    verificationService = new VerificationService(mockMCPService);
     vi.clearAllMocks();
   });
 
