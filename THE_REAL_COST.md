@@ -10,7 +10,7 @@
 
 I made this to solve a problem costing me time. This site will in turn cost me money - money I hope to offset with donations, but that just means more of my time spent solving a problem I don't want to have to solve.
 
-**Major AI industry leaders will eventually get their shit together and make MCP tools easy to use.**
+**Major AI industry leaders will eventually get their s**t together and make MCP tools easy to use.**
 
 **Until that day?** MCPLookup will continue to take up my time and money. 
 
@@ -141,16 +141,16 @@ This is about solving a fundamental problem in AI tool integration. MCPLookup.or
 
 ---
 
-## 🚀 **CALL TO ACTION**
+## 🚀 **THREE CALLS TO ACTION**
 
-### **For AI Companies:**
-**Build native MCP discovery into your platforms. Make MCPLookup.org obsolete. I'll thank you for it.**
+### **1. Fix Your MCP Tool Use. NOW.**
+**End hardcoded lists in your AI projects. Use dynamic discovery. Connect to MCPLookup.org and never maintain static server lists again.**
 
-### **For Developers:**
-**Use dynamic discovery. Build better solutions. Compete with us. Make us irrelevant.**
+### **2. Register Your MCP Tools for Dynamic Discovery**
+**Developers: Register your MCP servers. Make your tools discoverable. Help build the ecosystem that benefits everyone.**
 
-### **For Users:**
-**Demand better tooling. Support open standards. Help us solve this problem once and for all.**
+### **3. Help Make This Site Obsolete**
+**Everyone, everywhere: Join GitHub discussions, submit pull requests, adopt open discovery standards for your own tools. Industry leaders: wake the hell up and pay attention because you should have thought of this already.**
 
 ---
 

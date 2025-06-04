@@ -47,9 +47,9 @@ export default function HomePage() {
 
           <div className="space-y-4 animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
             <p className="text-lg font-semibold text-gray-800">
-              Join the revolution against static configuration
+              Three calls to action: Fix your tools. Register your servers. Make this site obsolete.
             </p>
-            <div className="flex space-x-4 justify-center">
+            <div className="flex flex-wrap gap-4 justify-center">
               <Link href="/discover">
                 <AnimatedButton
                   variant="primary"
@@ -57,9 +57,21 @@ export default function HomePage() {
                   hoverScale={1.02}
                   clickScale={0.98}
                   rippleEffect
-                  className="min-w-[160px]"
+                  className="min-w-[180px]"
                 >
-                  🚀 Discover Dynamically
+                  1️⃣ Fix Your MCP Tools
+                </AnimatedButton>
+              </Link>
+              <Link href="/register">
+                <AnimatedButton
+                  variant="outline"
+                  size="lg"
+                  hoverScale={1.02}
+                  clickScale={0.98}
+                  rippleEffect
+                  className="min-w-[180px]"
+                >
+                  2️⃣ Register Your Servers
                 </AnimatedButton>
               </Link>
               <Link href="https://github.com/TSavo/mcplookup.org">
@@ -69,9 +81,9 @@ export default function HomePage() {
                   hoverScale={1.02}
                   clickScale={0.98}
                   rippleEffect
-                  className="min-w-[160px]"
+                  className="min-w-[180px]"
                 >
-                  🌍 Fork & Compete With Us
+                  3️⃣ Make This Obsolete
                 </AnimatedButton>
               </Link>
             </div>
@@ -228,6 +240,98 @@ export default function HomePage() {
           </AnimatedCard.Body>
         </AnimatedCard.Root>
 
+        {/* Three Calls to Action */}
+        <AnimatedCard.Root
+          hoverScale={1.02}
+          hoverY={-4}
+          borderOnHover
+          staggerDelay={0.4}
+        >
+          <AnimatedCard.Body>
+            <div className="text-center space-y-8 py-8">
+              <h3 className="text-2xl font-bold text-gray-900 animate-fade-in-up" style={{ animationDelay: '2.8s' }}>
+                🎯 Three Calls to Action
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                <div className="text-center space-y-4 animate-fade-in-up" style={{ animationDelay: '3.0s' }}>
+                  <div className="text-6xl text-red-600 mb-4">1</div>
+                  <h4 className="text-xl font-bold text-red-600">Fix Your MCP Tool Use</h4>
+                  <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+                    <p className="text-sm text-red-800 font-medium">
+                      <strong>NOW.</strong> End hardcoded lists in your AI projects.
+                      Use dynamic discovery. Connect to MCPLookup.org and never maintain static server lists again.
+                    </p>
+                  </div>
+                  <Link href="/discover">
+                    <AnimatedButton
+                      variant="primary"
+                      size="sm"
+                      hoverScale={1.05}
+                      clickScale={0.95}
+                      rippleEffect
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      🚀 Start Dynamic Discovery
+                    </AnimatedButton>
+                  </Link>
+                </div>
+
+                <div className="text-center space-y-4 animate-fade-in-up" style={{ animationDelay: '3.2s' }}>
+                  <div className="text-6xl text-blue-600 mb-4">2</div>
+                  <h4 className="text-xl font-bold text-blue-600">Register Your MCP Tools</h4>
+                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <p className="text-sm text-blue-800 font-medium">
+                      <strong>Developers:</strong> Register your MCP servers for dynamic discovery.
+                      Make your tools discoverable. Help build the ecosystem.
+                    </p>
+                  </div>
+                  <Link href="/register">
+                    <AnimatedButton
+                      variant="primary"
+                      size="sm"
+                      hoverScale={1.05}
+                      clickScale={0.95}
+                      rippleEffect
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      📝 Register Your Server
+                    </AnimatedButton>
+                  </Link>
+                </div>
+
+                <div className="text-center space-y-4 animate-fade-in-up" style={{ animationDelay: '3.4s' }}>
+                  <div className="text-6xl text-green-600 mb-4">3</div>
+                  <h4 className="text-xl font-bold text-green-600">Make This Site Obsolete</h4>
+                  <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                    <p className="text-sm text-green-800 font-medium">
+                      <strong>Everyone:</strong> Help make this site obsolete. Join GitHub discussions,
+                      submit PRs, adopt open standards. Industry leaders: wake up and pay attention.
+                    </p>
+                  </div>
+                  <Link href="https://github.com/TSavo/mcplookup.org">
+                    <AnimatedButton
+                      variant="primary"
+                      size="sm"
+                      hoverScale={1.05}
+                      clickScale={0.95}
+                      rippleEffect
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      🌍 Join the Revolution
+                    </AnimatedButton>
+                  </Link>
+                </div>
+              </div>
+
+              <p className="text-lg text-gray-600 max-w-4xl mx-auto animate-fade-in-up" style={{ animationDelay: '3.6s' }}>
+                <strong>This site is a call to action.</strong> Fix your tools. Register your servers.
+                Help make dynamic discovery the standard. <strong>Make MCPLookup.org obsolete.</strong>
+              </p>
+            </div>
+          </AnimatedCard.Body>
+        </AnimatedCard.Root>
+
         {/* Features Grid */}
         <AnimatedList staggerDelay={0.1} direction="up">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-16">
@@ -345,8 +449,8 @@ export default function HomePage() {
                 </div>
               </div>
               <p className="text-sm text-gray-500 mt-4 animate-fade-in-up" style={{ animationDelay: '2.4s' }}>
-                <strong>Open Standards Mission:</strong> We win when a better solution arrives.
-                Ecosystem health matters more than our success.
+                <strong>Three Calls to Action:</strong> Fix your tools. Register your servers. Make this site obsolete.
+                <strong>Industry leaders: wake up and pay attention.</strong>
               </p>
             </div>
           </AnimatedCard.Body>
