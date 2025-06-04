@@ -5,7 +5,7 @@ import { randomUUID } from 'crypto';
 import { VerificationService, IVerificationService } from './verification';
 import { RegistryService } from './registry';
 import { getVerificationStorage, StorageConfig } from './storage/storage';
-import { IVerificationStorage, isSuccessResult } from './storage/interfaces';
+import { IVerificationStorage, isSuccessResult, VerificationChallengeData } from './storage/interfaces';
 import { MCPServerRecord } from '../schemas/discovery';
 
 export interface DomainChallenge {
@@ -20,6 +20,14 @@ export interface DomainChallenge {
   status: 'pending' | 'verified' | 'failed' | 'expired';
   current_owner_notified: boolean;
   notification_sent_at?: Date;
+}
+
+// Extended verification challenge data for domain transfer security
+export interface DomainTransferChallengeData extends VerificationChallengeData {
+  challenger_ip: string;
+  challenge_type: 'ownership_transfer' | 'expired_verification' | 'forced_renewal';
+  current_owner_notified: boolean;
+  notification_sent_at?: string;
 }
 
 export interface VerificationStatus {
@@ -77,7 +85,7 @@ export class DomainTransferSecurityService {
     
     // Check if verification has expired
     const verificationExpiry = new Date(
-      new Date(currentRegistration.verification.verified_at).getTime() + this.VERIFICATION_TTL
+      new Date(currentRegistration.verification.verified_at || currentRegistration.verification.last_verification).getTime() + this.VERIFICATION_TTL
     );
     
     if (new Date() > verificationExpiry) {
@@ -91,14 +99,14 @@ export class DomainTransferSecurityService {
 
     // Check for significant capability changes
     if (updateRequest.capabilities) {
-      const currentCaps = new Set(currentRegistration.capabilities);
+      const currentCaps = new Set(currentRegistration.capabilities.subcategories);
       const newCaps = new Set(updateRequest.capabilities);
       
       // Require re-verification if capabilities are significantly different
       const hasSignificantChange = 
         newCaps.size !== currentCaps.size ||
         [...newCaps].some(cap => !currentCaps.has(cap)) ||
-        [...currentCaps].some(cap => !newCaps.has(cap));
+        currentCaps.size > 0 && [...currentCaps].some(cap => !newCaps.has(cap));
         
       if (hasSignificantChange) {
         return true;
@@ -118,7 +126,7 @@ export class DomainTransferSecurityService {
     }
 
     const registration = servers[0];
-    const verifiedAt = new Date(registration.verification.verified_at);
+    const verifiedAt = new Date(registration.verification.verified_at || registration.verification.last_verification);
     const expiresAt = new Date(verifiedAt.getTime() + this.VERIFICATION_TTL);
     const now = new Date();
     
@@ -241,7 +249,7 @@ export class DomainTransferSecurityService {
     const now = new Date();
 
     for (const server of allServers) {
-      const verifiedAt = new Date(server.verification.verified_at);
+      const verifiedAt = new Date(server.verification.verified_at || server.verification.last_verification);
       const expiresAt = new Date(verifiedAt.getTime() + this.VERIFICATION_TTL);
       const gracePeriodEnd = new Date(expiresAt.getTime() + this.GRACE_PERIOD);
 
@@ -289,14 +297,20 @@ export class DomainTransferSecurityService {
 
   private async storeChallenge(challenge: DomainChallenge): Promise<void> {
     // Store in verification storage with challenge prefix
-    const challengeData = {
-      ...challenge,
+    const challengeData: VerificationChallengeData = {
+      // Base VerificationChallenge fields
       challenge_id: challenge.challenge_id,
       domain: challenge.domain,
       txt_record_name: challenge.txt_record_name,
       txt_record_value: challenge.txt_record_value,
       expires_at: challenge.expires_at.toISOString(),
-      instructions: `Add TXT record: ${challenge.txt_record_name} = ${challenge.txt_record_value}`
+      instructions: `Add TXT record: ${challenge.txt_record_name} = ${challenge.txt_record_value}`,
+
+      // Extended VerificationChallengeData fields
+      endpoint: `https://${challenge.domain}/.well-known/mcp`,
+      contact_email: 'admin@' + challenge.domain,
+      token: 'transfer-token-' + challenge.challenge_id,
+      created_at: challenge.created_at.toISOString()
     };
 
     await this.storageService.storeChallenge(`challenge_${challenge.challenge_id}`, challengeData);
@@ -313,15 +327,15 @@ export class DomainTransferSecurityService {
     return {
       challenge_id: challengeId,
       domain: data.domain,
-      challenger_ip: data.challenger_ip || 'unknown',
-      challenge_type: data.challenge_type || 'ownership_transfer',
+      challenger_ip: 'unknown', // Not stored in VerificationChallengeData
+      challenge_type: 'ownership_transfer', // Default type
       txt_record_name: data.txt_record_name,
       txt_record_value: data.txt_record_value,
-      created_at: new Date(data.created_at || data.expires_at),
+      created_at: new Date(data.created_at),
       expires_at: new Date(data.expires_at),
       status: data.verified_at ? 'verified' : 'pending',
-      current_owner_notified: data.current_owner_notified || false,
-      notification_sent_at: data.notification_sent_at ? new Date(data.notification_sent_at) : undefined
+      current_owner_notified: false, // Not stored in VerificationChallengeData
+      notification_sent_at: undefined // Not stored in VerificationChallengeData
     };
   }
 

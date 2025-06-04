@@ -273,10 +273,13 @@ class InMemoryRegistryStorage implements IRegistryStorage {
   private getSearchText(server: MCPServerRecord): string {
     return [
       server.domain,
+      server.name || '',
       server.server_info?.name || '',
       server.description || '',
       server.capabilities.category,
       ...(server.capabilities.subcategories || []),
+      ...(server.capabilities.intent_keywords || []),
+      ...(server.capabilities.use_cases || []),
       ...(server.tools?.map(t => `${t.name} ${t.description || ''}`) || [])
     ].join(' ');
   }

@@ -56,7 +56,7 @@ export class RealtimeDomainSecurityService {
 
     // Verify for major capability changes
     if (updateRequest.capabilities) {
-      const currentCaps = new Set(currentRegistration.capabilities);
+      const currentCaps = new Set(currentRegistration.capabilities.subcategories);
       const newCaps = new Set(updateRequest.capabilities);
       
       // Core capabilities that require verification
@@ -69,7 +69,7 @@ export class RealtimeDomainSecurityService {
       
       // Large capability changes (>50% different)
       const totalCaps = new Set([...currentCaps, ...newCaps]).size;
-      const commonCaps = [...currentCaps].filter(cap => newCaps.has(cap)).length;
+      const commonCaps = currentCaps.size > 0 ? [...currentCaps].filter(cap => newCaps.has(cap)).length : 0;
       const changePercentage = 1 - (commonCaps / totalCaps);
       
       if (changePercentage > 0.5) return true;
@@ -222,8 +222,18 @@ export class RealtimeDomainSecurityService {
       }
     }
 
-    // Proceed with update
-    await this.registryService.updateServer(domain, updateRequest);
+    // Proceed with update - convert capabilities format if needed
+    const serverUpdate: Partial<MCPServerRecord> = {
+      ...updateRequest,
+      capabilities: updateRequest.capabilities ? {
+        category: 'other' as const,
+        subcategories: updateRequest.capabilities,
+        intent_keywords: updateRequest.capabilities,
+        use_cases: updateRequest.capabilities.map(cap => `${cap} functionality`)
+      } : undefined
+    };
+
+    await this.registryService.updateServer(domain, serverUpdate);
     
     return {
       success: true,
