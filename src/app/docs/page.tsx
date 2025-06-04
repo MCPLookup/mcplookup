@@ -91,208 +91,154 @@ export default function DocsPage() {
            );
   });
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty) {
+      case "Beginner": return "bg-green-100 text-green-800";
+      case "Intermediate": return "bg-yellow-100 text-yellow-800";
+      case "Advanced": return "bg-red-100 text-red-800";
+      default: return "bg-gray-100 text-gray-800";
+    }
+  };
 
-      <div className="max-w-7xl mx-auto py-16 px-4">
-        <div className="space-y-12">
+  return (
+    <div className="min-h-screen bg-white">
+      <Header />
+      <main className="container mx-auto px-4 py-8">
+        <div className="max-w-6xl mx-auto">
           {/* Header */}
-          <div className="text-center space-y-6">
-            <h1 className="text-5xl font-bold text-gray-900">
+          <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">
               📚 MCPLookup.org Documentation
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              World-class documentation for the universal MCP server discovery service.
-              Everything you need to discover, register, and integrate with MCP servers.
+              Complete guide to the universal MCP server discovery service. Find servers, register your own, and integrate with the Model Context Protocol ecosystem.
             </p>
+          </div>
 
-            {/* Search and Filter */}
-            <div className="max-w-2xl mx-auto space-y-4">
-              <div className="relative">
+          {/* Search and Filter */}
+          <div className="mb-8">
+            <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+              <div className="relative flex-1 max-w-md">
                 <input
                   type="text"
                   placeholder="Search documentation..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
-                <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
-                  🔍
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <span className="text-gray-400">🔍</span>
                 </div>
               </div>
-
-              <div className="flex flex-wrap gap-2 justify-center">
-                <button
-                  onClick={() => setSelectedCategory("all")}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                    selectedCategory === "all"
-                      ? "bg-orange-600 text-white"
-                      : "bg-white text-gray-600 hover:bg-gray-100"
-                  }`}
-                >
-                  All Docs
-                </button>
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="all">All Categories</option>
                 {documentationSections.map(section => (
-                  <button
-                    key={section.id}
-                    onClick={() => setSelectedCategory(section.id)}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                      selectedCategory === section.id
-                        ? "bg-orange-600 text-white"
-                        : "bg-white text-gray-600 hover:bg-gray-100"
-                    }`}
-                  >
+                  <option key={section.id} value={section.id}>
                     {section.title}
-                  </button>
+                  </option>
                 ))}
-              </div>
+              </select>
+            </div>
+          </div>
+
+          {/* Quick Start Cards */}
+          <div className="mb-12">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">🚀 Quick Start</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Link href="/docs/introduction" className="group">
+                <div className="text-center space-y-4 p-6 border border-gray-200 rounded-lg hover:shadow-md hover:border-blue-300 transition-all group-hover:bg-blue-50">
+                  <div className="text-4xl">🤔</div>
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-900">What is this?</h3>
+                  <p className="text-gray-600 text-sm group-hover:text-blue-700">
+                    New to MCP? Start here to understand what MCPLookup.org does and why it matters.
+                  </p>
+                  <div className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md group-hover:bg-blue-700 transition-colors">
+                    📖 Read Introduction
+                  </div>
+                </div>
+              </Link>
+
+              <Link href="/docs/quickstart" className="group">
+                <div className="text-center space-y-4 p-6 border border-gray-200 rounded-lg hover:shadow-md hover:border-green-300 transition-all group-hover:bg-green-50">
+                  <div className="text-4xl">⚡</div>
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-green-900">Quick Start</h3>
+                  <p className="text-gray-600 text-sm group-hover:text-green-700">
+                    Get up and running in 5 minutes. Discover servers and start using MCP tools right away.
+                  </p>
+                  <div className="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md group-hover:bg-green-700 transition-colors">
+                    🚀 Quick Start
+                  </div>
+                </div>
+              </Link>
+
+              <Link href="/docs/api" className="group">
+                <div className="text-center space-y-4 p-6 border border-gray-200 rounded-lg hover:shadow-md hover:border-purple-300 transition-all group-hover:bg-purple-50">
+                  <div className="text-4xl">⚡</div>
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-purple-900">API Reference</h3>
+                  <p className="text-gray-600 text-sm group-hover:text-purple-700">
+                    Complete REST API specification with examples, error codes, and response formats.
+                  </p>
+                  <div className="inline-flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-md group-hover:bg-purple-700 transition-colors">
+                    🔌 API Docs
+                  </div>
+                </div>
+              </Link>
             </div>
           </div>
 
           {/* Documentation Sections */}
           <div className="space-y-8">
             {filteredSections.map((section) => (
-              <div key={section.id} className="bg-white rounded-lg shadow-md p-8">
-                <div className="mb-6">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">{section.title}</h2>
-                  <p className="text-gray-600">{section.description}</p>
+              <div key={section.id} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                  <h3 className="text-xl font-semibold text-gray-900">{section.title}</h3>
+                  <p className="text-gray-600 mt-1">{section.description}</p>
                 </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {section.items.map((item) => (
-                    <Link key={item.href} href={item.href}>
-                      <div className="group p-6 border border-gray-200 rounded-lg hover:shadow-lg hover:border-orange-300 transition-all duration-200 cursor-pointer">
-                        <div className="flex items-start space-x-4">
-                          <div className="text-2xl group-hover:scale-110 transition-transform">
-                            {item.icon}
-                          </div>
-                          <div className="flex-1">
-                            <h3 className="text-lg font-semibold text-gray-900 group-hover:text-orange-600 transition-colors">
-                              {item.title}
-                            </h3>
-                            <p className="text-gray-600 text-sm mt-2 mb-3">
-                              {item.description}
-                            </p>
-                            <div className="flex items-center justify-between">
-                              <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                                item.difficulty === "Beginner" ? "bg-green-100 text-green-800" :
-                                item.difficulty === "Intermediate" ? "bg-yellow-100 text-yellow-800" :
-                                item.difficulty === "Advanced" ? "bg-red-100 text-red-800" :
-                                "bg-gray-100 text-gray-800"
-                              }`}>
+                <div className="p-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {section.items.map((item) => (
+                      <Link key={item.href} href={item.href} className="group">
+                        <div className="flex items-start space-x-3 p-4 border border-gray-200 rounded-lg hover:shadow-md hover:border-blue-300 transition-all group-hover:bg-blue-50">
+                          <span className="text-2xl flex-shrink-0">{item.icon}</span>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-1">
+                              <h4 className="font-medium text-gray-900 group-hover:text-blue-900">{item.title}</h4>
+                              <span className={`text-xs px-2 py-1 rounded-full ${getDifficultyColor(item.difficulty)}`}>
                                 {item.difficulty}
                               </span>
-                              <div className="text-orange-600 group-hover:translate-x-1 transition-transform">
-                                →
-                              </div>
                             </div>
+                            <p className="text-sm text-gray-600 group-hover:text-blue-700">{item.description}</p>
                           </div>
                         </div>
-                      </div>
-                    </Link>
-                  ))}
+                      </Link>
+                    ))}
+                  </div>
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Quick Links */}
-          <div className="bg-gradient-to-r from-orange-50 to-yellow-50 rounded-lg p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">🔗 Quick Links</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="text-center space-y-3">
-                <div className="text-3xl">🚀</div>
-                <h3 className="font-semibold text-gray-900">Live Demo</h3>
-                <p className="text-gray-600 text-sm">Try the discovery API right now</p>
-                <Link href="/discover">
-                  <button className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors">
-                    Discover Servers
-                  </button>
-                </Link>
-              </div>
-
-              <div className="text-center space-y-3">
-                <div className="text-3xl">📝</div>
-                <h3 className="font-semibold text-gray-900">Register Server</h3>
-                <p className="text-gray-600 text-sm">Add your MCP server to the registry</p>
-                <Link href="/register">
-                  <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-                    Register Now
-                  </button>
-                </Link>
-              </div>
-
-              <div className="text-center space-y-3">
-                <div className="text-3xl">🧪</div>
-                <h3 className="font-semibold text-gray-900">API Playground</h3>
-                <p className="text-gray-600 text-sm">Interactive API testing interface</p>
-                <Link href="/api/docs">
-                  <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                    Test API
-                  </button>
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          {/* Support & Community */}
-          <div className="bg-white rounded-lg shadow-md p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">🤝 Support & Community</h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="text-center space-y-3">
-                <div className="text-3xl">📚</div>
-                <h3 className="font-semibold text-gray-900">GitHub Repository</h3>
-                <p className="text-gray-600 text-sm">Source code, issues, and contributions</p>
-                <a
-                  href="https://github.com/TSavo/mcplookup.org"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors"
-                >
-                  View on GitHub
-                </a>
-              </div>
-
-              <div className="text-center space-y-3">
-                <div className="text-3xl">💬</div>
-                <h3 className="font-semibold text-gray-900">Community Discussions</h3>
-                <p className="text-gray-600 text-sm">Ask questions and share ideas</p>
-                <a
-                  href="https://github.com/TSavo/mcplookup.org/discussions"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Join Discussion
-                </a>
-              </div>
-
-              <div className="text-center space-y-3">
-                <div className="text-3xl">🐛</div>
-                <h3 className="font-semibold text-gray-900">Report Issues</h3>
-                <p className="text-gray-600 text-sm">Found a bug or have a feature request?</p>
-                <a
-                  href="https://github.com/TSavo/mcplookup.org/issues"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                >
-                  Report Issue
-                </a>
-              </div>
-            </div>
-
-            <div className="mt-8 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg text-center">
-              <p className="text-gray-700">
-                <strong>🌟 Love MCPLookup.org?</strong> Star us on GitHub and help spread the word about universal MCP discovery!
-              </p>
+          {/* Help Section */}
+          <div className="mt-12 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 text-center">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Need Help?</h3>
+            <p className="text-gray-700 mb-4">
+              Can't find what you're looking for? Check out our FAQ or reach out to the community.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link href="/docs/faq" className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors">
+                ❓ View FAQ
+              </Link>
+              <Link href="https://github.com/mcplookup/mcplookup.org" className="inline-flex items-center px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-md hover:bg-gray-700 transition-colors">
+                🐙 GitHub
+              </Link>
             </div>
           </div>
         </div>
-      </div>
-
+      </main>
       <Footer />
     </div>
   );

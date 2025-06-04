@@ -56,6 +56,7 @@ export default function DiscoverPage() {
     minTrustScore: 0
   })
   const [showFilters, setShowFilters] = useState(false)
+  const toast = useToast()
 
   const bgGradient = useColorModeValue(
     "linear-gradient(to bottom right, var(--chakra-colors-blue-50), var(--chakra-colors-purple-50))",
@@ -93,7 +94,7 @@ export default function DiscoverPage() {
         setTotalPages(Math.ceil((data.pagination?.total_count || data.servers.length) / itemsPerPage))
         setCurrentPage(page)
 
-        createAnimatedToast.success(
+        toast.success(
           "Search completed",
           `Found ${data.servers.length} servers`
         )
@@ -108,7 +109,7 @@ export default function DiscoverPage() {
       setError("Failed to search for servers. Please try again.")
       setServers([])
 
-      createAnimatedToast.error(
+      toast.error(
         "Search failed",
         "Unable to search for servers. Please try again."
       )
