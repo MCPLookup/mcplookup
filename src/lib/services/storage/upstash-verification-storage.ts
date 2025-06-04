@@ -14,7 +14,7 @@ import {
   createErrorResult,
   createHealthCheckResult,
   createEmptyPaginatedResult
-} from './interfaces.js';
+} from './interfaces';
 
 /**
  * Upstash Redis Verification Storage

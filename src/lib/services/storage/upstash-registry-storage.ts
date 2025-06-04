@@ -17,7 +17,7 @@ import {
   createEmptyPaginatedResult,
   validatePaginationOptions,
   DEFAULT_SEARCH_OPTIONS
-} from './interfaces.js';
+} from './interfaces';
 
 /**
  * Upstash Redis Registry Storage

@@ -35,12 +35,14 @@ async function testStorageProvider(providerName: string, provider: 'memory' | 'l
       endpoint: 'https://test-example.com/.well-known/mcp',
       capabilities: {
         category: 'productivity' as CapabilityCategory,
-        subcategories: ['email', 'calendar']
+        subcategories: ['email', 'calendar'],
+        intent_keywords: ['email', 'calendar', 'productivity'],
+        use_cases: ['Email management', 'Calendar scheduling']
       },
       server_info: {
         name: 'Test Server',
-        description: 'A test MCP server for storage testing',
-        version: '1.0.0'
+        version: '1.0.0',
+        protocolVersion: '2024-11-05'
       },
       tools: [
         {
@@ -66,9 +68,10 @@ async function testStorageProvider(providerName: string, provider: 'memory' | 'l
         last_check: new Date().toISOString(),
         response_time_ms: 150,
         uptime_percentage: 99.9,
-        error_count: 0
+        avg_response_time_ms: 150,
+        error_rate: 0,
+        consecutive_failures: 0
       },
-      discovery_method: 'well-known',
       last_updated: new Date().toISOString()
     };
 
