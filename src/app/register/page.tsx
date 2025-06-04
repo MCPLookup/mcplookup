@@ -2,6 +2,7 @@
 
 import React, { useState } from "react"
 import { Header } from "@/components/layout/header"
+import { Footer } from "@/components/layout/footer"
 
 interface RegistrationData {
   domain: string
@@ -258,6 +259,8 @@ export default function RegisterPage() {
           )}
         </div>
       </div>
+
+      <Footer />
     </div>
   )
 }
