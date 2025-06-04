@@ -118,7 +118,9 @@ export class MCPHttpBridge {
       params: params
     };
 
-    const response = await fetch(this.httpEndpoint, {
+    const { safeFetch } = await import('../security/url-validation');
+
+    const response = await safeFetch(this.httpEndpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -126,7 +128,7 @@ export class MCPHttpBridge {
         ...this.authHeaders
       },
       body: JSON.stringify(body)
-    });
+    }, true); // Skip DNS validation for established connections
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);

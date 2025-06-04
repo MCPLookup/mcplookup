@@ -3,6 +3,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { DiscoveryRequestSchema, DiscoveryResponseSchema } from '@/lib/schemas/discovery';
+import { discoveryRateLimit, addRateLimitHeaders } from '@/lib/security/rate-limiting';
 
 /**
  * @swagger
@@ -67,6 +68,12 @@ import { DiscoveryRequestSchema, DiscoveryResponseSchema } from '@/lib/schemas/d
  *         description: Internal server error
  */
 export async function GET(request: NextRequest) {
+  // Apply rate limiting
+  const rateLimitResponse = await discoveryRateLimit(request);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   try {
     const { searchParams } = request.nextUrl;
     
@@ -105,14 +112,16 @@ export async function GET(request: NextRequest) {
     // Perform discovery
     const discoveryResponse = await discovery.discoverServers(validatedRequest);
 
-    return NextResponse.json(discoveryResponse, {
+    const response = NextResponse.json(discoveryResponse, {
       headers: {
         'Cache-Control': 'public, s-maxage=60', // Cache for 1 minute
-        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Origin': process.env.ALLOWED_ORIGINS || 'https://mcplookup.org',
         'Access-Control-Allow-Methods': 'GET, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type'
       }
     });
+
+    return addRateLimitHeaders(response, request);
 
   } catch (error) {
     console.error('Discovery API error:', error);
@@ -137,7 +146,7 @@ export async function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
     headers: {
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': process.env.ALLOWED_ORIGINS || 'https://mcplookup.org',
       'Access-Control-Allow-Methods': 'GET, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
     },

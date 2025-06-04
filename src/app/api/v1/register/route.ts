@@ -3,14 +3,26 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { RegistrationRequestSchema, VerificationChallengeSchema } from '@/lib/schemas/discovery';
+import { registrationRateLimit, addRateLimitHeaders } from '@/lib/security/rate-limiting';
+import { SecureURLSchema, SecureDomainSchema } from '@/lib/security/url-validation';
 import { createVerificationService } from '@/lib/services';
 
 export async function POST(request: NextRequest) {
+  // Apply rate limiting
+  const rateLimitResponse = await registrationRateLimit(request);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   try {
     const body = await request.json();
     
-    // Validate request
+    // Validate request with enhanced security validation
     const validatedRequest = RegistrationRequestSchema.parse(body);
+
+    // Additional security validation
+    SecureURLSchema.parse(validatedRequest.endpoint);
+    SecureDomainSchema.parse(validatedRequest.domain);
     
     // Initialize verification service
     const verificationService = createVerificationService();
@@ -33,14 +45,16 @@ export async function POST(request: NextRequest) {
     // Validate response
     const validatedChallenge = VerificationChallengeSchema.parse(challenge);
     
-    return NextResponse.json(validatedChallenge, {
+    const response = NextResponse.json(validatedChallenge, {
       headers: {
         'Cache-Control': 'no-cache',
-        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Origin': process.env.ALLOWED_ORIGINS || 'https://mcplookup.org',
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type'
       }
     });
+
+    return addRateLimitHeaders(response, request);
 
   } catch (error) {
     console.error('Registration API error:', error);
@@ -63,7 +77,7 @@ export async function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
     headers: {
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': process.env.ALLOWED_ORIGINS || 'https://mcplookup.org',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
     },
