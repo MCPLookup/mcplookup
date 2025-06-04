@@ -60,10 +60,10 @@ export const AnimatedButton = React.forwardRef<HTMLButtonElement, AnimatedButton
       }
 
       const variantStyles = {
-        primary: "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500",
-        secondary: "bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500",
-        outline: "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:ring-blue-500",
-        ghost: "text-gray-700 hover:bg-gray-100 focus:ring-gray-500"
+        primary: "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500 shadow-sm",
+        secondary: "bg-slate-600 text-white hover:bg-slate-700 focus:ring-slate-500 shadow-sm",
+        outline: "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 focus:ring-blue-500 shadow-sm",
+        ghost: "text-slate-700 hover:bg-slate-100 focus:ring-slate-500"
       }
 
       return `${baseStyles} ${sizeStyles[size]} ${variantStyles[variant]} ${className || ""}`

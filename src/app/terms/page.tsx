@@ -46,7 +46,7 @@ export default function TermsPage() {
                 <li>Registration and verification of MCP servers</li>
                 <li>Health monitoring and status reporting</li>
                 <li>API access for programmatic discovery</li>
-                <li>The One Ring MCP Server for AI agent integration</li>
+                <li>Professional MCP Discovery Server for AI agent integration</li>
               </ul>
             </section>
 

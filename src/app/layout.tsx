@@ -4,8 +4,8 @@ import { ToasterProvider } from "@/components/ui/toaster"
 import "./globals.css"
 
 export const metadata: Metadata = {
-  title: "MCPLookup.org - Serverless MCP Discovery Service",
-  description: "The One Ring MCP Server - Discover and register Model Context Protocol servers. Zero infrastructure, no database required.",
+  title: "MCPLookup.org - Professional MCP Discovery Service",
+  description: "Enterprise-grade Model Context Protocol server discovery and registration. Secure, scalable, and serverless architecture.",
 }
 
 export default function RootLayout({

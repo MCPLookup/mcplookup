@@ -128,7 +128,7 @@ export class MCPHttpBridge {
         ...this.authHeaders
       },
       body: JSON.stringify(body)
-    }, true); // Skip DNS validation for established connections
+    });
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);

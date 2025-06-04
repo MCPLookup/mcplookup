@@ -1,5 +1,5 @@
-// THE ONE RING MCP SERVER IMPLEMENTATION
-// The master MCP server that discovers all other MCP servers
+// PROFESSIONAL MCP DISCOVERY SERVER IMPLEMENTATION
+// Enterprise-grade MCP server that discovers all other MCP servers
 // Serverless-ready, TypeScript-first, pluggable architecture
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
@@ -26,8 +26,8 @@ import { DiscoveryService, type IDiscoveryService } from './lib/services/discove
 import { VerificationService, type IVerificationService } from './lib/services/verification';
 
 /**
- * THE ONE RING MCP SERVER
- * The universal MCP server that provides discovery tools to AI agents
+ * PROFESSIONAL MCP DISCOVERY SERVER
+ * Enterprise-grade MCP server that provides discovery tools to AI agents
  */
 class MCPLookupServer {
   private server: Server;
@@ -242,7 +242,7 @@ class MCPLookupServer {
   async run(): Promise<void> {
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
-    console.error('🔗 The One Ring MCP Server is running...');
+    console.error('🔗 Professional MCP Discovery Server is running...');
   }
 
   /**

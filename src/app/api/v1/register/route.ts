@@ -3,13 +3,13 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { RegistrationRequestSchema, VerificationChallengeSchema } from '@/lib/schemas/discovery';
-import { registrationRateLimit, addRateLimitHeaders } from '@/lib/security/rate-limiting';
+import { registerRateLimit, addRateLimitHeaders } from '@/lib/security/rate-limiting';
 import { SecureURLSchema, SecureDomainSchema } from '@/lib/security/url-validation';
 import { createVerificationService } from '@/lib/services';
 
 export async function POST(request: NextRequest) {
   // Apply rate limiting
-  const rateLimitResponse = await registrationRateLimit(request);
+  const rateLimitResponse = await registerRateLimit(request);
   if (rateLimitResponse) {
     return rateLimitResponse;
   }

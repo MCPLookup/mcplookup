@@ -25,31 +25,34 @@ export function RealTimeMetrics({ isConnected }: RealTimeMetricsProps) {
     { label: 'CPU Usage', value: 23, unit: '%', trend: 'stable', color: 'green' }
   ])
 
-  const { onMessage } = useWebSocket()
+  // WebSocket connection for real-time metrics
+  useWebSocket(
+    isConnected ? 'ws://localhost:3001/ws' : null,
+    {
+      onMessage: (event) => {
+        try {
+          const data = JSON.parse(event.data)
 
-  // Set up real-time metric updates
-  useEffect(() => {
-    if (isConnected) {
-      const unsubscribeMetrics = onMessage('metrics_update', (data) => {
-        if (data.metrics) {
-          setMetrics(prev => prev.map(metric => {
-            const update = data.metrics[metric.label.toLowerCase().replace(/[^a-z]/g, '_')]
-            if (update) {
-              return {
-                ...metric,
-                value: update.value,
-                trend: update.trend || metric.trend,
-                color: update.color || metric.color
+          if (data.type === 'metrics_update' && data.metrics) {
+            setMetrics(prev => prev.map(metric => {
+              const update = data.metrics[metric.label.toLowerCase().replace(/[^a-z]/g, '_')]
+              if (update) {
+                return {
+                  ...metric,
+                  value: update.value,
+                  trend: update.trend || metric.trend,
+                  color: update.color || metric.color
+                }
               }
-            }
-            return metric
-          }))
+              return metric
+            }))
+          }
+        } catch (error) {
+          console.error('Error parsing WebSocket message:', error)
         }
-      })
-
-      return unsubscribeMetrics
+      }
     }
-  }, [isConnected, onMessage])
+  )
 
   // Simulate real-time updates when not connected
   useEffect(() => {

@@ -141,7 +141,7 @@ export class HealthService implements IHealthService {
           }
         }),
         signal: controller.signal
-      }, true); // Skip DNS validation for performance in health checks
+      });
 
       clearTimeout(timeoutId);
 

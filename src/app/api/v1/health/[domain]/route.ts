@@ -118,7 +118,7 @@ async function checkCapabilities(endpoint: string): Promise<boolean> {
         params: {}
       }),
       signal: AbortSignal.timeout(5000) // 5 second timeout
-    }, true); // Skip DNS validation for performance
+    });
 
     if (!response.ok) {
       return false;
@@ -150,7 +150,7 @@ async function checkSSL(endpoint: string): Promise<boolean> {
     const response = await safeFetch(endpoint, {
       method: 'HEAD',
       signal: AbortSignal.timeout(5000)
-    }, true); // Skip DNS validation for performance
+    });
 
     // If we can make the request without SSL errors, SSL is valid
     return true;

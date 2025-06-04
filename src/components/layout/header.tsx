@@ -17,19 +17,19 @@ export function Header() {
   const navigation = [
     { name: 'Discover', href: '/discover' },
     { name: 'Register', href: '/register' },
-    { name: 'Docs', href: '/docs' },
+    { name: 'Documentation', href: '/docs' },
     { name: 'API', href: '/api/docs' },
   ]
 
   return (
-    <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-700">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center">
-            <Link href="/" className="flex items-center space-x-2">
-              <div className="text-2xl">🔍</div>
-              <span className="text-xl font-bold text-gray-900 dark:text-white">
+            <Link href="/" className="flex items-center space-x-3">
+              <div className="text-xl text-blue-600">🔍</div>
+              <span className="text-xl font-semibold text-slate-900 dark:text-white">
                 MCPLookup.org
               </span>
             </Link>
@@ -41,7 +41,7 @@ export function Header() {
               <Link
                 key={item.name}
                 href={item.href}
-                className="text-gray-500 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors"
+                className="text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors font-medium"
               >
                 {item.name}
               </Link>

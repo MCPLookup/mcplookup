@@ -49,10 +49,17 @@ curl -X POST https://mcplookup.org/api/v1/register \
 # 3. Your service is now discoverable by all AI agents!
 ```
 
+<<<<<<< HEAD
 ### For AI Agents (The One Ring MCP Server) ✅ LIVE
 ```bash
 # Connect to the master MCP server for discovery
 mcp connect https://mcplookup.org/api/mcp
+=======
+### For AI Agents (MCP Discovery Server)
+```bash
+# Connect to the discovery MCP server
+mcp connect https://mcplookup.org/mcp
+>>>>>>> c4afad7 (feat: redesign UI with professional styling and remove 'one ring' references)
 ```
 
 **Available MCP Tools:**
@@ -99,6 +106,7 @@ This repository contains **THE MCP server that discovers all other MCP servers**
 
 ## 🏗️ **ARCHITECTURE**
 
+<<<<<<< HEAD
 MCPLookup.org uses a layered serverless architecture designed for global scale:
 
 ```
@@ -151,6 +159,13 @@ MCPLookup.org uses a layered serverless architecture designed for global scale:
 - **Auto-Detection** - Automatically selects best provider based on environment
 - **Consistent Interface** - All providers implement identical `IRegistryStorage`
 - **Error Handling** - `StorageResult<T>` pattern for robust error management
+=======
+1. **MCP Server**: The central discovery service that provides tools to AI agents
+2. **REST API**: HTTP endpoints for registration and discovery (Next.js API routes)
+3. **DNS Verification**: Cryptographic proof using TXT records with Redis persistence
+4. **Storage Abstraction**: Flexible storage layer with automatic provider selection
+5. **Health Monitoring**: Comprehensive monitoring with statistics and cleanup
+>>>>>>> c4afad7 (feat: redesign UI with professional styling and remove 'one ring' references)
 
 ---
 
@@ -222,7 +237,11 @@ vercel deploy --prod
 
 ---
 
+<<<<<<< HEAD
 ## 🎪 **THE ONE RING MCP SERVER** ✅ LIVE
+=======
+## 🔧 **MCP DISCOVERY SERVER**
+>>>>>>> c4afad7 (feat: redesign UI with professional styling and remove 'one ring' references)
 
 **Endpoint**: `https://mcplookup.org/api/mcp`
 **Implementation**: `@vercel/mcp-adapter` with direct service integration
@@ -543,7 +562,7 @@ npm run test:coverage
 
 ### 🔧 **Technical Specifications**
 - [`PROJECT_SPEC.md`](./PROJECT_SPEC.md) - Complete project overview
-- [`MCP_SERVER_SPEC.md`](./MCP_SERVER_SPEC.md) - The One Ring MCP server details
+- [`MCP_SERVER_SPEC.md`](./MCP_SERVER_SPEC.md) - MCP discovery server details
 - [`API_SPEC.md`](./API_SPEC.md) - REST API documentation
 - [`DNS_VERIFICATION_SPEC.md`](./DNS_VERIFICATION_SPEC.md) - DNS verification protocol
 - [`DEPLOYMENT_GUIDE.md`](./DEPLOYMENT_GUIDE.md) - Production deployment
@@ -763,7 +782,7 @@ const registration = await fetch('https://mcplookup.org/api/v1/register', {
 
 **🔥 MCPLookup.org - Making AI tools as discoverable as web pages**
 
-**The DNS of intelligence. The registry of AI capabilities. The one ring to rule them all.**
+**The professional registry for AI capabilities. Enterprise-grade MCP server discovery.**
 
 ---
 

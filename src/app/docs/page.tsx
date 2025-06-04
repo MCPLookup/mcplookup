@@ -48,7 +48,7 @@ export default function DocsPage() {
       title: "🔗 MCP Integration",
       description: "Native MCP server integration and tools.",
       items: [
-        { title: "The One Ring MCP Server", href: "/docs/mcp-server", icon: "💍", description: "Native MCP server for discovery", difficulty: "Advanced" },
+        { title: "MCP Discovery Server", href: "/docs/mcp-server", icon: "🔍", description: "Native MCP server for discovery", difficulty: "Advanced" },
         { title: "MCP Tools Reference", href: "/docs/mcp-tools", icon: "🛠️", description: "Available MCP tools and usage", difficulty: "Intermediate" },
         { title: "AI Agent Integration", href: "/docs/ai-integration", icon: "🤖", description: "Integrate with AI agents", difficulty: "Advanced" },
         { title: "SDK Documentation", href: "/docs/sdk", icon: "📦", description: "Official SDKs and libraries", difficulty: "Intermediate" }

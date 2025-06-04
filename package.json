@@ -1,7 +1,7 @@
 {
   "name": "mcplookup-registry",
   "version": "1.0.0",
-  "description": "The One Ring MCP Server - Universal MCP Discovery Service with Flexible Storage Architecture",
+  "description": "Professional MCP Discovery Server - Enterprise-grade MCP Discovery Service with Flexible Storage Architecture",
   "main": "dist/server.js",
   "type": "module",
   "scripts": {
