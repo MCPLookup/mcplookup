@@ -23,60 +23,43 @@ export function RealTimeDashboard() {
   const [error, setError] = useState<string | null>(null)
 
   const {
-    isConnected,
-    isConnecting,
-    error: wsError,
-    subscribe,
-    unsubscribe,
-    onMessage
-  } = useWebSocket({
-    autoConnect: true,
-    reconnectAttempts: 5,
-    reconnectInterval: 3000
+    connectionStatus,
+    sendMessage
+  } = useWebSocket('ws://localhost:3001/ws', {
+    shouldReconnect: true,
+    maxReconnectAttempts: 5,
+    reconnectInterval: 3000,
+    onMessage: (event) => {
+      try {
+        const data = JSON.parse(event.data)
+
+        if (data.type === 'stats_update') {
+          setStats(prev => ({ ...prev, ...data.stats }))
+        } else if (data.type === 'system_update' && data.error) {
+          setError(data.message)
+        }
+      } catch (error) {
+        console.error('Error parsing WebSocket message:', error)
+      }
+    }
   })
+
+  const isConnected = connectionStatus === 'connected'
+  const isConnecting = connectionStatus === 'connecting'
+  const wsError = connectionStatus === 'error' ? 'Connection error' : null
 
   // Load initial stats
   useEffect(() => {
     loadInitialStats()
   }, [])
 
-  // Set up WebSocket subscriptions
+  // Subscribe to admin channels when connected
   useEffect(() => {
     if (isConnected) {
-      // Subscribe to admin channels
-      subscribe('admin:stats')
-      subscribe('admin:activity')
-      subscribe('admin:audit')
-      subscribe('admin:system')
-
-      // Set up message handlers
-      const unsubscribeStats = onMessage('stats_update', (data) => {
-        setStats(prev => ({ ...prev, ...data.stats }))
-      })
-
-      const unsubscribeActivity = onMessage('activity_update', (data) => {
-        // Activity updates are handled by the activity feed component
-        console.log('Activity update:', data)
-      })
-
-      const unsubscribeSystem = onMessage('system_update', (data) => {
-        if (data.type === 'error') {
-          setError(data.message)
-        }
-      })
-
-      // Cleanup function
-      return () => {
-        unsubscribeStats()
-        unsubscribeActivity()
-        unsubscribeSystem()
-        unsubscribe('admin:stats')
-        unsubscribe('admin:activity')
-        unsubscribe('admin:audit')
-        unsubscribe('admin:system')
-      }
+      // Send subscription messages
+      sendMessage({ type: 'subscribe', channels: ['admin:stats', 'admin:activity', 'admin:audit', 'admin:system'] })
     }
-  }, [isConnected, subscribe, unsubscribe, onMessage])
+  }, [isConnected, sendMessage])
 
   const loadInitialStats = async () => {
     try {

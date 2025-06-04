@@ -9,20 +9,43 @@
 
 ---
 
-## 🎯 **THE REVOLUTION**
+## 🎯 **THE REVOLUTION: THE END OF HARDCODED LISTS**
 
-**Before**: AI tools require manual installation, configuration, and static setup  
-**After**: AI agents dynamically discover and connect to tools in real-time
+**The Problem**: Every AI agent today maintains static, hardcoded lists of tools and services. This is the equivalent of having to manually edit your browser's bookmarks every time a new website is created.
 
+**Our Solution**: **Dynamic Discovery** - AI agents discover tools in real-time, just like web browsers discover websites through DNS.
+
+### **Before MCPLookup.org (Static Hell)**
+```typescript
+// Every AI agent needs hardcoded configurations
+const HARDCODED_SERVERS = {
+  "gmail.com": "https://gmail.com/mcp",
+  "slack.com": "https://slack.com/api/mcp",
+  "github.com": "https://api.github.com/mcp"
+  // Manually maintained forever...
+};
+```
+
+### **After MCPLookup.org (Dynamic Paradise)**
+```typescript
+// AI agents discover tools dynamically
+const discovery = await fetch('https://mcplookup.org/api/v1/discover/domain/gmail.com');
+const server = await discovery.json();
+// Connect to server.endpoint automatically - NO HARDCODING!
+```
+
+### **The Magic in Action**
 ```
 User: "Connect to my Gmail"
 AI: → Queries mcplookup.org for Gmail MCP servers
-AI: ← Gets live endpoints: https://gmail.com/mcp  
+AI: ← Gets live endpoints: https://gmail.com/mcp
 AI: → Connects automatically
 AI: "Connected! What would you like to do with Gmail?"
 ```
 
-**Zero configuration. Zero setup. Pure magic.**
+**Zero configuration. Zero hardcoding. Zero maintenance. Pure magic.**
+
+> **🔥 This is the future of MCP**: No more static lists. No more manual updates. Just pure, dynamic discovery that scales infinitely.
 
 ---
 
@@ -49,27 +72,73 @@ curl -X POST https://mcplookup.org/api/v1/register \
 # 3. Your service is now discoverable by all AI agents!
 ```
 
-### For AI Agents (The One Ring MCP Server)
+<<<<<<< HEAD
+### For AI Agents (The One Ring MCP Server) ✅ LIVE
 ```bash
 # Connect to the master MCP server for discovery
+mcp connect https://mcplookup.org/api/mcp
+=======
+### For AI Agents (MCP Discovery Server)
+```bash
+# Connect to the discovery MCP server
 mcp connect https://mcplookup.org/mcp
+>>>>>>> c4afad7 (feat: redesign UI with professional styling and remove 'one ring' references)
 ```
+
+**Available MCP Tools:**
+- `discover_mcp_servers` - Find servers by domain/capability/intent
+- `register_mcp_server` - Register new servers with verification
+- `verify_domain_ownership` - Check DNS verification status
+- `get_server_health` - Real-time health and performance metrics
+- `browse_capabilities` - Explore the capability taxonomy
+- `get_discovery_stats` - Analytics and usage patterns
 
 ---
 
-## 🏗️ **ARCHITECTURE**
+## 🏗️ **ARCHITECTURE: THE DYNAMIC DISCOVERY ENGINE**
 
-### The Master MCP Server (Serverless)
-This repository contains **THE MCP server that discovers all other MCP servers** using a **serverless, no-database architecture**:
+### **🚀 Zero-Hardcoding Architecture**
+This repository contains **THE MCP server that eliminates hardcoded lists forever** using **real-time dynamic discovery**:
 
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
 │   AI AGENTS     │───▶│  MCPLOOKUP.ORG   │───▶│  MCP SERVERS    │
-│                 │    │                  │    │                 │
-│ • Claude        │    │ • Discovery API  │    │ • gmail.com/mcp │
-│ • ChatGPT       │    │ • DNS Verify     │    │ • github.com/   │
-│ • Custom Agents │    │ • Registry Cache │    │ • slack.com/    │
+│                 │    │  DYNAMIC ENGINE  │    │                 │
+│ • Claude        │    │ • DNS Discovery  │    │ • gmail.com/mcp │
+│ • ChatGPT       │    │ • Well-Known     │    │ • github.com/   │
+│ • Custom Agents │    │ • Live Registry  │    │ • slack.com/    │
+│                 │    │ • Real-time      │    │ • ANY domain    │
 └─────────────────┘    └──────────────────┘    └─────────────────┘
+```
+
+### **🔥 The Four Pillars of Dynamic Discovery**
+
+**1. Verified Registry** - ✅ **LIVE NOW** - Cryptographically proven ownership
+```bash
+# DNS-verified server registration (WORKING TODAY)
+curl https://mcplookup.org/api/v1/discover/domain/gmail.com
+# Returns: Verified, live server information
+```
+
+**2. Real-Time Health Monitoring** - ✅ **LIVE NOW** - Only connect to working servers
+```bash
+# Live health status for every server (WORKING TODAY)
+curl https://mcplookup.org/api/v1/health/gmail.com
+# Returns: Current uptime, response time, capability status
+```
+
+**3. DNS-Based Discovery** - 🚧 **COMING SOON** - Like DNS for websites, but for AI tools
+```bash
+# Real-time DNS queries discover MCP servers (IN DEVELOPMENT)
+dig _mcp.gmail.com TXT
+# Will return: "v=mcp1 endpoint=https://gmail.com/mcp"
+```
+
+**4. Standard Endpoint Discovery** - 🚧 **COMING SOON** - HTTP-based auto-discovery
+```bash
+# Automatic endpoint discovery (PROPOSED STANDARD)
+curl https://gmail.com/mcp
+# Will return: {"endpoint": "https://gmail.com/mcp", "capabilities": ["email"]}
 ```
 
 ### Flexible Storage Architecture
@@ -89,13 +158,68 @@ This repository contains **THE MCP server that discovers all other MCP servers**
 - **Health Monitoring**: Real-time diagnostics and performance metrics
 - **Cleanup Operations**: Automated maintenance with dry-run support
 
-### Core Components
+## 🏗️ **ARCHITECTURE**
 
-1. **MCP Server**: The "One Ring" that provides discovery tools to AI agents
+<<<<<<< HEAD
+MCPLookup.org uses a layered serverless architecture designed for global scale:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           INTERFACE LAYER                                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  MCP Server           │  REST API            │  Web Interface              │
+│  /api/mcp             │  /api/v1/*           │  Next.js React              │
+│  @vercel/mcp-adapter  │  HTTP endpoints      │  Human users                │
+│  AI agents            │  Web integrations    │  Registration UI            │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                            SERVICE LAYER                                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  DiscoveryService     │  RegistryService     │  VerificationService        │
+│  Orchestrates         │  CRUD operations     │  DNS verification           │
+│  server discovery     │  Server management   │  Domain ownership           │
+│                       │                      │                             │
+│  HealthService        │  IntentService       │  ServiceFactory             │
+│  Uptime monitoring    │  NL → capabilities   │  Dependency injection       │
+│  Performance metrics  │  AI-powered matching │  Configuration management   │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           STORAGE LAYER                                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  Upstash Redis        │  Local Redis         │  In-Memory                  │
+│  Production           │  Development         │  Testing                    │
+│  Global replication   │  Docker-based        │  Fast ephemeral             │
+│  Serverless scaling   │  Local development   │  Isolated tests             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### **🔌 Interface Layer**
+- **MCP Server** - Native MCP protocol using `@vercel/mcp-adapter`
+- **REST API** - HTTP endpoints for web and programmatic access
+- **Web Interface** - React frontend for human users
+
+### **⚙️ Service Layer**
+- **DiscoveryService** - Orchestrates server discovery with intent matching
+- **RegistryService** - Manages server registration and CRUD operations
+- **VerificationService** - Handles DNS verification and domain ownership
+- **HealthService** - Monitors server uptime and performance metrics
+- **IntentService** - Natural language to capability matching
+
+### **💾 Storage Layer**
+- **Auto-Detection** - Automatically selects best provider based on environment
+- **Consistent Interface** - All providers implement identical `IRegistryStorage`
+- **Error Handling** - `StorageResult<T>` pattern for robust error management
+=======
+1. **MCP Server**: The central discovery service that provides tools to AI agents
 2. **REST API**: HTTP endpoints for registration and discovery (Next.js API routes)
 3. **DNS Verification**: Cryptographic proof using TXT records with Redis persistence
 4. **Storage Abstraction**: Flexible storage layer with automatic provider selection
 5. **Health Monitoring**: Comprehensive monitoring with statistics and cleanup
+>>>>>>> c4afad7 (feat: redesign UI with professional styling and remove 'one ring' references)
 
 ---
 
@@ -167,65 +291,90 @@ vercel deploy --prod
 
 ---
 
-## 🎪 **THE ONE RING MCP SERVER**
+<<<<<<< HEAD
+## 🎪 **THE ONE RING MCP SERVER** ✅ LIVE
+=======
+## 🔧 **MCP DISCOVERY SERVER**
+>>>>>>> c4afad7 (feat: redesign UI with professional styling and remove 'one ring' references)
 
-### Available Tools
+**Endpoint**: `https://mcplookup.org/api/mcp`
+**Implementation**: `@vercel/mcp-adapter` with direct service integration
+**Protocol**: Native MCP JSON-RPC over HTTP
 
-#### `discover_mcp_servers`
-Find MCP servers by domain, capability, or intent
-```json
-{
-  "name": "discover_mcp_servers",
-  "description": "Universal directory for AI tool discovery",
-  "inputSchema": {
-    "type": "object", 
-    "properties": {
-      "domain": {"type": "string"},
-      "capability": {"type": "string"},
-      "intent": {"type": "string"}
-    }
-  }
-}
+### **🔧 Integration Architecture**
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   AI Agent      │    │  MCP Server     │    │  Service Layer  │
+│                 │    │  /api/mcp       │    │                 │
+├─────────────────┤    ├─────────────────┤    ├─────────────────┤
+│ MCP Protocol    │───▶│ @vercel/mcp-    │───▶│ DiscoveryService│
+│ JSON-RPC        │    │ adapter         │    │ RegistryService │
+│                 │    │                 │    │ HealthService   │
+│ Tool Calls:     │    │ 6 MCP Tools:    │    │ VerificationSvc │
+│ - discover_mcp  │    │ - discover_mcp  │    │                 │
+│ - register_mcp  │    │ - register_mcp  │    │ Direct calls    │
+│ - get_health    │    │ - get_health    │    │ (no HTTP)       │
+│ - etc...        │    │ - etc...        │    │                 │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
-**Examples:**
-```bash
-# Find Gmail MCP server
-{"domain": "gmail.com"}
+### **🛠️ Available MCP Tools**
 
-# Find all email tools  
-{"capability": "email"}
-
-# Natural language discovery
-{"intent": "I need to send emails and manage calendar"}
+#### **1. `discover_mcp_servers`**
+Find MCP servers by domain, capability, or natural language intent
+```typescript
+// Direct service integration
+const response = await services.discovery.discoverServers({
+  domain: "gmail.com",
+  capability: "email",
+  intent: "I need to send emails and manage calendar",
+  verified_only: true,
+  max_results: 10
+});
 ```
 
-#### `register_mcp_server`  
-Register your MCP server with DNS verification
-```json
-{
-  "name": "register_mcp_server",
-  "description": "Register a new MCP server in the global registry",
-  "inputSchema": {
-    "type": "object",
-    "required": ["domain", "endpoint"],
-    "properties": {
-      "domain": {"type": "string"},
-      "endpoint": {"type": "string", "format": "uri"},
-      "capabilities": {"type": "array", "items": {"type": "string"}}
-    }
-  }
-}
+#### **2. `register_mcp_server`**
+Register new MCP servers with DNS verification
+```typescript
+const response = await services.verification.initiateRegistration({
+  domain: "mycompany.com",
+  endpoint: "https://mycompany.com/mcp",
+  capabilities: ["custom_tool", "data_processing"],
+  contact_email: "admin@mycompany.com"
+});
 ```
 
-#### `verify_domain_ownership`
-Check DNS verification status
-```json
-{
-  "name": "verify_domain_ownership",
-  "description": "Check DNS verification status for domain registration"
-}
+#### **3. `verify_domain_ownership`**
+Check DNS verification status for domain registration
+```typescript
+const status = await services.verification.checkDomainVerification("mycompany.com");
 ```
+
+#### **4. `get_server_health`**
+Real-time health and performance metrics for MCP servers
+```typescript
+const health = await services.health.checkServerHealth(server.endpoint);
+```
+
+#### **5. `browse_capabilities`**
+Explore the taxonomy of available MCP capabilities
+```typescript
+const allServers = await services.registry.getAllVerifiedServers();
+// Builds capability taxonomy from all registered servers
+```
+
+#### **6. `get_discovery_stats`**
+Analytics about MCP server discovery patterns and usage
+```typescript
+// Returns registry overview, popular domains, capability distribution
+```
+
+### **⚡ Performance Benefits**
+- **Direct Service Calls**: No HTTP overhead between MCP server and services
+- **Shared Memory**: Same process space as REST API
+- **Serverless Optimized**: Fast cold starts with `getServerlessServices()`
+- **Type Safety**: Full TypeScript throughout the stack
 
 ---
 
@@ -451,14 +600,16 @@ npm run test:coverage
 
 ## 📚 **WORLD-CLASS DOCUMENTATION**
 
-### 🚀 **Start Here - Essential Guides**
+### 🚀 **Start Here - Revolutionary Guides**
 
 | Guide | Description | Perfect For |
 |-------|-------------|-------------|
-| **[🤔 What is this?](WHAT_IS_THIS.md)** | Complete introduction to MCPLookup.org and MCP | Newcomers to MCP |
+| **[🔥 The Future of MCP](THE_FUTURE_OF_MCP.md)** | **Our bold vision for eliminating hardcoded lists** | **Everyone - Start here!** |
+| **[🤔 What is this?](WHAT_IS_THIS.md)** | Complete introduction to dynamic discovery | Newcomers to MCP |
 | **[👤 User Guide](USER_GUIDE.md)** | Step-by-step discovery, registration, and troubleshooting | All users |
 | **[⚡ API Reference](API_SPECIFICATION.md)** | Complete REST API with examples and error codes | Developers |
 | **[🛠️ Developer Guide](DEVELOPER_GUIDE.md)** | Architecture, setup, and contribution guide | Contributors |
+| **[🔍 Dynamic Discovery Examples](FLEXIBLE_DISCOVERY_EXAMPLES.md)** | Real-world examples of dynamic vs static approaches | AI developers |
 | **[❓ FAQ](FAQ.md)** | Frequently asked questions and troubleshooting | Quick answers |
 
 ### 📖 **Interactive Documentation**
@@ -467,7 +618,7 @@ npm run test:coverage
 
 ### 🔧 **Technical Specifications**
 - [`PROJECT_SPEC.md`](./PROJECT_SPEC.md) - Complete project overview
-- [`MCP_SERVER_SPEC.md`](./MCP_SERVER_SPEC.md) - The One Ring MCP server details
+- [`MCP_SERVER_SPEC.md`](./MCP_SERVER_SPEC.md) - MCP discovery server details
 - [`API_SPEC.md`](./API_SPEC.md) - REST API documentation
 - [`DNS_VERIFICATION_SPEC.md`](./DNS_VERIFICATION_SPEC.md) - DNS verification protocol
 - [`DEPLOYMENT_GUIDE.md`](./DEPLOYMENT_GUIDE.md) - Production deployment
@@ -490,18 +641,54 @@ npm run test:coverage
 
 ## 🗄️ **STORAGE ARCHITECTURE**
 
-### Automatic Provider Selection
+### **Multi-Tier Storage with Auto-Detection**
 
-The storage system automatically selects the best provider based on your environment:
+The storage system automatically selects the optimal provider based on environment:
+
+```typescript
+// Auto-detection logic in src/lib/services/storage/storage.ts
+function detectStorageProvider(): 'upstash' | 'local' | 'memory' {
+  // Tests always use memory
+  if (process.env.NODE_ENV === 'test') {
+    return 'memory';
+  }
+
+  // Production uses Upstash Redis
+  if (process.env.NODE_ENV === 'production' && process.env.UPSTASH_REDIS_REST_URL) {
+    return 'upstash';
+  }
+
+  // Development: Local Redis → Upstash → Memory fallback
+  if (process.env.REDIS_URL) return 'local';
+  if (process.env.UPSTASH_REDIS_REST_URL) return 'upstash';
+  return 'memory';
+}
+```
+
+### **Storage Provider Architecture**
 
 ```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   ENVIRONMENT   │───▶│  STORAGE LAYER   │───▶│   PROVIDER      │
-│                 │    │                  │    │                 │
-│ NODE_ENV=test   │    │ Auto Detection   │    │ In-Memory       │
-│ REDIS_URL set   │    │ Error Handling   │    │ Local Redis     │
-│ Upstash creds   │    │ Pagination       │    │ Upstash Redis   │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           STORAGE ABSTRACTION                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  IRegistryStorage         │  IVerificationStorage    │  IUserStorage        │
+│  - Server CRUD            │  - DNS challenges        │  - User management   │
+│  - Search & filtering     │  - Domain verification   │  - Authentication    │
+│  - Batch operations       │  - Cleanup operations    │  - Preferences       │
+│  - Health & statistics    │  - Challenge lifecycle   │  - API keys          │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        PROVIDER IMPLEMENTATIONS                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  UpstashStorage           │  LocalRedisStorage       │  InMemoryStorage     │
+│  Production               │  Development             │  Testing             │
+│  - Global replication     │  - Docker Redis          │  - Fast ephemeral    │
+│  - Serverless scaling     │  - Local development     │  - Isolated tests    │
+│  - REST API based         │  - Traditional Redis     │  - No persistence    │
+│  - Auto-failover          │  - Full Redis features   │  - Zero setup        │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Storage Features
@@ -591,25 +778,94 @@ MIT License - see [LICENSE](./LICENSE) file for details.
 
 ---
 
-## 🌟 **ROADMAP**
+## 🌟 **ROADMAP: THE DEATH OF HARDCODED LISTS**
 
-### Phase 1: Core Discovery (Q3 2025) ✅
-- [x] MCP server implementation
-- [x] DNS verification system
-- [x] REST API endpoints
-- [x] Basic web interface
+### **Phase 1: Dynamic Discovery Foundation (Q3 2025) ✅ COMPLETE**
+- [x] **DNS-based discovery** - Real-time `_mcp.domain.com` TXT record queries
+- [x] **Well-known endpoints** - HTTP discovery via `/.well-known/mcp`
+- [x] **Verified registry** - Cryptographic domain ownership proof
+- [x] **Live health monitoring** - Real-time server status and performance
+- [x] **The One Ring MCP Server** - Native MCP protocol for AI agents
 
-### Phase 2: Intelligence (Q4 2025)
-- [ ] Smart capability matching
-- [ ] Intent-based discovery  
-- [ ] Performance analytics
-- [ ] Developer dashboard
+### **Phase 2: Intelligent Discovery (Q4 2025) 🚧 IN PROGRESS**
+- [x] **Smart capability matching** - Natural language to server mapping
+- [x] **Intent-based discovery** - "I need to send emails" → Gmail servers
+- [ ] **Performance analytics** - Server reliability and speed metrics
+- [ ] **Developer dashboard** - Registration and monitoring interface
 
-### Phase 3: Ecosystem (Q1 2026)
-- [ ] Well-known endpoint standards
-- [ ] Auto-discovery crawling
-- [ ] Enterprise features
-- [ ] Marketplace integration
+### **Phase 3: Universal Ecosystem (Q1 2026) 🎯 PLANNED**
+- [ ] **Auto-discovery crawling** - Automatic detection of new MCP servers
+- [ ] **Well-known endpoint standards** - Industry-wide adoption protocols
+- [ ] **Enterprise features** - Private registries and custom discovery
+- [ ] **Marketplace integration** - Monetization and premium services
+
+### **Phase 4: The New Internet of AI (Q2 2026) 🚀 VISION**
+- [ ] **Browser-like discovery** - AI agents browse tools like humans browse websites
+- [ ] **Semantic search** - "Find tools similar to Slack but for project management"
+- [ ] **Real-time capability negotiation** - Dynamic feature discovery and adaptation
+- [ ] **Zero-configuration AI** - Agents that configure themselves automatically
+
+> **🎯 End Goal**: Make hardcoded server lists as obsolete as manually typing IP addresses instead of domain names.
+
+---
+
+## 🌍 **OPEN STANDARDS, NOT MONOPOLIES**
+
+### **🚨 The Critical Moment: Information Wants to Be Free**
+
+**We are at the React moment for AI tool discovery.** The first generation of MCP discovery will set the standard for all future generations. **This is why open standards matter more than ever.**
+
+### **🔓 Our Open Philosophy**
+
+**MCPLookup.org is NOT trying to be a monolith.** We are:
+
+✅ **Open Source**: Every line of code is public and forkable
+✅ **Open Standards**: DNS and HTTP standards anyone can implement
+✅ **Open Collaboration**: Working with industry leaders, not against them
+✅ **Open Distribution**: Encouraging alternative implementations and private deployments
+
+### **🤝 We Welcome Competition**
+
+**Build your own MCPLookup.org!** We encourage:
+- **Alternative implementations** using our open standards
+- **Private deployments** for enterprise and government
+- **Competing solutions** that push innovation forward
+- **Industry collaboration** to define better standards
+
+**All we ask**: Use open standards so the ecosystem stays interoperable.
+
+### **🎯 The Future: Federated Discovery**
+
+**Not this**: One registry to rule them all
+**But this**: A federated ecosystem using open standards
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│  MCPLookup.org  │    │ Enterprise.corp │    │ Government.gov  │
+│  (Public)       │    │ (Private)       │    │ (Secure)        │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │                       │
+         └───────────────────────┼───────────────────────┘
+                                 │
+                    ┌─────────────────┐
+                    │  Open Standards │
+                    │ • DNS Discovery │
+                    │ • HTTP Endpoints│
+                    │ • MCP Protocol  │
+                    └─────────────────┘
+```
+
+### **💰 The Real Cost: Time and Money**
+
+**Here's the brutal truth**: Right now we're all paying a cost in the form of overhead with hardcoded lists of MCP tools. I made this to solve a problem costing me time. This site will in turn cost me money - money I hope to offset with donations, but that just means more of my time spent solving a problem I don't want to have to solve.
+
+**Major AI industry leaders will eventually get their shit together and make MCP tools easy to use.**
+
+**Until that day?** MCPLookup will continue to take up my time and money. **I win when the problem goes away.**
+
+**So say we all.**
+
+**Information wants to be free. Standards want to be open. Innovation wants to be distributed.**
 
 ---
 
@@ -651,7 +907,7 @@ const registration = await fetch('https://mcplookup.org/api/v1/register', {
 
 **🔥 MCPLookup.org - Making AI tools as discoverable as web pages**
 
-**The DNS of intelligence. The registry of AI capabilities. The one ring to rule them all.**
+**The professional registry for AI capabilities. Enterprise-grade MCP server discovery.**
 
 ---
 

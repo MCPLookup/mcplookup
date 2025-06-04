@@ -22,46 +22,42 @@ export function RealTimeActivityFeed({ isConnected }: RealTimeActivityFeedProps)
   const [activities, setActivities] = useState<ActivityItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
-  const { onMessage } = useWebSocket()
+  // WebSocket connection for real-time updates
+  const { connectionStatus } = useWebSocket(
+    isConnected ? 'ws://localhost:3001/ws' : null,
+    {
+      onMessage: (event) => {
+        try {
+          const data = JSON.parse(event.data)
+
+          if (data.type === 'activity_update' && data.activity) {
+            setActivities(prev => [data.activity, ...prev.slice(0, 49)]) // Keep last 50
+          } else if (data.type === 'audit_log' && data.entry) {
+            const activity: ActivityItem = {
+              id: data.entry.id,
+              type: 'audit_log',
+              message: data.entry.summary || `${data.entry.action} on ${data.entry.resource}`,
+              timestamp: data.entry.timestamp,
+              user: data.entry.userEmail,
+              success: data.entry.success,
+              metadata: {
+                action: data.entry.action,
+                resource: data.entry.resource
+              }
+            }
+            setActivities(prev => [activity, ...prev.slice(0, 49)])
+          }
+        } catch (error) {
+          console.error('Error parsing WebSocket message:', error)
+        }
+      }
+    }
+  )
 
   // Load initial activity
   useEffect(() => {
     loadInitialActivity()
   }, [])
-
-  // Set up real-time updates
-  useEffect(() => {
-    if (isConnected) {
-      const unsubscribeActivity = onMessage('activity_update', (data) => {
-        if (data.activity) {
-          setActivities(prev => [data.activity, ...prev.slice(0, 49)]) // Keep last 50
-        }
-      })
-
-      const unsubscribeAudit = onMessage('audit_log', (data) => {
-        if (data.entry) {
-          const activity: ActivityItem = {
-            id: data.entry.id,
-            type: 'audit_log',
-            message: data.entry.summary || `${data.entry.action} on ${data.entry.resource}`,
-            timestamp: data.entry.timestamp,
-            user: data.entry.userEmail,
-            success: data.entry.success,
-            metadata: {
-              action: data.entry.action,
-              resource: data.entry.resource
-            }
-          }
-          setActivities(prev => [activity, ...prev.slice(0, 49)])
-        }
-      })
-
-      return () => {
-        unsubscribeActivity()
-        unsubscribeAudit()
-      }
-    }
-  }, [isConnected, onMessage])
 
   const loadInitialActivity = async () => {
     try {

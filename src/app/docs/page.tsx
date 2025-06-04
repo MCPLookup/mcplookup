@@ -13,11 +13,11 @@ export default function DocsPage() {
     {
       id: "getting-started",
       title: "🚀 Getting Started",
-      description: "New to MCPLookup.org? Start here for a complete introduction.",
+      description: "New to the revolution? Learn how we're eliminating hardcoded lists from AI forever.",
       items: [
-        { title: "What is MCPLookup.org?", href: "/docs/introduction", icon: "🤔", description: "Complete introduction to MCP discovery", difficulty: "Beginner" },
-        { title: "Quick Start Guide", href: "/docs/quickstart", icon: "⚡", description: "Get up and running in 5 minutes", difficulty: "Beginner" },
-        { title: "Architecture Overview", href: "/docs/architecture", icon: "🏗️", description: "Understanding the system design", difficulty: "Intermediate" },
+        { title: "What is MCPLookup.org?", href: "/docs/introduction", icon: "🔥", description: "The MCP server that eliminates hardcoded lists forever", difficulty: "Beginner" },
+        { title: "Quick Start Guide", href: "/docs/quickstart", icon: "💀", description: "Kill your hardcoded lists in 5 minutes", difficulty: "Beginner" },
+        { title: "Architecture Overview", href: "/docs/architecture", icon: "🏗️", description: "The zero-hardcoding architecture", difficulty: "Intermediate" },
         { title: "Core Concepts", href: "/docs/concepts", icon: "💡", description: "Key concepts and terminology", difficulty: "Beginner" }
       ]
     },
@@ -48,7 +48,7 @@ export default function DocsPage() {
       title: "🔗 MCP Integration",
       description: "Native MCP server integration and tools.",
       items: [
-        { title: "The One Ring MCP Server", href: "/docs/mcp-server", icon: "💍", description: "Native MCP server for discovery", difficulty: "Advanced" },
+        { title: "MCP Discovery Server", href: "/docs/mcp-server", icon: "🔍", description: "Native MCP server for discovery", difficulty: "Advanced" },
         { title: "MCP Tools Reference", href: "/docs/mcp-tools", icon: "🛠️", description: "Available MCP tools and usage", difficulty: "Intermediate" },
         { title: "AI Agent Integration", href: "/docs/ai-integration", icon: "🤖", description: "Integrate with AI agents", difficulty: "Advanced" },
         { title: "SDK Documentation", href: "/docs/sdk", icon: "📦", description: "Official SDKs and libraries", difficulty: "Intermediate" }
@@ -110,8 +110,12 @@ export default function DocsPage() {
             <h1 className="text-4xl font-bold text-gray-900 mb-4">
               📚 MCPLookup.org Documentation
             </h1>
+            <h2 className="text-2xl font-bold text-red-600 mb-4">
+              🔥 The End of Hardcoded Lists
+            </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Complete guide to the universal MCP server discovery service. Find servers, register your own, and integrate with the Model Context Protocol ecosystem.
+              Complete guide to the <strong>MCP server that discovers all other MCP servers</strong>.
+              Learn how to eliminate hardcoded lists forever with dynamic discovery, AI-powered search, and cryptographic security.
             </p>
           </div>
 
@@ -152,9 +156,9 @@ export default function DocsPage() {
               <Link href="/docs/introduction" className="group">
                 <div className="text-center space-y-4 p-6 border border-gray-200 rounded-lg hover:shadow-md hover:border-blue-300 transition-all group-hover:bg-blue-50">
                   <div className="text-4xl">🤔</div>
-                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-900">What is this?</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-900">The Revolution</h3>
                   <p className="text-gray-600 text-sm group-hover:text-blue-700">
-                    New to MCP? Start here to understand what MCPLookup.org does and why it matters.
+                    Learn how we're eliminating hardcoded lists from AI forever with dynamic MCP discovery.
                   </p>
                   <div className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md group-hover:bg-blue-700 transition-colors">
                     📖 Read Introduction
@@ -165,9 +169,9 @@ export default function DocsPage() {
               <Link href="/docs/quickstart" className="group">
                 <div className="text-center space-y-4 p-6 border border-gray-200 rounded-lg hover:shadow-md hover:border-green-300 transition-all group-hover:bg-green-50">
                   <div className="text-4xl">⚡</div>
-                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-green-900">Quick Start</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-green-900">Kill Your Lists</h3>
                   <p className="text-gray-600 text-sm group-hover:text-green-700">
-                    Get up and running in 5 minutes. Discover servers and start using MCP tools right away.
+                    Get up and running in 5 minutes. Replace hardcoded lists with dynamic discovery right away.
                   </p>
                   <div className="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md group-hover:bg-green-700 transition-colors">
                     🚀 Quick Start
@@ -178,9 +182,9 @@ export default function DocsPage() {
               <Link href="/docs/api" className="group">
                 <div className="text-center space-y-4 p-6 border border-gray-200 rounded-lg hover:shadow-md hover:border-purple-300 transition-all group-hover:bg-purple-50">
                   <div className="text-4xl">⚡</div>
-                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-purple-900">API Reference</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-purple-900">MCP Tools</h3>
                   <p className="text-gray-600 text-sm group-hover:text-purple-700">
-                    Complete REST API specification with examples, error codes, and response formats.
+                    Native MCP server tools for dynamic discovery. Connect AI agents directly via MCP protocol.
                   </p>
                   <div className="inline-flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-md group-hover:bg-purple-700 transition-colors">
                     🔌 API Docs

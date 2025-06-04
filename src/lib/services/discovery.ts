@@ -95,9 +95,15 @@ export class DiscoveryService implements IDiscoveryService {
   }
 
   /**
-   * Intent-based discovery using NLP matching
+   * Intent-based discovery using enhanced NLP matching
    */
   async discoverByIntent(intent: string): Promise<MCPServerRecord[]> {
+    // Use enhanced intent service if available
+    if (this.intentService instanceof (await import('./intent.js')).EnhancedIntentService) {
+      return await this.discoverByEnhancedIntent(intent);
+    }
+
+    // Fallback to basic intent matching
     const capabilities = await this.intentService.intentToCapabilities(intent);
     const servers: MCPServerRecord[] = [];
 
@@ -106,8 +112,112 @@ export class DiscoveryService implements IDiscoveryService {
       servers.push(...capabilityServers);
     }
 
-    // Remove duplicates and return
     return this.deduplicateServers(servers);
+  }
+
+  /**
+   * Enhanced intent-based discovery with full NLP support
+   */
+  private async discoverByEnhancedIntent(intent: string): Promise<MCPServerRecord[]> {
+    const enhancedService = this.intentService as any; // Type assertion for enhanced methods
+    const analysis = await enhancedService.processNaturalLanguageQuery(intent);
+
+    let servers: MCPServerRecord[] = [];
+
+    // If similarity search is requested
+    if (analysis.similarTo) {
+      const referenceServers = await this.registryService.getServersByDomain(analysis.similarTo);
+      if (referenceServers.length > 0) {
+        // Find servers with similar capabilities
+        const referenceCapabilities = referenceServers[0].capabilities;
+        servers = await this.findSimilarServers(referenceCapabilities, analysis.similarTo);
+      }
+    }
+
+    // Add capability-based results
+    if (analysis.capabilities.length > 0) {
+      for (const capability of analysis.capabilities) {
+        const capabilityServers = await this.discoverByCapability(capability);
+        servers.push(...capabilityServers);
+      }
+    }
+
+    // Apply constraints from NLP analysis
+    if (analysis.constraints) {
+      servers = this.applyNLPConstraints(servers, analysis.constraints);
+    }
+
+    return this.deduplicateServers(servers);
+  }
+
+  /**
+   * Find servers similar to a reference based on capabilities
+   */
+  private async findSimilarServers(referenceCapabilities: any, excludeDomain?: string): Promise<MCPServerRecord[]> {
+    const allServers = await this.registryService.getAllVerifiedServers();
+    const similarServers: Array<{ server: MCPServerRecord; similarity: number }> = [];
+
+    for (const server of allServers) {
+      if (excludeDomain && server.domain === excludeDomain) continue;
+
+      const similarity = this.calculateCapabilitySimilarity(
+        referenceCapabilities,
+        server.capabilities
+      );
+
+      if (similarity > 0.3) { // Minimum similarity threshold
+        similarServers.push({ server, similarity });
+      }
+    }
+
+    // Sort by similarity and return top matches
+    return similarServers
+      .sort((a, b) => b.similarity - a.similarity)
+      .slice(0, 10)
+      .map(item => item.server);
+  }
+
+  /**
+   * Calculate similarity between capability sets
+   */
+  private calculateCapabilitySimilarity(caps1: any, caps2: any): number {
+    const set1 = new Set(caps1.subcategories || []);
+    const set2 = new Set(caps2.subcategories || []);
+
+    const intersection = new Set([...set1].filter(x => set2.has(x)));
+    const union = new Set([...set1, ...set2]);
+
+    return intersection.size / union.size; // Jaccard similarity
+  }
+
+  /**
+   * Apply constraints extracted from natural language
+   */
+  private applyNLPConstraints(servers: MCPServerRecord[], constraints: any): MCPServerRecord[] {
+    let filtered = servers;
+
+    // Performance constraints
+    if (constraints.performance) {
+      const perf = constraints.performance;
+      filtered = filtered.filter(server => {
+        if (perf.max_response_time && server.health?.response_time_ms > perf.max_response_time) return false;
+        if (perf.min_uptime && server.health?.uptime_percentage < perf.min_uptime) return false;
+        if (perf.min_trust_score && server.trust_score < perf.min_trust_score) return false;
+        return true;
+      });
+    }
+
+    // Technical constraints
+    if (constraints.technical) {
+      const tech = constraints.technical;
+      filtered = filtered.filter(server => {
+        if (tech.auth_types && !tech.auth_types.includes(server.auth?.type)) return false;
+        if (tech.cors_support && !server.technical_info?.cors_enabled) return false;
+        return true;
+      });
+    }
+
+    return filtered;
   }
 
   /**

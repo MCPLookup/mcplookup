@@ -1,23 +1,53 @@
 # API SPECIFICATIONS - MCPLOOKUP.ORG
 
-**Serverless REST API + MCP Server Hybrid Architecture (No Database)**
+**Dual Interface Architecture: REST API + Native MCP Server**
 
 ---
 
-## 🏗️ **SERVERLESS API ARCHITECTURE**
+## 🏗️ **ARCHITECTURE OVERVIEW**
 
-### Zero Infrastructure Design
-- ✅ **No Database**: All data retrieved in real-time or from memory
-- ✅ **No Redis**: In-memory caching with TTL-based expiration  
-- ✅ **No External Storage**: DNS records + well-known endpoints
-- ✅ **Stateless Functions**: Each API call is independent
-- ✅ **Global Edge**: Deployed on Vercel's edge network
+### **🔌 Dual Interface Design**
+MCPLookup.org provides two interfaces sharing the same service layer:
 
-### Data Sources (No Persistence)
-1. **Well-Known Servers**: Hardcoded popular services (Gmail, GitHub, etc.)
-2. **Live Discovery**: Real-time `.well-known/mcp-server` endpoint checks
-3. **DNS Verification**: TXT record queries (no storage of challenges)
-4. **Health Checks**: Live endpoint testing (no historical data)
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           INTERFACE LAYER                                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  REST API             │  MCP Server           │  Web Interface              │
+│  /api/v1/*            │  /api/mcp             │  Next.js React              │
+│  HTTP endpoints       │  @vercel/mcp-adapter  │  Human users                │
+│  Web integrations     │  AI agents            │  Registration UI            │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                            SERVICE LAYER                                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  DiscoveryService     │  RegistryService     │  VerificationService        │
+│  Orchestrates         │  CRUD operations     │  DNS verification           │
+│  server discovery     │  Server management   │  Domain ownership           │
+│                       │                      │                             │
+│  HealthService        │  IntentService       │  ServiceFactory             │
+│  Uptime monitoring    │  NL → capabilities   │  Dependency injection       │
+│  Performance metrics  │  AI-powered matching │  Configuration management   │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           STORAGE LAYER                                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  Upstash Redis        │  Local Redis         │  In-Memory                  │
+│  Production           │  Development         │  Testing                    │
+│  Global replication   │  Docker-based        │  Fast ephemeral             │
+│  Serverless scaling   │  Local development   │  Isolated tests             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### **⚡ Performance Benefits**
+- **Shared Services**: Both interfaces use identical business logic
+- **Direct Integration**: MCP server calls services directly (no HTTP overhead)
+- **Multi-Tier Storage**: Auto-detection between Upstash/Local/Memory Redis
+- **Type Safety**: Full TypeScript throughout the stack
 
 ---
 

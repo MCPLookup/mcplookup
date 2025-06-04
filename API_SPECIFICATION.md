@@ -1,6 +1,8 @@
 # MCPLookup.org API Specification 🔌
 
-Complete REST API reference for MCPLookup.org - the universal MCP server discovery service.
+**🔥 The End of Hardcoded Lists: Complete REST API Reference**
+
+The comprehensive API documentation for **the service that's eliminating hardcoded lists from AI forever**. While AI agents should use our native MCP server, this REST API provides universal access to dynamic discovery.
 
 ## 📋 Overview
 
