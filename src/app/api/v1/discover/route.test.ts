@@ -13,12 +13,12 @@ const mockDiscoveryService = {
 };
 
 describe('/api/v1/discover', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
-    
+
     // Setup default mock implementation
-    const { getServerlessServices } = require('@/lib/services');
-    getServerlessServices.mockReturnValue({
+    const { getServerlessServices } = await import('@/lib/services');
+    (getServerlessServices as any).mockReturnValue({
       discovery: mockDiscoveryService
     });
   });
@@ -71,7 +71,13 @@ describe('/api/v1/discover', () => {
       expect(data.total_results).toBe(1);
       
       expect(mockDiscoveryService.discoverServers).toHaveBeenCalledWith({
-        domain: 'gmail.com'
+        domain: 'gmail.com',
+        limit: 10,
+        offset: 0,
+        include_health: true,
+        include_tools: true,
+        include_resources: false,
+        sort_by: 'relevance'
       });
     });
 
@@ -346,7 +352,7 @@ describe('/api/v1/discover', () => {
       const request = new NextRequest('http://localhost:3000/api/v1/discover');
       const response = await GET(request);
 
-      expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
+      expect(response.headers.get('Access-Control-Allow-Origin')).toBe('https://mcplookup.org');
       expect(response.headers.get('Access-Control-Allow-Methods')).toBe('GET, OPTIONS');
       expect(response.headers.get('Access-Control-Allow-Headers')).toBe('Content-Type');
     });
