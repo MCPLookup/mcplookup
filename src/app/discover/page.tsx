@@ -163,7 +163,7 @@ export default function DiscoverPage() {
         setTotalPages(1) // AI search returns pre-filtered results
         setCurrentPage(1)
 
-        toast.success(
+        createAnimatedToast.success(
           "🧠 AI Search completed",
           `Found ${data.servers?.length || 0} relevant servers (${Math.round(data.confidence * 100)}% confidence)`
         )
@@ -198,7 +198,7 @@ export default function DiscoverPage() {
           setTotalPages(Math.ceil((data.pagination?.total_count || data.servers.length) / itemsPerPage))
           setCurrentPage(page)
 
-          toast.success(
+          createAnimatedToast.success(
             "Search completed",
             `Found ${data.servers.length} servers`
           )
@@ -214,7 +214,7 @@ export default function DiscoverPage() {
       setError("Failed to search for servers. Please try again.")
       setServers([])
 
-      toast.error(
+      createAnimatedToast.error(
         "Search failed",
         "Unable to search for servers. Please try again."
       )
