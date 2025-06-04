@@ -160,16 +160,23 @@ async function testStorageProvider(providerName: string, provider: 'memory' | 'l
     console.log('\n🔐 Testing Verification Storage:');
     
     const mockChallenge: VerificationChallengeData = {
+      // Base VerificationChallenge fields
       challenge_id: 'test-challenge-123',
       domain: 'test-example.com',
-      challenge: 'mcp_verify_test123',
-      created_at: new Date().toISOString(),
+      txt_record_name: '_mcp-verify.test-example.com',
+      txt_record_value: 'mcp_verify_test123',
       expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-      verified_at: undefined
+      instructions: 'Create a DNS TXT record at _mcp-verify.test-example.com with value mcp_verify_test123',
+
+      // Extended VerificationChallengeData fields
+      endpoint: 'https://test-example.com/.well-known/mcp',
+      contact_email: 'test@example.com',
+      token: 'test-token-123',
+      created_at: new Date().toISOString()
     };
 
     // Store challenge
-    const storeChallengeResult = await verificationStorage.storeChallenge(mockChallenge);
+    const storeChallengeResult = await verificationStorage.storeChallenge('test-challenge-123', mockChallenge);
     if (isSuccessResult(storeChallengeResult)) {
       console.log('  ✅ Challenge stored successfully');
     } else {
@@ -181,7 +188,7 @@ async function testStorageProvider(providerName: string, provider: 'memory' | 'l
     const retrieveChallengeResult = await verificationStorage.getChallenge('test-challenge-123');
     if (isSuccessResult(retrieveChallengeResult)) {
       const retrievedChallenge = retrieveChallengeResult.data;
-      console.log(`  ✅ Challenge retrieved: ${retrievedChallenge?.id === 'test-challenge-123' ? 'Match' : 'Mismatch'}`);
+      console.log(`  ✅ Challenge retrieved: ${retrievedChallenge?.challenge_id === 'test-challenge-123' ? 'Match' : 'Mismatch'}`);
     } else {
       console.log(`  ❌ Failed to retrieve challenge: ${retrieveChallengeResult.error}`);
     }
@@ -192,7 +199,7 @@ async function testStorageProvider(providerName: string, provider: 'memory' | 'l
       const verifiedChallengeResult = await verificationStorage.getChallenge('test-challenge-123');
       if (isSuccessResult(verifiedChallengeResult)) {
         const verifiedChallenge = verifiedChallengeResult.data;
-        console.log(`  ✅ Challenge verified: ${verifiedChallenge?.verified ? 'Yes' : 'No'}`);
+        console.log(`  ✅ Challenge verified: ${verifiedChallenge?.verified_at ? 'Yes' : 'No'}`);
       }
     } else {
       console.log(`  ❌ Failed to verify challenge: ${verifyResult.error}`);
@@ -210,7 +217,7 @@ async function testStorageProvider(providerName: string, provider: 'memory' | 'l
     // Cleanup
     console.log('\n🧹 Cleanup:');
     const deleteServerResult = await registryStorage.deleteServer('test-example.com');
-    const deleteChallengeResult = await verificationStorage.removeChallenge('test-challenge-123');
+    const deleteChallengeResult = await verificationStorage.deleteChallenge('test-challenge-123');
 
     if (isSuccessResult(deleteServerResult) && isSuccessResult(deleteChallengeResult)) {
       console.log('  ✅ Test data cleaned up');
