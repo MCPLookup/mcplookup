@@ -5,7 +5,7 @@ import dns from 'dns/promises';
 import { randomUUID } from 'crypto';
 import { getVerificationStorage, StorageConfig } from './storage/storage';
 import { IVerificationStorage, VerificationChallengeData, isSuccessResult } from './storage/interfaces';
-import { VerificationChallenge, RegistrationRequest } from '../schemas/discovery';
+import { VerificationChallenge, RegistrationRequest, TransportCapabilities } from '../schemas/discovery';
 
 export interface IVerificationService {
   initiateDNSVerification(request: RegistrationRequest): Promise<VerificationChallenge>;
@@ -306,7 +306,10 @@ export interface IMCPValidationService {
   validateMCPEndpoint(endpoint: string): Promise<boolean>;
   getMCPServerInfo(endpoint: string): Promise<any>;
   testMCPConnection(endpoint: string): Promise<boolean>;
+  discoverTransportCapabilities(endpoint: string): Promise<TransportCapabilities>;
 }
+
+
 
 // ============================================================================
 // MCP VALIDATION SERVICE IMPLEMENTATION
@@ -393,4 +396,315 @@ export class MCPValidationService implements IMCPValidationService {
       return false;
     }
   }
-}
+
+  async discoverTransportCapabilities(endpoint: string): Promise<TransportCapabilities> {
+    const startTime = Date.now();
+
+    try {
+      const [
+        methodSupport,
+        sseCapabilities,
+        sessionSupport,
+        resumabilitySupport,
+        corsDetails,
+        securityFeatures
+      ] = await Promise.allSettled([
+        this.detectMethodSupport(endpoint),
+        this.detectSSECapabilities(endpoint),
+        this.detectSessionSupport(endpoint),
+        this.detectResumabilitySupport(endpoint),
+        this.detectCORSDetails(endpoint),
+        this.detectSecurityFeatures(endpoint)
+      ]);
+
+      const responseTime = Date.now() - startTime;
+
+      return {
+        primary_transport: this.determinePrimaryTransport(methodSupport, sseCapabilities),
+        supported_methods: this.extractValue(methodSupport, []),
+        content_types: this.extractContentTypes(methodSupport, sseCapabilities),
+        sse_support: this.extractValue(sseCapabilities, {
+          supports_sse: false,
+          supports_get_streaming: false,
+          supports_post_streaming: false
+        }),
+        session_support: this.extractValue(sessionSupport, {
+          supports_sessions: false,
+          session_timeout_indicated: false
+        }),
+        resumability: this.extractValue(resumabilitySupport, {
+          supports_event_ids: false,
+          supports_last_event_id: false
+        }),
+        connection_limits: {
+          supports_multiple_connections: false, // Would need more complex testing
+        },
+        security_features: this.extractValue(securityFeatures, {
+          origin_validation: false,
+          ssl_required: endpoint.startsWith('https://'),
+          custom_auth_headers: []
+        }),
+        performance: {
+          avg_response_time_ms: responseTime,
+          supports_compression: false // Would need header analysis
+        },
+        cors_details: this.extractValue(corsDetails, {
+          cors_enabled: false,
+          allowed_origins: [],
+          allowed_methods: [],
+          allowed_headers: [],
+          supports_credentials: false
+        })
+      };
+
+    } catch (error) {
+      console.error('Transport capabilities discovery failed:', error);
+      // Return minimal capabilities on error
+      return this.getMinimalCapabilities(endpoint);
+    }
+  }
+
+  private async detectMethodSupport(endpoint: string): Promise<string[]> {
+    const { safeFetch } = await import('../security/url-validation');
+    const supportedMethods: string[] = [];
+    const methods = ['GET', 'POST', 'DELETE', 'OPTIONS'];
+
+    for (const method of methods) {
+      try {
+        const response = await safeFetch(endpoint, {
+          method,
+          signal: AbortSignal.timeout(5000),
+          headers: method === 'POST' ? { 'Content-Type': 'application/json' } : {}
+        });
+
+        // Consider method supported if we don't get 405 Method Not Allowed
+        if (response.status !== 405) {
+          supportedMethods.push(method);
+        }
+      } catch (error) {
+        // Method might be supported but endpoint might be down
+        console.debug(`Method ${method} test failed:`, error);
+      }
+    }
+
+    return supportedMethods;
+  }
+
+  private async detectSSECapabilities(endpoint: string): Promise<any> {
+    const { safeFetch } = await import('../security/url-validation');
+
+    try {
+      // Test GET with SSE accept header
+      const getResponse = await safeFetch(endpoint, {
+        method: 'GET',
+        headers: {
+          'Accept': 'text/event-stream'
+        },
+        signal: AbortSignal.timeout(5000)
+      });
+
+      const supportsGetSSE = getResponse.headers.get('content-type')?.includes('text/event-stream') || false;
+
+      // Test POST with SSE accept header
+      const postResponse = await safeFetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'text/event-stream, application/json'
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'initialize',
+          params: {
+            protocolVersion: '2025-03-26',
+            capabilities: {},
+            clientInfo: { name: 'mcplookup-verifier', version: '1.0.0' }
+          }
+        }),
+        signal: AbortSignal.timeout(5000)
+      });
+
+      const supportsPostSSE = postResponse.headers.get('content-type')?.includes('text/event-stream') || false;
+
+      return {
+        supports_sse: supportsGetSSE || supportsPostSSE,
+        supports_get_streaming: supportsGetSSE,
+        supports_post_streaming: supportsPostSSE
+      };
+
+    } catch (error) {
+      console.debug('SSE capabilities detection failed:', error);
+      return {
+        supports_sse: false,
+        supports_get_streaming: false,
+        supports_post_streaming: false
+      };
+    }
+  }
+
+  private async detectSessionSupport(endpoint: string): Promise<any> {
+    const { safeFetch } = await import('../security/url-validation');
+
+    try {
+      // Send initialize request and check for session header
+      const response = await safeFetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json, text/event-stream'
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'initialize',
+          params: {
+            protocolVersion: '2025-03-26',
+            capabilities: {},
+            clientInfo: { name: 'mcplookup-verifier', version: '1.0.0' }
+          }
+        }),
+        signal: AbortSignal.timeout(5000)
+      });
+
+      const sessionHeader = response.headers.get('mcp-session-id') || response.headers.get('Mcp-Session-Id');
+
+      return {
+        supports_sessions: !!sessionHeader,
+        session_header_name: sessionHeader ? 'Mcp-Session-Id' : undefined,
+        session_timeout_indicated: false // Would need more analysis
+      };
+
+    } catch (error) {
+      console.debug('Session support detection failed:', error);
+      return {
+        supports_sessions: false,
+        session_timeout_indicated: false
+      };
+    }
+  }
+
+  private async detectResumabilitySupport(endpoint: string): Promise<any> {
+    // This would require establishing an SSE connection and monitoring for event IDs
+    // For now, return basic detection
+    return {
+      supports_event_ids: false,
+      supports_last_event_id: false
+    };
+  }
+
+  private async detectCORSDetails(endpoint: string): Promise<any> {
+    const { safeFetch } = await import('../security/url-validation');
+
+    try {
+      // Send OPTIONS preflight request
+      const response = await safeFetch(endpoint, {
+        method: 'OPTIONS',
+        headers: {
+          'Origin': 'https://mcplookup.org',
+          'Access-Control-Request-Method': 'POST',
+          'Access-Control-Request-Headers': 'Content-Type'
+        },
+        signal: AbortSignal.timeout(5000)
+      });
+
+      const allowOrigin = response.headers.get('access-control-allow-origin');
+      const allowMethods = response.headers.get('access-control-allow-methods')?.split(',').map(m => m.trim()) || [];
+      const allowHeaders = response.headers.get('access-control-allow-headers')?.split(',').map(h => h.trim()) || [];
+      const allowCredentials = response.headers.get('access-control-allow-credentials') === 'true';
+
+      return {
+        cors_enabled: !!allowOrigin,
+        allowed_origins: allowOrigin ? [allowOrigin] : [],
+        allowed_methods: allowMethods,
+        allowed_headers: allowHeaders,
+        supports_credentials: allowCredentials
+      };
+
+    } catch (error) {
+      console.debug('CORS detection failed:', error);
+      return {
+        cors_enabled: false,
+        allowed_origins: [],
+        allowed_methods: [],
+        allowed_headers: [],
+        supports_credentials: false
+      };
+    }
+  }
+
+  private async detectSecurityFeatures(endpoint: string): Promise<any> {
+    return {
+      origin_validation: false, // Would need careful testing
+      ssl_required: endpoint.startsWith('https://'),
+      custom_auth_headers: [] // Would need error response analysis
+    };
+  }
+
+  private determinePrimaryTransport(methodSupport: PromiseSettledResult<string[]>, sseCapabilities: PromiseSettledResult<any>): 'streamable_http' | 'sse' | 'stdio' {
+    const methods = this.extractValue(methodSupport, []);
+    const sse = this.extractValue(sseCapabilities, { supports_sse: false });
+
+    if (sse.supports_sse && methods.includes('GET') && methods.includes('POST')) {
+      return 'streamable_http';
+    } else if (sse.supports_sse) {
+      return 'sse';
+    } else {
+      return 'streamable_http'; // Default assumption for HTTP endpoints
+    }
+  }
+
+  private extractContentTypes(methodSupport: PromiseSettledResult<string[]>, sseCapabilities: PromiseSettledResult<any>): string[] {
+    const contentTypes = ['application/json']; // Always supported for MCP
+    const sse = this.extractValue(sseCapabilities, { supports_sse: false });
+
+    if (sse.supports_sse) {
+      contentTypes.push('text/event-stream');
+    }
+
+    return contentTypes;
+  }
+
+  private extractValue<T>(result: PromiseSettledResult<T>, defaultValue: T): T {
+    return result.status === 'fulfilled' ? result.value : defaultValue;
+  }
+
+  private getMinimalCapabilities(endpoint: string): TransportCapabilities {
+    return {
+      primary_transport: 'streamable_http',
+      supported_methods: ['POST'],
+      content_types: ['application/json'],
+      sse_support: {
+        supports_sse: false,
+        supports_get_streaming: false,
+        supports_post_streaming: false
+      },
+      session_support: {
+        supports_sessions: false,
+        session_timeout_indicated: false
+      },
+      resumability: {
+        supports_event_ids: false,
+        supports_last_event_id: false
+      },
+      connection_limits: {
+        supports_multiple_connections: false
+      },
+      security_features: {
+        origin_validation: false,
+        ssl_required: endpoint.startsWith('https://'),
+        custom_auth_headers: []
+      },
+      performance: {
+        avg_response_time_ms: 0,
+        supports_compression: false
+      },
+      cors_details: {
+        cors_enabled: false,
+        allowed_origins: [],
+        allowed_methods: [],
+        allowed_headers: [],
+        supports_credentials: false
+      }
+    };
+  }

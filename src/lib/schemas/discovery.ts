@@ -45,6 +45,75 @@ export const MCPServerInfoSchema = z.object({
   }).optional().describe("Server capabilities from MCP spec")
 });
 
+/**
+ * Transport Capabilities Schema
+ * Detailed metadata about MCP transport capabilities discovered during verification
+ */
+export const TransportCapabilitiesSchema = z.object({
+  // Basic transport detection
+  primary_transport: z.enum(['streamable_http', 'sse', 'stdio']).describe("Primary transport protocol"),
+  supported_methods: z.array(z.string()).describe("Supported HTTP methods"),
+  content_types: z.array(z.string()).describe("Supported content types"),
+
+  // SSE capabilities
+  sse_support: z.object({
+    supports_sse: z.boolean().describe("Supports Server-Sent Events"),
+    supports_get_streaming: z.boolean().describe("Supports GET streaming"),
+    supports_post_streaming: z.boolean().describe("Supports POST streaming")
+  }).describe("Server-Sent Events capabilities"),
+
+  // Session management
+  session_support: z.object({
+    supports_sessions: z.boolean().describe("Supports session management"),
+    session_header_name: z.string().optional().describe("Session header name"),
+    session_timeout_indicated: z.boolean().describe("Indicates session timeout")
+  }).describe("Session management capabilities"),
+
+  // Resumability
+  resumability: z.object({
+    supports_event_ids: z.boolean().describe("Supports event IDs for resumability"),
+    supports_last_event_id: z.boolean().describe("Supports Last-Event-ID header"),
+    event_id_format: z.string().optional().describe("Event ID format pattern")
+  }).describe("Stream resumability capabilities"),
+
+  // Connection capabilities
+  connection_limits: z.object({
+    supports_multiple_connections: z.boolean().describe("Supports multiple concurrent connections"),
+    max_concurrent_connections: z.number().optional().describe("Maximum concurrent connections")
+  }).describe("Connection limit information"),
+
+  // Security features
+  security_features: z.object({
+    origin_validation: z.boolean().describe("Validates request origins"),
+    ssl_required: z.boolean().describe("Requires SSL/TLS"),
+    custom_auth_headers: z.array(z.string()).describe("Custom authentication headers")
+  }).describe("Security feature detection"),
+
+  // Performance metadata
+  performance: z.object({
+    avg_response_time_ms: z.number().describe("Average response time in milliseconds"),
+    streaming_latency_ms: z.number().optional().describe("Streaming latency in milliseconds"),
+    supports_compression: z.boolean().describe("Supports response compression"),
+    max_message_size: z.number().optional().describe("Maximum message size in bytes")
+  }).describe("Performance characteristics"),
+
+  // CORS details
+  cors_details: z.object({
+    cors_enabled: z.boolean().describe("CORS is enabled"),
+    allowed_origins: z.array(z.string()).describe("Allowed origins"),
+    allowed_methods: z.array(z.string()).describe("Allowed HTTP methods"),
+    allowed_headers: z.array(z.string()).describe("Allowed headers"),
+    supports_credentials: z.boolean().describe("Supports credentials")
+  }).describe("CORS configuration details"),
+
+  // Rate limiting (if detectable)
+  rate_limits: z.object({
+    requests_per_minute: z.number().optional().describe("Requests per minute limit"),
+    burst_limit: z.number().optional().describe("Burst request limit"),
+    rate_limit_headers: z.array(z.string()).describe("Rate limit header names")
+  }).optional().describe("Rate limiting information")
+});
+
 // ============================================================================
 // AUTHENTICATION SCHEMAS (Based on MCP Auth Specification)
 // ============================================================================
@@ -153,11 +222,12 @@ export const MCPServerRecordSchema = z.object({
   name: z.string().describe("Human-readable server name"),
   description: z.string().describe("Server description and primary purpose"),
   
-  // ---- MCP PROTOCOL DATA ---- 
+  // ---- MCP PROTOCOL DATA ----
   server_info: MCPServerInfoSchema.describe("MCP server information from initialize"),
   tools: z.array(MCPToolSchema).describe("Available tools from tools/list"),
   resources: z.array(MCPResourceSchema).describe("Available resources from resources/list"),
   transport: z.enum(['streamable_http', 'sse', 'stdio']).describe("Supported transport protocol"),
+  transport_capabilities: TransportCapabilitiesSchema.optional().describe("Detailed transport capabilities discovered during verification"),
   
   // ---- SEMANTIC ORGANIZATION ----
   capabilities: CapabilitySchema.describe("Capability classification for discovery"),
@@ -357,6 +427,7 @@ export const VerificationChallengeSchema = z.object({
 export type MCPTool = z.infer<typeof MCPToolSchema>;
 export type MCPResource = z.infer<typeof MCPResourceSchema>;
 export type MCPServerInfo = z.infer<typeof MCPServerInfoSchema>;
+export type TransportCapabilities = z.infer<typeof TransportCapabilitiesSchema>;
 export type AuthConfig = z.infer<typeof AuthConfigSchema>;
 export type HealthMetrics = z.infer<typeof HealthMetricsSchema>;
 export type Verification = z.infer<typeof VerificationSchema>;
