@@ -24,7 +24,7 @@ import { Pagination } from "@/components/ui/pagination"
 import { LoadingCard, SearchLoading, StaggeredListLoading } from "@/components/ui/loading"
 import { AnimatedCardNamespace as AnimatedCard, AnimatedList } from "@/components/ui/animated-card"
 import { AnimatedButton } from "@/components/ui/animated-button"
-import { createAnimatedToast } from "@/components/ui/toaster"
+import { useToast } from "@/components/ui/toaster"
 import { FaSearch, FaServer, FaCheckCircle, FaExclamationTriangle, FaFilter, FaTimes } from "react-icons/fa"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
@@ -205,13 +205,13 @@ export default function DiscoverPage() {
                     onKeyPress={(e) => e.key === "Enter" && handleSearch()}
                   />
                   <AnimatedButton
-                    colorPalette="blue"
                     onClick={() => handleSearch(1)}
                     disabled={loading || !searchQuery.trim()}
                     state={loading ? "loading" : "idle"}
                     loadingText="Searching..."
                     hoverScale={1.05}
                     rippleEffect
+                    variant="primary"
                   >
                     {!loading && (
                       <Icon>

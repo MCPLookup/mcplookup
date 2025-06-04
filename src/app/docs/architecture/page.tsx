@@ -220,7 +220,7 @@ export default function ArchitecturePage() {
                 <div className="text-3xl">🌍</div>
                 <h3 className="font-semibold text-gray-900">Global Edge</h3>
                 <p className="text-gray-600 text-sm">
-                  Deployed on Vercel's global edge network for <100ms response times worldwide
+                  Deployed on Vercel's global edge network for &lt;100ms response times worldwide
                 </p>
               </div>
               
@@ -246,14 +246,14 @@ export default function ArchitecturePage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div>
                   <ul className="space-y-1 text-gray-600">
-                    <li>• <strong>Discovery Latency:</strong> <100ms global average</li>
-                    <li>• <strong>Server Uptime:</strong> >99.9% for verified servers</li>
-                    <li>• <strong>DNS Verification:</strong> <60 seconds end-to-end</li>
+                    <li>• <strong>Discovery Latency:</strong> &lt;100ms global average</li>
+                    <li>• <strong>Server Uptime:</strong> &gt;99.9% for verified servers</li>
+                    <li>• <strong>DNS Verification:</strong> &lt;60 seconds end-to-end</li>
                   </ul>
                 </div>
                 <div>
                   <ul className="space-y-1 text-gray-600">
-                    <li>• <strong>Cache Hit Rate:</strong> >95% for popular servers</li>
+                    <li>• <strong>Cache Hit Rate:</strong> &gt;95% for popular servers</li>
                     <li>• <strong>API Rate Limit:</strong> 1000 req/min per IP</li>
                     <li>• <strong>Concurrent Users:</strong> Unlimited (serverless)</li>
                   </ul>

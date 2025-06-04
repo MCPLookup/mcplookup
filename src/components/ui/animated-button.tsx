@@ -1,13 +1,10 @@
 "use client"
 
-import { Button as ChakraButton, ButtonProps, Icon } from "@chakra-ui/react"
 import { motion, AnimatePresence } from "framer-motion"
 import * as React from "react"
 import { LoadingSpinner } from "./loading"
 
-const MotionButton = motion(ChakraButton)
-
-export interface AnimatedButtonProps extends ButtonProps {
+export interface AnimatedButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'onDrag' | 'onDragEnd' | 'onDragStart' | 'onAnimationStart' | 'onAnimationEnd' | 'onTransitionEnd'> {
   children: React.ReactNode
   hoverScale?: number
   clickScale?: number
@@ -19,6 +16,8 @@ export interface AnimatedButtonProps extends ButtonProps {
   errorIcon?: React.ElementType
   state?: "idle" | "loading" | "success" | "error"
   animationDuration?: number
+  variant?: "primary" | "secondary" | "outline" | "ghost"
+  size?: "sm" | "md" | "lg"
 }
 
 export const AnimatedButton = React.forwardRef<HTMLButtonElement, AnimatedButtonProps>(
@@ -34,8 +33,11 @@ export const AnimatedButton = React.forwardRef<HTMLButtonElement, AnimatedButton
     errorIcon,
     state = "idle",
     animationDuration = 0.2,
+    variant = "primary",
+    size = "md",
     disabled,
     onClick,
+    className,
     ...props
   }, ref) {
     const [isClicked, setIsClicked] = React.useState(false)
@@ -46,6 +48,26 @@ export const AnimatedButton = React.forwardRef<HTMLButtonElement, AnimatedButton
     const isSuccess = state === "success"
     const isError = state === "error"
     const isDisabled = disabled || isLoading
+
+    // Get button styles based on variant and size
+    const getButtonStyles = () => {
+      const baseStyles = "inline-flex items-center justify-center font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 relative overflow-hidden"
+
+      const sizeStyles = {
+        sm: "px-3 py-2 text-sm",
+        md: "px-4 py-2 text-base",
+        lg: "px-6 py-3 text-lg"
+      }
+
+      const variantStyles = {
+        primary: "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500",
+        secondary: "bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500",
+        outline: "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:ring-blue-500",
+        ghost: "text-gray-700 hover:bg-gray-100 focus:ring-gray-500"
+      }
+
+      return `${baseStyles} ${sizeStyles[size]} ${variantStyles[variant]} ${className || ""}`
+    }
 
     const buttonVariants = {
       idle: {
@@ -159,7 +181,7 @@ export const AnimatedButton = React.forwardRef<HTMLButtonElement, AnimatedButton
                     animate="animate"
                     exit="exit"
                   >
-                    <Icon as={successIcon} color="green.500" />
+                    {React.createElement(successIcon, { className: "w-4 h-4 text-green-500" })}
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -182,7 +204,7 @@ export const AnimatedButton = React.forwardRef<HTMLButtonElement, AnimatedButton
                     animate="animate"
                     exit="exit"
                   >
-                    <Icon as={errorIcon} color="red.500" />
+                    {React.createElement(errorIcon, { className: "w-4 h-4 text-red-500" })}
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -203,8 +225,9 @@ export const AnimatedButton = React.forwardRef<HTMLButtonElement, AnimatedButton
     }
 
     return (
-      <MotionButton
+      <motion.button
         ref={buttonRef}
+        className={getButtonStyles()}
         variants={buttonVariants}
         initial="idle"
         whileHover="hover"
@@ -212,8 +235,6 @@ export const AnimatedButton = React.forwardRef<HTMLButtonElement, AnimatedButton
         animate={isClicked && pulseOnClick ? "pulse" : "idle"}
         onClick={handleClick}
         disabled={isDisabled}
-        position="relative"
-        overflow="hidden"
         {...props}
       >
         {/* Ripple effects */}
@@ -241,7 +262,7 @@ export const AnimatedButton = React.forwardRef<HTMLButtonElement, AnimatedButton
         </AnimatePresence>
 
         {getButtonContent()}
-      </MotionButton>
+      </motion.button>
     )
   }
 )
@@ -295,9 +316,8 @@ export const FloatingActionButton = React.forwardRef<HTMLButtonElement, Floating
       >
         <AnimatedButton
           ref={ref}
-          rounded="full"
+          className="rounded-full shadow-lg"
           size="lg"
-          shadow="lg"
           hoverScale={1.1}
           glowOnHover
           {...props}
