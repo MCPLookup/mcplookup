@@ -1,7 +1,7 @@
 // Discovery Service - Core discovery logic with semantic intent matching
 // NO SQL - Uses external APIs and in-memory processing
 
-import { DiscoveryRequest, DiscoveryResponse, MCPServerRecord, CapabilityCategory } from '../schemas/discovery.js';
+import { DiscoveryRequest, DiscoveryResponse, MCPServerRecord, CapabilityCategory } from '../schemas/discovery';
 
 export interface IDiscoveryService {
   discoverServers(request: DiscoveryRequest): Promise<DiscoveryResponse>;
@@ -47,7 +47,7 @@ export class DiscoveryService implements IDiscoveryService {
       servers = this.applyTechnicalFilters(servers, request, filtersApplied);
 
       // Apply health filters if requested
-      if (request.include_health) {
+      if (request.include?.health_metrics) {
         servers = await this.applyHealthFilters(servers, request, filtersApplied);
       }
 
@@ -99,7 +99,7 @@ export class DiscoveryService implements IDiscoveryService {
    */
   async discoverByIntent(intent: string): Promise<MCPServerRecord[]> {
     // Use enhanced intent service if available
-    if (this.intentService instanceof (await import('./intent.js')).EnhancedIntentService) {
+    if (this.intentService instanceof (await import('./intent')).EnhancedIntentService) {
       return await this.discoverByEnhancedIntent(intent);
     }
 
@@ -436,8 +436,8 @@ export interface IRegistryService {
 }
 
 export interface IHealthService {
-  checkServerHealth(endpoint: string): Promise<import('../schemas/discovery.js').HealthMetrics>;
-  batchHealthCheck(endpoints: string[]): Promise<Map<string, import('../schemas/discovery.js').HealthMetrics>>;
+  checkServerHealth(endpoint: string): Promise<import('../schemas/discovery').HealthMetrics>;
+  batchHealthCheck(endpoints: string[]): Promise<Map<string, import('../schemas/discovery').HealthMetrics>>;
 }
 
 export interface IIntentService {

@@ -9,7 +9,7 @@ import {
   createErrorResult,
   createHealthCheckResult,
   IBaseStorage
-} from './interfaces.js';
+} from './interfaces';
 
 // =============================================================================
 // AI STORAGE TYPES

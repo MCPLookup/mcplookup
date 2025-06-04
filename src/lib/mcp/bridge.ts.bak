@@ -2,8 +2,8 @@
 // Enables legacy agents to use HTTP MCP servers through stdio interface
 // Bridge between old agents and new streaming HTTP servers
 
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { Server } from '@modelcontextprotocol/sdk/server';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio';
 import {
   CallToolRequestSchema,
   ErrorCode,
@@ -11,7 +11,7 @@ import {
   ListResourcesRequestSchema,
   ReadResourceRequestSchema,
   McpError,
-} from '@modelcontextprotocol/sdk/types.js';
+} from '@modelcontextprotocol/sdk/types';
 
 /**
  * MCP Stdio-to-HTTP Bridge

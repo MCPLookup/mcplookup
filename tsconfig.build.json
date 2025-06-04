@@ -13,7 +13,8 @@
     "**/*.test.ts",
     ".next",
     "src/app/**/*",
-    "src/components/**/*"
+    "src/components/**/*",
+    "src/lib/mcp/bridge.ts"
   ],
   "include": [
     "src/server.ts",
