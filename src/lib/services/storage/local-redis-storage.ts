@@ -6,7 +6,13 @@ import { MCPServerRecord, CapabilityCategory } from '../../schemas/discovery';
 import {
   IRegistryStorage,
   IVerificationStorage,
+  IUserStorage,
   VerificationChallengeData,
+  UserProfile,
+  UserSession,
+  UserRegistration,
+  UserQueryOptions,
+  UserStats,
   StorageResult,
   PaginatedResult,
   SearchOptions,
@@ -974,6 +980,801 @@ export class LocalRedisVerificationStorage implements IVerificationStorage {
       name: 'local-redis',
       version: '1.0.0',
       capabilities: ['persistence', 'fast-access', 'local-development', 'docker-ready']
+    };
+  }
+
+  /**
+   * Cleanup method to close Redis connection
+   */
+  async disconnect(): Promise<void> {
+    if (this.connected) {
+      await this.redis.disconnect();
+    }
+  }
+}
+
+/**
+ * Local Redis User Storage
+ * Handles user authentication, profiles, and session management using Redis
+ */
+export class LocalRedisUserStorage implements IUserStorage {
+  private redis: RedisClientType;
+  private connected = false;
+
+  constructor() {
+    const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+
+    this.redis = createClient({
+      url: redisUrl,
+      socket: {
+        reconnectStrategy: (retries: number) => Math.min(retries * 50, 500)
+      }
+    });
+
+    this.redis.on('error', (err: Error) => {
+      console.error('Local Redis User Storage connection error:', err);
+    });
+
+    this.redis.on('connect', () => {
+      console.log('Connected to local Redis for user storage');
+      this.connected = true;
+    });
+
+    this.redis.on('disconnect', () => {
+      console.log('Disconnected from local Redis user storage');
+      this.connected = false;
+    });
+  }
+
+  private async ensureConnection(): Promise<void> {
+    if (!this.connected) {
+      await this.redis.connect();
+    }
+  }
+
+  // ==========================================================================
+  // USER PROFILE OPERATIONS
+  // ==========================================================================
+
+  async storeUser(userId: string, user: UserProfile): Promise<StorageResult<void>> {
+    try {
+      await this.ensureConnection();
+
+      const userWithTimestamp = { ...user, updated_at: new Date().toISOString() };
+      const multi = this.redis.multi();
+
+      // 1. Store the full user profile
+      multi.set(`user:${userId}`, JSON.stringify(userWithTimestamp));
+
+      // 2. Create email index for fast email lookups
+      multi.set(`email:${user.email}`, userId);
+
+      // 3. Create provider index for OAuth lookups
+      multi.set(`provider:${user.provider}:${user.provider_id}`, userId);
+
+      // 4. Add to role index
+      multi.sAdd(`role:${user.role}`, userId);
+
+      // 5. Add to provider index
+      multi.sAdd(`provider_type:${user.provider}`, userId);
+
+      // 6. Add to all users set
+      multi.sAdd('users:all', userId);
+
+      // 7. Add to active/inactive index
+      if (user.is_active) {
+        multi.sAdd('users:active', userId);
+      } else {
+        multi.sAdd('users:inactive', userId);
+      }
+
+      // 8. Add to verified/unverified index
+      if (user.email_verified) {
+        multi.sAdd('users:verified', userId);
+      } else {
+        multi.sAdd('users:unverified', userId);
+      }
+
+      // Execute all operations atomically
+      await multi.exec();
+      return createSuccessResult(undefined);
+    } catch (error) {
+      return createErrorResult(`Failed to store user: ${error}`, 'LOCAL_REDIS_USER_STORE_ERROR');
+    }
+  }
+
+  async getUser(userId: string): Promise<StorageResult<UserProfile | null>> {
+    try {
+      await this.ensureConnection();
+
+      const userData = await this.redis.get(`user:${userId}`);
+      if (!userData) {
+        return createSuccessResult(null);
+      }
+
+      const user = JSON.parse(userData) as UserProfile;
+      return createSuccessResult(user);
+    } catch (error) {
+      return createErrorResult(`Failed to get user: ${error}`, 'LOCAL_REDIS_USER_GET_ERROR');
+    }
+  }
+
+  async getUserByEmail(email: string): Promise<StorageResult<UserProfile | null>> {
+    try {
+      await this.ensureConnection();
+
+      const userId = await this.redis.get(`email:${email}`);
+      if (!userId) {
+        return createSuccessResult(null);
+      }
+
+      return this.getUser(userId);
+    } catch (error) {
+      return createErrorResult(`Failed to get user by email: ${error}`, 'LOCAL_REDIS_USER_GET_BY_EMAIL_ERROR');
+    }
+  }
+
+  async getUserByProvider(provider: string, providerId: string): Promise<StorageResult<UserProfile | null>> {
+    try {
+      await this.ensureConnection();
+
+      const userId = await this.redis.get(`provider:${provider}:${providerId}`);
+      if (!userId) {
+        return createSuccessResult(null);
+      }
+
+      return this.getUser(userId);
+    } catch (error) {
+      return createErrorResult(`Failed to get user by provider: ${error}`, 'LOCAL_REDIS_USER_GET_BY_PROVIDER_ERROR');
+    }
+  }
+
+  async updateUser(userId: string, updates: Partial<UserProfile>): Promise<StorageResult<void>> {
+    try {
+      await this.ensureConnection();
+
+      // Get existing user
+      const existingResult = await this.getUser(userId);
+      if (!existingResult.success || !existingResult.data) {
+        return createErrorResult('User not found', 'USER_NOT_FOUND');
+      }
+
+      const existingUser = existingResult.data;
+      const updatedUser = {
+        ...existingUser,
+        ...updates,
+        updated_at: new Date().toISOString()
+      };
+
+      const multi = this.redis.multi();
+
+      // Update main user record
+      multi.set(`user:${userId}`, JSON.stringify(updatedUser));
+
+      // Update indexes if relevant fields changed
+      if (updates.email && updates.email !== existingUser.email) {
+        // Remove old email index and add new one
+        multi.del(`email:${existingUser.email}`);
+        multi.set(`email:${updates.email}`, userId);
+      }
+
+      if (updates.role && updates.role !== existingUser.role) {
+        // Update role indexes
+        multi.sRem(`role:${existingUser.role}`, userId);
+        multi.sAdd(`role:${updates.role}`, userId);
+      }
+
+      if (updates.is_active !== undefined && updates.is_active !== existingUser.is_active) {
+        // Update active/inactive indexes
+        if (updates.is_active) {
+          multi.sRem('users:inactive', userId);
+          multi.sAdd('users:active', userId);
+        } else {
+          multi.sRem('users:active', userId);
+          multi.sAdd('users:inactive', userId);
+        }
+      }
+
+      if (updates.email_verified !== undefined && updates.email_verified !== existingUser.email_verified) {
+        // Update verified/unverified indexes
+        if (updates.email_verified) {
+          multi.sRem('users:unverified', userId);
+          multi.sAdd('users:verified', userId);
+        } else {
+          multi.sRem('users:verified', userId);
+          multi.sAdd('users:unverified', userId);
+        }
+      }
+
+      await multi.exec();
+      return createSuccessResult(undefined);
+    } catch (error) {
+      return createErrorResult(`Failed to update user: ${error}`, 'LOCAL_REDIS_USER_UPDATE_ERROR');
+    }
+  }
+
+  async deleteUser(userId: string): Promise<StorageResult<void>> {
+    try {
+      await this.ensureConnection();
+
+      // Get existing user to clean up indexes
+      const existingResult = await this.getUser(userId);
+      if (!existingResult.success || !existingResult.data) {
+        return createErrorResult('User not found', 'USER_NOT_FOUND');
+      }
+
+      const user = existingResult.data;
+      const multi = this.redis.multi();
+
+      // Remove main user record
+      multi.del(`user:${userId}`);
+
+      // Remove from all indexes
+      multi.del(`email:${user.email}`);
+      multi.del(`provider:${user.provider}:${user.provider_id}`);
+      multi.sRem(`role:${user.role}`, userId);
+      multi.sRem(`provider_type:${user.provider}`, userId);
+      multi.sRem('users:all', userId);
+      multi.sRem('users:active', userId);
+      multi.sRem('users:inactive', userId);
+      multi.sRem('users:verified', userId);
+      multi.sRem('users:unverified', userId);
+
+      // Delete user sessions
+      const sessionKeys = await this.redis.keys(`session:*:${userId}`);
+      for (const key of sessionKeys) {
+        multi.del(key);
+      }
+
+      // Delete user registrations
+      const registrationKeys = await this.redis.keys(`registration:*:${userId}`);
+      for (const key of registrationKeys) {
+        multi.del(key);
+      }
+
+      await multi.exec();
+      return createSuccessResult(undefined);
+    } catch (error) {
+      return createErrorResult(`Failed to delete user: ${error}`, 'LOCAL_REDIS_USER_DELETE_ERROR');
+    }
+  }
+
+  // ==========================================================================
+  // SESSION MANAGEMENT
+  // ==========================================================================
+
+  async storeSession(sessionId: string, session: UserSession): Promise<StorageResult<void>> {
+    try {
+      await this.ensureConnection();
+
+      const key = `session:${sessionId}`;
+      const userSessionKey = `session:user:${session.user_id}`;
+
+      const multi = this.redis.multi();
+
+      // Store session with TTL based on expires_at
+      const expiresAt = new Date(session.expires_at);
+      const ttlSeconds = Math.max(0, Math.floor((expiresAt.getTime() - Date.now()) / 1000));
+
+      multi.setEx(key, ttlSeconds, JSON.stringify(session));
+
+      // Add to user's session list
+      multi.sAdd(userSessionKey, sessionId);
+      multi.expire(userSessionKey, ttlSeconds);
+
+      // Add to all sessions set
+      multi.sAdd('sessions:all', sessionId);
+
+      await multi.exec();
+      return createSuccessResult(undefined);
+    } catch (error) {
+      return createErrorResult(`Failed to store session: ${error}`, 'LOCAL_REDIS_SESSION_STORE_ERROR');
+    }
+  }
+
+  async getSession(sessionId: string): Promise<StorageResult<UserSession | null>> {
+    try {
+      await this.ensureConnection();
+
+      const sessionData = await this.redis.get(`session:${sessionId}`);
+      if (!sessionData) {
+        return createSuccessResult(null);
+      }
+
+      const session = JSON.parse(sessionData) as UserSession;
+      return createSuccessResult(session);
+    } catch (error) {
+      return createErrorResult(`Failed to get session: ${error}`, 'LOCAL_REDIS_SESSION_GET_ERROR');
+    }
+  }
+
+  async deleteSession(sessionId: string): Promise<StorageResult<void>> {
+    try {
+      await this.ensureConnection();
+
+      // Get session to find user ID
+      const sessionResult = await this.getSession(sessionId);
+      if (sessionResult.success && sessionResult.data) {
+        const session = sessionResult.data;
+        const multi = this.redis.multi();
+
+        // Remove session
+        multi.del(`session:${sessionId}`);
+
+        // Remove from user's session list
+        multi.sRem(`session:user:${session.user_id}`, sessionId);
+
+        // Remove from all sessions set
+        multi.sRem('sessions:all', sessionId);
+
+        await multi.exec();
+      }
+
+      return createSuccessResult(undefined);
+    } catch (error) {
+      return createErrorResult(`Failed to delete session: ${error}`, 'LOCAL_REDIS_SESSION_DELETE_ERROR');
+    }
+  }
+
+  async deleteUserSessions(userId: string): Promise<StorageResult<void>> {
+    try {
+      await this.ensureConnection();
+
+      // Get all session IDs for the user
+      const sessionIds = await this.redis.sMembers(`session:user:${userId}`);
+
+      if (sessionIds.length > 0) {
+        const multi = this.redis.multi();
+
+        // Delete all sessions
+        for (const sessionId of sessionIds) {
+          multi.del(`session:${sessionId}`);
+          multi.sRem('sessions:all', sessionId);
+        }
+
+        // Delete user's session list
+        multi.del(`session:user:${userId}`);
+
+        await multi.exec();
+      }
+
+      return createSuccessResult(undefined);
+    } catch (error) {
+      return createErrorResult(`Failed to delete user sessions: ${error}`, 'LOCAL_REDIS_USER_SESSIONS_DELETE_ERROR');
+    }
+  }
+
+  // ==========================================================================
+  // REGISTRATION TRACKING
+  // ==========================================================================
+
+  async storeRegistration(registrationId: string, registration: UserRegistration): Promise<StorageResult<void>> {
+    try {
+      await this.ensureConnection();
+
+      const key = `registration:${registrationId}`;
+      const userRegKey = `registration:user:${registration.user_id}`;
+      const domainRegKey = `registration:domain:${registration.domain}`;
+
+      const multi = this.redis.multi();
+
+      // Store registration
+      multi.set(key, JSON.stringify(registration));
+
+      // Add to user's registration list
+      multi.sAdd(userRegKey, registrationId);
+
+      // Add to domain's registration list
+      multi.sAdd(domainRegKey, registrationId);
+
+      // Add to status index
+      multi.sAdd(`registration:status:${registration.status}`, registrationId);
+
+      // Add to all registrations set
+      multi.sAdd('registrations:all', registrationId);
+
+      await multi.exec();
+      return createSuccessResult(undefined);
+    } catch (error) {
+      return createErrorResult(`Failed to store registration: ${error}`, 'LOCAL_REDIS_REGISTRATION_STORE_ERROR');
+    }
+  }
+
+  async getRegistrationsByUser(
+    userId: string,
+    options?: UserQueryOptions
+  ): Promise<StorageResult<PaginatedResult<UserRegistration>>> {
+    try {
+      await this.ensureConnection();
+
+      const registrationIds = await this.redis.sMembers(`registration:user:${userId}`);
+
+      if (registrationIds.length === 0) {
+        return createSuccessResult({
+          items: [],
+          total: 0,
+          hasMore: false
+        });
+      }
+
+      // Get all registrations
+      const keys = registrationIds.map(id => `registration:${id}`);
+      const results = await this.redis.mGet(keys);
+
+      let registrations = results
+        .filter((result: string | null) => result !== null)
+        .map((result: string | null) => {
+          try {
+            return JSON.parse(result as string) as UserRegistration;
+          } catch (error) {
+            return null;
+          }
+        })
+        .filter((reg: UserRegistration | null) => reg !== null) as UserRegistration[];
+
+      // Apply status filter
+      const opts = { ...options };
+      if (opts.status) {
+        registrations = registrations.filter(r => r.status === opts.status);
+      }
+
+      // Apply pagination
+      const total = registrations.length;
+      const start = opts.offset || 0;
+      const limit = opts.limit || 50;
+      const items = registrations.slice(start, start + limit);
+      const hasMore = start + limit < total;
+
+      return createSuccessResult({
+        items,
+        total,
+        hasMore,
+        nextCursor: hasMore ? String(start + limit) : undefined
+      });
+    } catch (error) {
+      return createErrorResult(`Failed to get registrations by user: ${error}`, 'LOCAL_REDIS_REGISTRATION_GET_BY_USER_ERROR');
+    }
+  }
+
+  async getRegistrationsByDomain(domain: string): Promise<StorageResult<UserRegistration[]>> {
+    try {
+      await this.ensureConnection();
+
+      const registrationIds = await this.redis.sMembers(`registration:domain:${domain}`);
+
+      if (registrationIds.length === 0) {
+        return createSuccessResult([]);
+      }
+
+      // Get all registrations
+      const keys = registrationIds.map(id => `registration:${id}`);
+      const results = await this.redis.mGet(keys);
+
+      const registrations = results
+        .filter((result: string | null) => result !== null)
+        .map((result: string | null) => {
+          try {
+            return JSON.parse(result as string) as UserRegistration;
+          } catch (error) {
+            return null;
+          }
+        })
+        .filter((reg: UserRegistration | null) => reg !== null) as UserRegistration[];
+
+      return createSuccessResult(registrations);
+    } catch (error) {
+      return createErrorResult(`Failed to get registrations by domain: ${error}`, 'LOCAL_REDIS_REGISTRATION_GET_BY_DOMAIN_ERROR');
+    }
+  }
+
+  // ==========================================================================
+  // SEARCH & FILTERING
+  // ==========================================================================
+
+  async getAllUsers(options?: UserQueryOptions): Promise<StorageResult<PaginatedResult<UserProfile>>> {
+    try {
+      await this.ensureConnection();
+
+      let userIds: string[] = [];
+
+      // Apply filters using Redis sets
+      const opts = { ...options };
+
+      if (opts.role) {
+        userIds = await this.redis.sMembers(`role:${opts.role}`);
+      } else if (opts.provider) {
+        userIds = await this.redis.sMembers(`provider_type:${opts.provider}`);
+      } else if (opts.is_active !== undefined) {
+        userIds = await this.redis.sMembers(opts.is_active ? 'users:active' : 'users:inactive');
+      } else if (opts.email_verified !== undefined) {
+        userIds = await this.redis.sMembers(opts.email_verified ? 'users:verified' : 'users:unverified');
+      } else {
+        userIds = await this.redis.sMembers('users:all');
+      }
+
+      if (userIds.length === 0) {
+        return createSuccessResult({
+          items: [],
+          total: 0,
+          hasMore: false
+        });
+      }
+
+      // Get user data
+      const users = await this.getUsersByIds(userIds);
+
+      // Apply additional filters if needed
+      let filteredUsers = users;
+
+      if (opts.role && !opts.provider && !opts.is_active && !opts.email_verified) {
+        // Already filtered by role
+      } else {
+        // Apply additional filters
+        if (opts.role) {
+          filteredUsers = filteredUsers.filter(u => u.role === opts.role);
+        }
+        if (opts.provider) {
+          filteredUsers = filteredUsers.filter(u => u.provider === opts.provider);
+        }
+        if (opts.is_active !== undefined) {
+          filteredUsers = filteredUsers.filter(u => u.is_active === opts.is_active);
+        }
+        if (opts.email_verified !== undefined) {
+          filteredUsers = filteredUsers.filter(u => u.email_verified === opts.email_verified);
+        }
+      }
+
+      // Apply pagination
+      const total = filteredUsers.length;
+      const start = opts.offset || 0;
+      const limit = opts.limit || 50;
+      const items = filteredUsers.slice(start, start + limit);
+      const hasMore = start + limit < total;
+
+      return createSuccessResult({
+        items,
+        total,
+        hasMore,
+        nextCursor: hasMore ? String(start + limit) : undefined
+      });
+    } catch (error) {
+      return createErrorResult(`Failed to get all users: ${error}`, 'LOCAL_REDIS_USER_GET_ALL_ERROR');
+    }
+  }
+
+  async searchUsers(
+    query: string,
+    options?: UserQueryOptions
+  ): Promise<StorageResult<PaginatedResult<UserProfile>>> {
+    try {
+      await this.ensureConnection();
+
+      // For Redis implementation, we'll get all users and filter in memory
+      // In a production system, you might want to use Redis search modules
+      const allUsersResult = await this.getAllUsers({ limit: 1000 });
+      if (!allUsersResult.success) {
+        return allUsersResult;
+      }
+
+      const searchTerms = query.toLowerCase().split(/\s+/);
+      let users = allUsersResult.data.items.filter(user => {
+        const searchText = [
+          user.name || '',
+          user.email,
+          user.provider
+        ].join(' ').toLowerCase();
+
+        return searchTerms.some(term => searchText.includes(term));
+      });
+
+      // Apply additional filters
+      const opts = { ...options };
+      if (opts.role) {
+        users = users.filter(u => u.role === opts.role);
+      }
+      if (opts.provider) {
+        users = users.filter(u => u.provider === opts.provider);
+      }
+      if (opts.is_active !== undefined) {
+        users = users.filter(u => u.is_active === opts.is_active);
+      }
+      if (opts.email_verified !== undefined) {
+        users = users.filter(u => u.email_verified === opts.email_verified);
+      }
+
+      // Apply pagination
+      const total = users.length;
+      const start = opts.offset || 0;
+      const limit = opts.limit || 50;
+      const items = users.slice(start, start + limit);
+      const hasMore = start + limit < total;
+
+      return createSuccessResult({
+        items,
+        total,
+        hasMore,
+        nextCursor: hasMore ? String(start + limit) : undefined
+      });
+    } catch (error) {
+      return createErrorResult(`Failed to search users: ${error}`, 'LOCAL_REDIS_USER_SEARCH_ERROR');
+    }
+  }
+
+  // ==========================================================================
+  // MONITORING & MAINTENANCE
+  // ==========================================================================
+
+  async getStats(): Promise<StorageResult<UserStats>> {
+    try {
+      await this.ensureConnection();
+
+      const userIds = await this.redis.sMembers('users:all');
+
+      if (userIds.length === 0) {
+        return createSuccessResult({
+          totalUsers: 0,
+          activeUsers: 0,
+          verifiedUsers: 0,
+          usersByProvider: {},
+          usersByRole: {},
+          registrationsToday: 0,
+          registrationsThisWeek: 0,
+          registrationsThisMonth: 0,
+          lastUpdated: new Date().toISOString()
+        });
+      }
+
+      const users = await this.getUsersByIds(userIds);
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+      const usersByProvider: Record<string, number> = {};
+      const usersByRole: Record<string, number> = {};
+      let activeUsers = 0;
+      let verifiedUsers = 0;
+      let registrationsToday = 0;
+      let registrationsThisWeek = 0;
+      let registrationsThisMonth = 0;
+
+      users.forEach(user => {
+        // Count by provider
+        usersByProvider[user.provider] = (usersByProvider[user.provider] || 0) + 1;
+
+        // Count by role
+        usersByRole[user.role] = (usersByRole[user.role] || 0) + 1;
+
+        // Count active and verified
+        if (user.is_active) activeUsers++;
+        if (user.email_verified) verifiedUsers++;
+
+        // Count registrations by time period
+        const createdAt = new Date(user.created_at);
+        if (createdAt >= today) registrationsToday++;
+        if (createdAt >= weekAgo) registrationsThisWeek++;
+        if (createdAt >= monthAgo) registrationsThisMonth++;
+      });
+
+      return createSuccessResult({
+        totalUsers: users.length,
+        activeUsers,
+        verifiedUsers,
+        usersByProvider,
+        usersByRole,
+        registrationsToday,
+        registrationsThisWeek,
+        registrationsThisMonth,
+        lastUpdated: new Date().toISOString()
+      });
+    } catch (error) {
+      return createErrorResult(`Failed to get user stats: ${error}`, 'LOCAL_REDIS_USER_STATS_ERROR');
+    }
+  }
+
+  async healthCheck(): Promise<HealthCheckResult> {
+    const startTime = Date.now();
+
+    try {
+      await this.ensureConnection();
+      const result = await this.redis.ping();
+      const latency = Date.now() - startTime;
+      const healthy = result === 'PONG';
+
+      const userCount = await this.redis.sCard('users:all');
+      const sessionCount = await this.redis.sCard('sessions:all');
+      const registrationCount = await this.redis.sCard('registrations:all');
+
+      return createHealthCheckResult(healthy, latency, {
+        provider: 'local-redis',
+        connection: this.connected ? 'active' : 'inactive',
+        userCount,
+        sessionCount,
+        registrationCount
+      });
+    } catch (error) {
+      const latency = Date.now() - startTime;
+      return createHealthCheckResult(false, latency, {
+        provider: 'local-redis',
+        error: String(error)
+      });
+    }
+  }
+
+  async cleanup(dryRun?: boolean): Promise<StorageResult<{ removedCount: number; freedSpace?: string }>> {
+    try {
+      await this.ensureConnection();
+
+      const now = new Date();
+      let removedCount = 0;
+
+      // Clean up expired sessions
+      const sessionIds = await this.redis.sMembers('sessions:all');
+      const expiredSessions: string[] = [];
+
+      for (const sessionId of sessionIds) {
+        const sessionData = await this.redis.get(`session:${sessionId}`);
+        if (sessionData) {
+          try {
+            const session = JSON.parse(sessionData) as UserSession;
+            if (new Date(session.expires_at) < now) {
+              expiredSessions.push(sessionId);
+            }
+          } catch (error) {
+            // Invalid session data, mark for removal
+            expiredSessions.push(sessionId);
+          }
+        } else {
+          // Session key exists in set but no data, clean up
+          expiredSessions.push(sessionId);
+        }
+      }
+
+      if (!dryRun && expiredSessions.length > 0) {
+        for (const sessionId of expiredSessions) {
+          await this.deleteSession(sessionId);
+        }
+      }
+
+      removedCount = expiredSessions.length;
+      const freedSpace = `${Math.round(removedCount * 100 / 1024)}KB`;
+
+      return createSuccessResult({
+        removedCount,
+        freedSpace
+      });
+    } catch (error) {
+      return createErrorResult(`Cleanup failed: ${error}`, 'LOCAL_REDIS_USER_CLEANUP_ERROR');
+    }
+  }
+
+  // ==========================================================================
+  // HELPER METHODS
+  // ==========================================================================
+
+  private async getUsersByIds(userIds: string[]): Promise<UserProfile[]> {
+    if (userIds.length === 0) return [];
+
+    const keys = userIds.map(id => `user:${id}`);
+    const results = await this.redis.mGet(keys);
+
+    return results
+      .filter((result: string | null) => result !== null)
+      .map((result: string | null) => {
+        try {
+          return JSON.parse(result as string) as UserProfile;
+        } catch (error) {
+          return null;
+        }
+      })
+      .filter((user: UserProfile | null) => user !== null) as UserProfile[];
+  }
+
+  getProviderInfo() {
+    return {
+      name: 'local-redis',
+      version: '1.0.0',
+      capabilities: ['persistence', 'fast-access', 'local-development', 'user-management', 'session-management']
     };
   }
 
