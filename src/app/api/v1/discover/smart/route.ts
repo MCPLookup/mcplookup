@@ -41,14 +41,10 @@ export async function POST(request: NextRequest) {
       const searchQuery = keywords.join(' ');
       const discoveryResult = await discovery.discoverServers({
         limit: 50, // Get more results for AI to narrow down
-        verified: context?.user_type === 'business' ? true : undefined,
-        // Use intent_keywords for search instead of q
-        intent_keywords: {
-          value: searchQuery,
-          type: 'semantic',
-          weight: 1.0,
-          required: false
-        }
+        sort_by: 'relevance',
+        offset: 0,
+        // Use intent for search instead of q
+        intent: searchQuery
       });
       
       // Transform to format expected by AI
@@ -76,7 +72,9 @@ export async function POST(request: NextRequest) {
             weight: 1.0,
             required: true
           },
-          limit: 1
+          limit: 1,
+          sort_by: 'relevance',
+          offset: 0
         });
         if (serverResult.servers.length > 0) {
           selectedServers.push(serverResult.servers[0]);
