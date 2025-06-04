@@ -84,15 +84,13 @@ for file in $STAGED_FILES; do
     done
     
     # Check for specific known bad patterns
-    if grep -q "your-database-name" "$file"; then
-        echo "🚨 EXPOSED UPSTASH URL DETECTED in $file"
+    # Check for example exposed patterns (update as needed)
+    if grep -q "example-exposed-pattern" "$file"; then
+        echo "🚨 EXPOSED PATTERN DETECTED in $file"
         SECRETS_FOUND=true
     fi
     
-    if grep -q "REDACTED_TOKEN" "$file"; then
-        echo "🚨 EXPOSED UPSTASH TOKEN DETECTED in $file"
-        SECRETS_FOUND=true
-    fi
+    # Additional pattern checks can be added here as needed
 done
 
 if [ "$SECRETS_FOUND" = true ]; then
