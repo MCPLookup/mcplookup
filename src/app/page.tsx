@@ -50,7 +50,6 @@ export default function HomePage() {
               Join the revolution against static configuration
             </p>
             <div className="flex space-x-4 justify-center">
->>>>>>> f875de7ed68e4b6afc20ae296af9c9517983d892
               <Link href="/discover">
                 <AnimatedButton
                   variant="primary"
@@ -60,14 +59,10 @@ export default function HomePage() {
                   rippleEffect
                   className="min-w-[160px]"
                 >
-<<<<<<< HEAD
-                  Discover Servers
-=======
                   🚀 Discover Dynamically
->>>>>>> f875de7ed68e4b6afc20ae296af9c9517983d892
                 </AnimatedButton>
               </Link>
-              <Link href="/register">
+              <Link href="https://github.com/TSavo/mcplookup.org">
                 <AnimatedButton
                   variant="outline"
                   size="lg"
@@ -76,11 +71,7 @@ export default function HomePage() {
                   rippleEffect
                   className="min-w-[160px]"
                 >
-<<<<<<< HEAD
-                  Register Server
-=======
-                  💀 Kill Your Hardcoded Lists
->>>>>>> f875de7ed68e4b6afc20ae296af9c9517983d892
+                  🌍 Fork & Compete With Us
                 </AnimatedButton>
               </Link>
             </div>
@@ -155,18 +146,83 @@ export default function HomePage() {
                 <p className="text-base text-gray-500 max-w-2xl mx-auto">
                   <strong>The Future:</strong> Replace all hardcoded lists with dynamic registries like MCPLookup.org
                 </p>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-3xl mx-auto">
+                  <p className="text-sm text-blue-800 font-medium">
+                    🌍 <strong>Open Standards Mission:</strong> MCPLookup.org wins when a better solution arrives.
+                    We're building open standards, not walled gardens. Fork our code, compete with us, improve on our design -
+                    <strong>ecosystem health matters more than our success.</strong>
+                  </p>
+                </div>
               </div>
+            </div>
+          </AnimatedCard.Body>
+        </AnimatedCard.Root>
+
+        {/* Open Standards Mission */}
+        <AnimatedCard.Root
+          hoverScale={1.02}
+          hoverY={-4}
+          borderOnHover
+          staggerDelay={0.3}
+        >
+          <AnimatedCard.Body>
+            <div className="text-center space-y-6 py-8">
+              <h3 className="text-2xl font-bold text-blue-900 animate-fade-in-up" style={{ animationDelay: '1.6s' }}>
+                🌍 Open Standards, Not Monopolies
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                <div className="text-left space-y-4 animate-fade-in-left" style={{ animationDelay: '1.8s' }}>
+                  <h4 className="text-lg font-semibold text-red-600">🚨 The Critical Moment</h4>
+                  <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+                    <p className="text-sm text-red-800">
+                      <strong>We are at the React moment for AI tool discovery.</strong><br/>
+                      The first generation will set the standard for all future generations.<br/>
+                      <strong>This is why open standards matter more than ever.</strong>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="text-left space-y-4 animate-fade-in-right" style={{ animationDelay: '2.0s' }}>
+                  <h4 className="text-lg font-semibold text-green-600">✅ Our Open Philosophy</h4>
+                  <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                    <p className="text-sm text-green-800">
+                      <strong>MCPLookup.org wins when a better solution arrives.</strong><br/>
+                      We're building open standards, not walled gardens.<br/>
+                      Fork our code. Compete with us. Build something better.<br/>
+                      <strong>Ecosystem health > Our success.</strong>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap justify-center gap-4 text-sm animate-fade-in-up" style={{ animationDelay: '2.2s' }}>
+                <div className="bg-blue-100 px-3 py-1 rounded-full text-blue-800">
+                  🔓 Open Source
+                </div>
+                <div className="bg-purple-100 px-3 py-1 rounded-full text-purple-800">
+                  🌐 Open Standards
+                </div>
+                <div className="bg-orange-100 px-3 py-1 rounded-full text-orange-800">
+                  🤝 Open Collaboration
+                </div>
+                <div className="bg-green-100 px-3 py-1 rounded-full text-green-800">
+                  📡 Open Distribution
+                </div>
+              </div>
+
+              <p className="text-base text-gray-600 max-w-3xl mx-auto animate-fade-in-up" style={{ animationDelay: '2.4s' }}>
+                <strong>Information wants to be free.</strong> We encourage alternative implementations,
+                private deployments, and competing solutions. All we ask: use open standards so the ecosystem stays interoperable.
+              </p>
             </div>
           </AnimatedCard.Body>
         </AnimatedCard.Root>
 
         {/* Features Grid */}
         <AnimatedList staggerDelay={0.1} direction="up">
-<<<<<<< HEAD
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-20">
-=======
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-16">
->>>>>>> f875de7ed68e4b6afc20ae296af9c9517983d892
             <AnimatedCard.Root
               hoverScale={1.02}
               hoverY={-4}
@@ -174,21 +230,11 @@ export default function HomePage() {
               staggerDelay={0}
             >
               <AnimatedCard.Body>
-<<<<<<< HEAD
-                <div className="text-center p-2">
-                  <div className="w-12 h-12 mx-auto mb-4 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <div className="text-2xl text-blue-600">🔍</div>
-                  </div>
-                  <h3 className="text-lg font-semibold mb-3 text-slate-900">Discovery</h3>
-                  <p className="text-sm text-slate-600 leading-relaxed">
-                    Find MCP servers by domain, capability, or intent with advanced search
-=======
                 <div className="text-center">
                   <div className="text-4xl text-blue-500 mb-4 animate-bounce-in" style={{ animationDelay: '0.8s' }}>🚀</div>
                   <h3 className="text-lg font-semibold mb-2">Dynamic Discovery</h3>
                   <p className="text-sm text-gray-600">
                     AI-powered search with real-time discovery - no hardcoded lists
->>>>>>> f875de7ed68e4b6afc20ae296af9c9517983d892
                   </p>
                 </div>
               </AnimatedCard.Body>
@@ -201,21 +247,11 @@ export default function HomePage() {
               staggerDelay={0.1}
             >
               <AnimatedCard.Body>
-<<<<<<< HEAD
-                <div className="text-center p-2">
-                  <div className="w-12 h-12 mx-auto mb-4 bg-green-100 rounded-lg flex items-center justify-center">
-                    <div className="text-2xl text-green-600">📝</div>
-                  </div>
-                  <h3 className="text-lg font-semibold mb-3 text-slate-900">Registration</h3>
-                  <p className="text-sm text-slate-600 leading-relaxed">
-                    Register your MCP server with secure DNS verification
-=======
                 <div className="text-center">
                   <div className="text-4xl text-red-500 mb-4 animate-bounce-in" style={{ animationDelay: '1.0s' }}>💀</div>
                   <h3 className="text-lg font-semibold mb-2">Kill Static Lists</h3>
                   <p className="text-sm text-gray-600">
                     End the era of manual server configuration with auto-discovery
->>>>>>> f875de7ed68e4b6afc20ae296af9c9517983d892
                   </p>
                 </div>
               </AnimatedCard.Body>
@@ -228,21 +264,11 @@ export default function HomePage() {
               staggerDelay={0.2}
             >
               <AnimatedCard.Body>
-<<<<<<< HEAD
-                <div className="text-center p-2">
-                  <div className="w-12 h-12 mx-auto mb-4 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <div className="text-2xl text-purple-600">🛡️</div>
-                  </div>
-                  <h3 className="text-lg font-semibold mb-3 text-slate-900">Security</h3>
-                  <p className="text-sm text-slate-600 leading-relaxed">
-                    Enterprise-grade security with cryptographic verification
-=======
                 <div className="text-center">
                   <div className="text-4xl text-purple-500 mb-4 animate-bounce-in" style={{ animationDelay: '1.2s' }}>🛡️</div>
                   <h3 className="text-lg font-semibold mb-2">Cryptographic Trust</h3>
                   <p className="text-sm text-gray-600">
                     DNS-verified, cryptographically secure discovery
->>>>>>> f875de7ed68e4b6afc20ae296af9c9517983d892
                   </p>
                 </div>
               </AnimatedCard.Body>
@@ -255,15 +281,6 @@ export default function HomePage() {
               staggerDelay={0.3}
             >
               <AnimatedCard.Body>
-<<<<<<< HEAD
-                <div className="text-center p-2">
-                  <div className="w-12 h-12 mx-auto mb-4 bg-slate-100 rounded-lg flex items-center justify-center">
-                    <div className="text-2xl text-slate-600">🌐</div>
-                  </div>
-                  <h3 className="text-lg font-semibold mb-3 text-slate-900">Global Scale</h3>
-                  <p className="text-sm text-slate-600 leading-relaxed">
-                    Serverless architecture built for worldwide deployment
-=======
                 <div className="text-center">
                   <div className="text-4xl text-orange-500 mb-4 animate-bounce-in" style={{ animationDelay: '1.4s' }}>🌉</div>
                   <h3 className="text-lg font-semibold mb-2">Legacy Bridge</h3>
@@ -282,11 +299,10 @@ export default function HomePage() {
             >
               <AnimatedCard.Body>
                 <div className="text-center">
-                  <div className="text-4xl text-green-500 mb-4 animate-bounce-in" style={{ animationDelay: '1.6s' }}>🏛️</div>
-                  <h3 className="text-lg font-semibold mb-2">Registry Future</h3>
+                  <div className="text-4xl text-blue-500 mb-4 animate-bounce-in" style={{ animationDelay: '1.6s' }}>🌍</div>
+                  <h3 className="text-lg font-semibold mb-2">Open Standards</h3>
                   <p className="text-sm text-gray-600">
-                    Proposing registries as the new standard to replace all hardcoded lists
->>>>>>> f875de7ed68e4b6afc20ae296af9c9517983d892
+                    We win when a better solution arrives - building for ecosystem health, not dominance
                   </p>
                 </div>
               </AnimatedCard.Body>
@@ -302,24 +318,6 @@ export default function HomePage() {
           staggerDelay={0.4}
         >
           <AnimatedCard.Body>
-<<<<<<< HEAD
-            <div className="text-center space-y-8 py-4">
-              <h3 className="text-2xl font-semibold text-slate-900 animate-fade-in-up" style={{ animationDelay: '1.6s' }}>
-                Trusted by Development Teams
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div className="text-center animate-scale-in" style={{ animationDelay: '1.8s' }}>
-                  <div className="text-4xl font-bold text-blue-600 mb-2">1,247</div>
-                  <div className="text-sm text-slate-600 font-medium">Registered Servers</div>
-                </div>
-                <div className="text-center animate-scale-in" style={{ animationDelay: '2.0s' }}>
-                  <div className="text-4xl font-bold text-green-600 mb-2">99.9%</div>
-                  <div className="text-sm text-slate-600 font-medium">Service Uptime</div>
-                </div>
-                <div className="text-center animate-scale-in" style={{ animationDelay: '2.2s' }}>
-                  <div className="text-4xl font-bold text-purple-600 mb-2">847</div>
-                  <div className="text-sm text-slate-600 font-medium">Verified Domains</div>
-=======
             <div className="text-center space-y-4">
               <h3 className="text-2xl font-bold animate-fade-in-up" style={{ animationDelay: '1.6s' }}>
                 🔥 The Revolution in Numbers
@@ -336,11 +334,11 @@ export default function HomePage() {
                 <div className="text-center animate-scale-in" style={{ animationDelay: '2.2s' }}>
                   <div className="text-3xl font-bold text-green-500 hover-scale">0ms</div>
                   <div className="text-sm text-gray-600">Configuration Time</div>
->>>>>>> f875de7ed68e4b6afc20ae296af9c9517983d892
                 </div>
               </div>
               <p className="text-sm text-gray-500 mt-4 animate-fade-in-up" style={{ animationDelay: '2.4s' }}>
-                Join the movement to make AI tools as discoverable as websites
+                <strong>Open Standards Mission:</strong> We win when a better solution arrives.
+                Ecosystem health matters more than our success.
               </p>
             </div>
           </AnimatedCard.Body>
