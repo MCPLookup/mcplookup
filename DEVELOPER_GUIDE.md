@@ -6,9 +6,9 @@ Complete guide for developers who want to contribute to, understand, or extend M
 
 MCPLookup.org is built as a **serverless, zero-infrastructure** discovery service using modern web technologies.
 
-### Core Philosophy: "The One Ring"
+### Core Philosophy: "Central Discovery Hub"
 
-Just like Tolkien's One Ring could control all other rings, MCPLookup.org is designed as the one MCP server that helps you find and connect to all other MCP servers.
+MCPLookup.org is designed as the central MCP discovery service that helps you find and connect to all other MCP servers with enterprise-grade reliability and security.
 
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐

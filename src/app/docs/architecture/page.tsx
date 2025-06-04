@@ -291,7 +291,7 @@ export default function ArchitecturePage() {
                   </li>
                   <li>
                     <Link href="/docs/mcp-server" className="text-blue-600 hover:underline">
-                      💍 The One Ring MCP Server
+                      🔍 MCP Discovery Server
                     </Link>
                   </li>
                   <li>

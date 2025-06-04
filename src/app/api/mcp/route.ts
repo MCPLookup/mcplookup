@@ -1,6 +1,11 @@
+<<<<<<< HEAD
 // THE ONE RING MCP SERVER - Next.js API Route Implementation
 // The master MCP server that discovers all other MCP servers
 // Uses @vercel/mcp-adapter for seamless MCP protocol support
+=======
+// Next.js API Route - Professional MCP Discovery Server HTTP Endpoint
+// Placeholder implementation until MCP server protocol is finalized
+>>>>>>> c4afad7 (feat: redesign UI with professional styling and remove 'one ring' references)
 
 import { createMcpHandler } from '@vercel/mcp-adapter';
 import { z } from 'zod';

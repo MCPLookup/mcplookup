@@ -1,8 +1,16 @@
+<<<<<<< HEAD
 # THE ONE RING: MCP SERVER SPECIFICATION
 
 **Status**: ✅ **LIVE AND OPERATIONAL**
 **The Master MCP Server that discovers all other MCP servers**
 *The Registry. The Discovery Engine. The One Ring to Rule Them All.*
+=======
+# PROFESSIONAL MCP DISCOVERY SERVER SPECIFICATION
+
+**Enterprise-grade MCP Server Discovery and Registration Service**
+*The Central Registry. The Discovery Engine. Professional MCP Infrastructure.*
+*Zero Infrastructure. Zero Database. Maximum Discovery.*
+>>>>>>> c4afad7 (feat: redesign UI with professional styling and remove 'one ring' references)
 
 ---
 
@@ -580,7 +588,7 @@ alerts:
 
 ---
 
-**This is THE MCP server that makes all other MCP servers discoverable.**  
-**The registry. The directory. The one ring that rules them all.**
+**This is the professional MCP server that makes all other MCP servers discoverable.**
+**The central registry. The enterprise directory. The professional discovery service.**
 
 🔥 **Ready to deploy the master?**
