@@ -1,15 +1,25 @@
-"use client"
+﻿"use client"
 
+<<<<<<< HEAD
 import { motion, AnimatePresence } from "framer-motion"
 import * as React from "react"
 import { LoadingSpinner } from "./loading"
 
 export interface AnimatedButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'onDrag' | 'onDragEnd' | 'onDragStart' | 'onAnimationStart' | 'onAnimationEnd' | 'onTransitionEnd'> {
+=======
+import { Button as ChakraButton, ButtonProps } from "@chakra-ui/react"
+import * as React from "react"
+
+export interface AnimatedButtonProps extends ButtonProps {
+>>>>>>> 6f40b1d5753db3f8009af3b63c7ec9fb64a2b1c1
   children: React.ReactNode
+  state?: "idle" | "loading" | "success" | "error"
+  loadingText?: string
   hoverScale?: number
   clickScale?: number
   rippleEffect?: boolean
   glowOnHover?: boolean
+<<<<<<< HEAD
   pulseOnClick?: boolean
   loadingText?: string
   successIcon?: React.ElementType
@@ -263,10 +273,24 @@ export const AnimatedButton = React.forwardRef<HTMLButtonElement, AnimatedButton
 
         {getButtonContent()}
       </motion.button>
+=======
+}
+
+export const AnimatedButton = React.forwardRef<HTMLButtonElement, AnimatedButtonProps>(
+  (props, ref) => {
+    const { state, loadingText, hoverScale, clickScale, rippleEffect, glowOnHover, ...rest } = props
+    return (
+      <ChakraButton 
+        ref={ref} 
+        loading={state === "loading"}
+        {...rest}
+      />
+>>>>>>> 6f40b1d5753db3f8009af3b63c7ec9fb64a2b1c1
     )
   }
 )
 
+<<<<<<< HEAD
 // Floating Action Button with enhanced animations
 export interface FloatingActionButtonProps extends AnimatedButtonProps {
   position?: "bottom-right" | "bottom-left" | "top-right" | "top-left"
@@ -330,3 +354,6 @@ export const FloatingActionButton = React.forwardRef<HTMLButtonElement, Floating
 )
 
 export default AnimatedButton
+=======
+AnimatedButton.displayName = "AnimatedButton"
+>>>>>>> 6f40b1d5753db3f8009af3b63c7ec9fb64a2b1c1
