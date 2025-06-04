@@ -1,7 +1,7 @@
 {
   "name": "mcplookup-registry",
   "version": "1.0.0",
-  "description": "The One Ring MCP Server - Universal MCP Discovery Service (Serverless, No Database)",
+  "description": "The One Ring MCP Server - Universal MCP Discovery Service with Flexible Storage Architecture",
   "main": "dist/server.js",
   "type": "module",
   "scripts": {
@@ -25,11 +25,15 @@
     "registry",
     "ai-tools",
     "serverless",
-    "no-database",
-    "zero-infrastructure",
+    "storage-abstraction",
+    "redis",
+    "upstash",
     "vercel",
     "dns-verification",
-    "real-time-discovery"
+    "real-time-discovery",
+    "typescript",
+    "pagination",
+    "error-handling"
   ],
   "author": "MCPLookup.org",
   "license": "MIT",
