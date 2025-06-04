@@ -7,7 +7,7 @@
 ❌ **NEVER do this:**
 ```bash
 # Bad - secrets in code
-UPSTASH_REDIS_REST_TOKEN=REDACTED_TOKEN
+UPSTASH_REDIS_REST_TOKEN=real_secret_token_here
 ```
 
 ✅ **DO this instead:**
@@ -37,7 +37,7 @@ UPSTASH_REDIS_REST_TOKEN=your-token-here
    ```bash
    # .env.local (this file is git-ignored)
    UPSTASH_REDIS_REST_URL=https://your-database.upstash.io
-   UPSTASH_REDIS_REST_TOKEN=REDACTED_TOKEN
+   UPSTASH_REDIS_REST_TOKEN=your_actual_token_here
    ```
 
 3. **Verify it's git-ignored:**
@@ -52,7 +52,7 @@ UPSTASH_REDIS_REST_TOKEN=your-token-here
 2. Settings → Environment Variables
 3. Add:
    - `UPSTASH_REDIS_REST_URL` = `https://your-database.upstash.io`
-   - `UPSTASH_REDIS_REST_TOKEN` = `REDACTED_TOKEN`
+   - `UPSTASH_REDIS_REST_TOKEN` = `your_actual_token_here`
 
 #### **Docker Production**
 ```bash
@@ -73,7 +73,7 @@ docker run -e UPSTASH_REDIS_REST_URL=https://... \
 ```bash
 # Test storage with your real credentials
 UPSTASH_REDIS_REST_URL=https://your-database.upstash.io \
-UPSTASH_REDIS_REST_TOKEN=REDACTED_TOKEN \
+UPSTASH_REDIS_REST_TOKEN=your_actual_token_here \
 npm run test:storage
 ```
 
@@ -85,7 +85,7 @@ npm run test:storage
 git diff --cached
 
 # 2. Ensure no secrets are included
-grep -r "REDACTED_TOKEN" .
+grep -r "your_actual_token_here" .
 
 # 3. Verify .env files are ignored
 git status | grep -E "\.env"  # Should return nothing
