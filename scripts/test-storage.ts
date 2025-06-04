@@ -33,12 +33,8 @@ async function testStorageProvider(providerName: string, provider: 'memory' | 'l
     const mockServer: MCPServerRecord = {
       domain: 'test-example.com',
       endpoint: 'https://test-example.com/.well-known/mcp',
-      capabilities: {
-        category: 'productivity' as CapabilityCategory,
-        subcategories: ['email', 'calendar'],
-        intent_keywords: ['email', 'calendar', 'productivity'],
-        use_cases: ['Email management', 'Calendar scheduling']
-      },
+      name: 'Test Server',
+      description: 'A test MCP server for storage testing',
       server_info: {
         name: 'Test Server',
         version: '1.0.0',
@@ -56,13 +52,25 @@ async function testStorageProvider(providerName: string, provider: 'memory' | 'l
           }
         }
       ],
-      verification: {
-        dns_verified: true,
-        endpoint_verified: true,
-        ssl_verified: true,
-        last_verification: new Date().toISOString(),
-        verification_method: 'dns-txt-challenge'
+      resources: [
+        {
+          name: 'test_resource',
+          uri: 'test://resource',
+          description: 'A test resource'
+        }
+      ],
+      transport: 'streamable_http',
+      capabilities: {
+        category: 'productivity' as CapabilityCategory,
+        subcategories: ['email', 'calendar'],
+        intent_keywords: ['email', 'calendar', 'productivity'],
+        use_cases: ['Email management', 'Calendar scheduling']
       },
+      auth: {
+        type: 'none',
+        required: false
+      },
+      cors_enabled: true,
       health: {
         status: 'healthy',
         last_check: new Date().toISOString(),
@@ -72,7 +80,15 @@ async function testStorageProvider(providerName: string, provider: 'memory' | 'l
         error_rate: 0,
         consecutive_failures: 0
       },
-      last_updated: new Date().toISOString()
+      verification: {
+        dns_verified: true,
+        endpoint_verified: true,
+        ssl_verified: true,
+        last_verification: new Date().toISOString(),
+        verification_method: 'dns-txt-challenge'
+      },
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     };
 
     // Store server
