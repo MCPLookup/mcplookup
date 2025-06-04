@@ -5,6 +5,7 @@ import {
   IRegistryStorage,
   IVerificationStorage,
   IUserStorage,
+  IAuditStorage,
   VerificationChallengeData,
   UserProfile,
   UserSession,
@@ -30,6 +31,7 @@ import { UpstashRegistryStorage } from './upstash-registry-storage';
 import { UpstashVerificationStorage } from './upstash-verification-storage';
 import { UpstashUserStorage } from './upstash-user-storage';
 import { LocalRedisRegistryStorage, LocalRedisVerificationStorage, LocalRedisUserStorage } from './local-redis-storage';
+import { InMemoryAuditStorage, LocalRedisAuditStorage, UpstashAuditStorage } from './audit-storage';
 import { MCPServerRecord, CapabilityCategory } from '../../schemas/discovery';
 
 export interface StorageConfig {
@@ -974,4 +976,22 @@ function detectStorageProvider(): 'upstash' | 'local' | 'memory' {
   // Fallback to memory for development without Redis
   console.warn('No Redis configuration found, using in-memory storage');
   return 'memory';
+}
+
+/**
+ * Get audit storage based on environment
+ */
+export function getAuditStorage(config?: StorageConfig): IAuditStorage {
+  const provider = config?.provider || detectStorageProvider();
+
+  switch (provider) {
+    case 'upstash':
+      return new UpstashAuditStorage();
+    case 'local':
+      return new LocalRedisAuditStorage();
+    case 'memory':
+      return new InMemoryAuditStorage();
+    default:
+      return new InMemoryAuditStorage();
+  }
 }

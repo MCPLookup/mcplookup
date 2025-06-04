@@ -735,3 +735,94 @@ export function validatePaginationOptions(options: PaginationOptions): Paginatio
  * 7. **Type Safety**: Strong typing with TypeScript for compile-time safety
  * 8. **Documentation**: Comprehensive JSDoc comments for all methods
  */
+
+// ==========================================================================
+// AUDIT LOG INTERFACES
+// ==========================================================================
+
+/**
+ * Audit Log Entry
+ * Comprehensive logging of all user actions and system events
+ */
+export interface AuditLogEntry {
+  id: string;
+  timestamp: string;
+  userId?: string;
+  userEmail?: string;
+  userRole?: 'user' | 'admin' | 'moderator';
+  action: string;
+  resource: string;
+  resourceId?: string;
+  details: Record<string, any>;
+  ipAddress?: string;
+  userAgent?: string;
+  sessionId?: string;
+  success: boolean;
+  error?: string;
+  duration?: number;
+  metadata?: Record<string, any>;
+}
+
+/**
+ * Audit Log Filters
+ * Filtering options for audit log queries
+ */
+export interface AuditLogFilters {
+  userId?: string;
+  action?: string;
+  resource?: string;
+  startDate?: string;
+  endDate?: string;
+  success?: boolean;
+  limit?: number;
+  offset?: number;
+}
+
+/**
+ * Audit Statistics
+ * Aggregated statistics for audit logs
+ */
+export interface AuditStats {
+  totalActions: number;
+  successfulActions: number;
+  failedActions: number;
+  topActions: Array<{ action: string; count: number }>;
+  topUsers: Array<{ userEmail: string; count: number }>;
+  actionsByHour: Array<{ hour: string; count: number }>;
+}
+
+/**
+ * Audit Storage Interface
+ * Handles comprehensive audit logging for security and compliance
+ */
+export interface IAuditStorage {
+  /**
+   * Store a new audit log entry
+   */
+  storeAuditLog(id: string, entry: AuditLogEntry): Promise<StorageResult<void>>;
+
+  /**
+   * Get a specific audit log entry by ID
+   */
+  getAuditLog(id: string): Promise<StorageResult<AuditLogEntry>>;
+
+  /**
+   * Get audit logs with filtering and pagination
+   */
+  getAuditLogs(filters?: AuditLogFilters): Promise<StorageResult<{
+    logs: AuditLogEntry[];
+    total: number;
+    hasMore: boolean;
+  }>>;
+
+  /**
+   * Get audit statistics for a time range
+   */
+  getAuditStats(timeRange: '24h' | '7d' | '30d'): Promise<StorageResult<AuditStats>>;
+
+  /**
+   * Clean up old audit logs before a cutoff date
+   * Returns the number of logs deleted
+   */
+  cleanupOldLogs(cutoffDate: string): Promise<StorageResult<number>>;
+}
