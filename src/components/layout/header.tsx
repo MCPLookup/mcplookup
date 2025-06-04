@@ -8,7 +8,7 @@ import { useState } from 'react'
 import { FaBars, FaTimes, FaMoon, FaSun } from 'react-icons/fa'
 import { ColorModeButton } from '@/components/ui/color-mode'
 import { SignInButton } from '@/components/auth/signin-button'
-import { useSession } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react'
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -63,8 +63,22 @@ export function Header() {
                 <span className="text-sm text-gray-600 dark:text-gray-300">
                   {session.user?.name || session.user?.email}
                 </span>
-                <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                  {(session.user?.name || session.user?.email || 'U')[0].toUpperCase()}
+                <div className="relative group">
+                  <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white text-sm font-semibold cursor-pointer">
+                    {(session.user?.name || session.user?.email || 'U')[0].toUpperCase()}
+                  </div>
+                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                    <div className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-600">
+                      <div className="font-medium">{session.user?.name}</div>
+                      <div className="text-gray-500">{session.user?.email}</div>
+                    </div>
+                    <button
+                      onClick={() => signOut({ callbackUrl: '/' })}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    >
+                      Sign out
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -112,13 +126,26 @@ export function Header() {
                     width="full"
                   />
                 ) : (
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                      {(session.user?.name || session.user?.email || 'U')[0].toUpperCase()}
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">
+                        {(session.user?.name || session.user?.email || 'U')[0].toUpperCase()}
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          {session.user?.name}
+                        </div>
+                        <div className="text-sm text-gray-600 dark:text-gray-300">
+                          {session.user?.email}
+                        </div>
+                      </div>
                     </div>
-                    <span className="text-sm text-gray-600 dark:text-gray-300">
-                      {session.user?.name || session.user?.email}
-                    </span>
+                    <button
+                      onClick={() => signOut({ callbackUrl: '/' })}
+                      className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md"
+                    >
+                      Sign out
+                    </button>
                   </div>
                 )}
               </div>
