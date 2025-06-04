@@ -46,6 +46,65 @@ export const MCPServerInfoSchema = z.object({
 });
 
 /**
+ * OpenAPI Documentation Schema
+ * Captures OpenAPI/Swagger documentation exposed by MCP servers
+ */
+export const OpenAPIDocumentationSchema = z.object({
+  // Discovery metadata
+  discovered_at: z.string().describe("When the OpenAPI spec was discovered"),
+  spec_url: z.string().url().optional().describe("URL where the OpenAPI spec was found"),
+  discovery_method: z.enum(['endpoint_scan', 'manual', 'header_hint', 'well_known']).describe("How the spec was discovered"),
+
+  // OpenAPI specification details
+  openapi_version: z.string().describe("OpenAPI specification version (e.g., '3.0.3')"),
+  spec_format: z.enum(['json', 'yaml']).describe("Format of the specification"),
+
+  // API metadata from the spec
+  api_info: z.object({
+    title: z.string().describe("API title"),
+    version: z.string().describe("API version"),
+    description: z.string().optional().describe("API description"),
+    contact: z.object({
+      name: z.string().optional(),
+      email: z.string().email().optional(),
+      url: z.string().url().optional()
+    }).optional().describe("Contact information"),
+    license: z.object({
+      name: z.string(),
+      url: z.string().url().optional()
+    }).optional().describe("License information")
+  }).describe("API information from OpenAPI spec"),
+
+  // Server information
+  servers: z.array(z.object({
+    url: z.string().describe("Server URL"),
+    description: z.string().optional().describe("Server description"),
+    variables: z.record(z.any()).optional().describe("Server variables")
+  })).describe("Server definitions from OpenAPI spec"),
+
+  // Endpoints summary
+  endpoints_summary: z.object({
+    total_paths: z.number().describe("Total number of API paths"),
+    total_operations: z.number().describe("Total number of operations"),
+    methods: z.record(z.number()).describe("Count by HTTP method"),
+    tags: z.array(z.string()).describe("Available tags"),
+    has_authentication: z.boolean().describe("Whether API requires authentication"),
+    auth_schemes: z.array(z.string()).describe("Authentication scheme types")
+  }).describe("Summary of API endpoints and operations"),
+
+  // Full specification (optional, for caching)
+  full_spec: z.any().optional().describe("Complete OpenAPI specification (JSON)"),
+  spec_hash: z.string().optional().describe("Hash of the specification for change detection"),
+
+  // Validation status
+  validation: z.object({
+    is_valid: z.boolean().describe("Whether the OpenAPI spec is valid"),
+    validation_errors: z.array(z.string()).describe("Validation error messages"),
+    last_validated: z.string().describe("Last validation timestamp")
+  }).describe("OpenAPI specification validation status")
+});
+
+/**
  * Transport Capabilities Schema
  * Detailed metadata about MCP transport capabilities discovered during verification
  */
@@ -228,6 +287,7 @@ export const MCPServerRecordSchema = z.object({
   resources: z.array(MCPResourceSchema).describe("Available resources from resources/list"),
   transport: z.enum(['streamable_http', 'sse', 'stdio']).describe("Supported transport protocol"),
   transport_capabilities: TransportCapabilitiesSchema.optional().describe("Detailed transport capabilities discovered during verification"),
+  openapi_documentation: OpenAPIDocumentationSchema.optional().describe("OpenAPI/Swagger documentation exposed by the server"),
   
   // ---- SEMANTIC ORGANIZATION ----
   capabilities: CapabilitySchema.describe("Capability classification for discovery"),
@@ -428,6 +488,7 @@ export type MCPTool = z.infer<typeof MCPToolSchema>;
 export type MCPResource = z.infer<typeof MCPResourceSchema>;
 export type MCPServerInfo = z.infer<typeof MCPServerInfoSchema>;
 export type TransportCapabilities = z.infer<typeof TransportCapabilitiesSchema>;
+export type OpenAPIDocumentation = z.infer<typeof OpenAPIDocumentationSchema>;
 export type AuthConfig = z.infer<typeof AuthConfigSchema>;
 export type HealthMetrics = z.infer<typeof HealthMetricsSchema>;
 export type Verification = z.infer<typeof VerificationSchema>;

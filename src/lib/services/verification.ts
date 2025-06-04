@@ -5,7 +5,7 @@ import dns from 'dns/promises';
 import { randomUUID } from 'crypto';
 import { getVerificationStorage, StorageConfig } from './storage/storage';
 import { IVerificationStorage, VerificationChallengeData, isSuccessResult } from './storage/interfaces';
-import { VerificationChallenge, RegistrationRequest, TransportCapabilities, MCPServerRecord } from '../schemas/discovery';
+import { VerificationChallenge, RegistrationRequest, TransportCapabilities, MCPServerRecord, OpenAPIDocumentation } from '../schemas/discovery';
 
 export interface IVerificationService {
   initiateDNSVerification(request: RegistrationRequest): Promise<VerificationChallenge>;
@@ -191,16 +191,18 @@ export class VerificationService implements IVerificationService {
 
     const challenge = challengeResult.data;
 
-    // Discover server capabilities and transport metadata
+    // Discover server capabilities, transport metadata, and OpenAPI documentation
     console.log(`🔍 Discovering capabilities for ${challenge.endpoint}...`);
 
-    const [serverInfo, transportCapabilities] = await Promise.allSettled([
+    const [serverInfo, transportCapabilities, openApiDocs] = await Promise.allSettled([
       this.mcpService.getMCPServerInfo(challenge.endpoint),
-      this.mcpService.discoverTransportCapabilities(challenge.endpoint)
+      this.mcpService.discoverTransportCapabilities(challenge.endpoint),
+      this.mcpService.discoverOpenAPIDocumentation(challenge.endpoint)
     ]);
 
     const mcpServerInfo = serverInfo.status === 'fulfilled' ? serverInfo.value : null;
     const transportCaps = transportCapabilities.status === 'fulfilled' ? transportCapabilities.value : null;
+    const openApiDocumentation = openApiDocs.status === 'fulfilled' ? openApiDocs.value : null;
 
     if (!mcpServerInfo) {
       throw new Error('Failed to get MCP server info during registration');
@@ -220,6 +222,7 @@ export class VerificationService implements IVerificationService {
       resources: [], // Will be populated later via resources/list
       transport: transportCaps?.primary_transport || 'streamable_http',
       transport_capabilities: transportCaps,
+      openapi_documentation: openApiDocumentation,
 
       // Semantic Organization (basic defaults)
       capabilities: {
@@ -486,6 +489,7 @@ export interface IMCPValidationService {
   getMCPServerInfo(endpoint: string): Promise<any>;
   testMCPConnection(endpoint: string): Promise<boolean>;
   discoverTransportCapabilities(endpoint: string): Promise<TransportCapabilities>;
+  discoverOpenAPIDocumentation(endpoint: string): Promise<OpenAPIDocumentation | null>;
 }
 
 
@@ -887,3 +891,175 @@ export class MCPValidationService implements IMCPValidationService {
       }
     };
   }
+
+  async discoverOpenAPIDocumentation(endpoint: string): Promise<OpenAPIDocumentation | null> {
+    const { safeFetch } = await import('../security/url-validation');
+
+    // Common OpenAPI endpoint patterns to try
+    const commonPaths = [
+      '/openapi.json',
+      '/swagger.json',
+      '/docs/openapi.json',
+      '/docs/swagger.json',
+      '/api/openapi.json',
+      '/api/swagger.json',
+      '/v1/openapi.json',
+      '/v1/swagger.json',
+      '/openapi.yaml',
+      '/swagger.yaml',
+      '/docs/openapi.yaml',
+      '/docs/swagger.yaml'
+    ];
+
+    const baseUrl = new URL(endpoint).origin;
+
+    for (const path of commonPaths) {
+      try {
+        const specUrl = `${baseUrl}${path}`;
+        console.log(`🔍 Checking for OpenAPI spec at: ${specUrl}`);
+
+        const response = await safeFetch(specUrl, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json, application/yaml, text/yaml'
+          },
+          signal: AbortSignal.timeout(5000)
+        });
+
+        if (response.ok) {
+          const contentType = response.headers.get('content-type') || '';
+          const isYaml = contentType.includes('yaml') || path.endsWith('.yaml');
+          const specText = await response.text();
+
+          try {
+            // Parse the specification
+            let spec: any;
+            if (isYaml) {
+              const yaml = await import('js-yaml');
+              spec = yaml.load(specText);
+            } else {
+              spec = JSON.parse(specText);
+            }
+
+            // Validate it's an OpenAPI spec
+            if (!spec.openapi && !spec.swagger) {
+              continue;
+            }
+
+            console.log(`✅ Found OpenAPI spec at: ${specUrl}`);
+            return await this.parseOpenAPISpec(spec, specUrl, isYaml ? 'yaml' : 'json');
+
+          } catch (parseError) {
+            console.debug(`Failed to parse spec at ${specUrl}:`, parseError);
+            continue;
+          }
+        }
+
+      } catch (error) {
+        console.debug(`Failed to fetch ${path}:`, error);
+        continue;
+      }
+    }
+
+    console.log(`❌ No OpenAPI specification found for ${endpoint}`);
+    return null;
+  }
+
+  private async parseOpenAPISpec(spec: any, specUrl: string, format: 'json' | 'yaml'): Promise<OpenAPIDocumentation> {
+    const crypto = await import('crypto');
+    const specString = JSON.stringify(spec);
+    const specHash = crypto.createHash('sha256').update(specString).digest('hex');
+
+    // Extract API info
+    const apiInfo = {
+      title: spec.info?.title || 'Unknown API',
+      version: spec.info?.version || '1.0.0',
+      description: spec.info?.description,
+      contact: spec.info?.contact,
+      license: spec.info?.license
+    };
+
+    // Extract servers
+    const servers = spec.servers || [];
+
+    // Analyze endpoints
+    const paths = spec.paths || {};
+    const pathKeys = Object.keys(paths);
+    let totalOperations = 0;
+    const methodCounts: Record<string, number> = {};
+    const tags = new Set<string>();
+
+    for (const path of pathKeys) {
+      const pathItem = paths[path];
+      for (const method of ['get', 'post', 'put', 'delete', 'patch', 'options', 'head']) {
+        if (pathItem[method]) {
+          totalOperations++;
+          methodCounts[method.toUpperCase()] = (methodCounts[method.toUpperCase()] || 0) + 1;
+
+          // Collect tags
+          const operationTags = pathItem[method].tags || [];
+          operationTags.forEach((tag: string) => tags.add(tag));
+        }
+      }
+    }
+
+    // Check for authentication
+    const hasAuth = !!(spec.components?.securitySchemes || spec.securityDefinitions);
+    const authSchemes = hasAuth ? Object.keys(spec.components?.securitySchemes || spec.securityDefinitions || {}) : [];
+
+    // Validate the spec
+    const validation = await this.validateOpenAPISpec(spec);
+
+    return {
+      discovered_at: new Date().toISOString(),
+      spec_url: specUrl,
+      discovery_method: 'endpoint_scan',
+      openapi_version: spec.openapi || spec.swagger || '2.0',
+      spec_format: format,
+      api_info: apiInfo,
+      servers: servers,
+      endpoints_summary: {
+        total_paths: pathKeys.length,
+        total_operations: totalOperations,
+        methods: methodCounts,
+        tags: Array.from(tags),
+        has_authentication: hasAuth,
+        auth_schemes: authSchemes
+      },
+      full_spec: spec,
+      spec_hash: specHash,
+      validation: validation
+    };
+  }
+
+  private async validateOpenAPISpec(spec: any): Promise<{ is_valid: boolean; validation_errors: string[]; last_validated: string }> {
+    const errors: string[] = [];
+
+    // Basic validation
+    if (!spec.info) {
+      errors.push('Missing required "info" section');
+    }
+    if (!spec.info?.title) {
+      errors.push('Missing required "info.title"');
+    }
+    if (!spec.info?.version) {
+      errors.push('Missing required "info.version"');
+    }
+    if (!spec.paths) {
+      errors.push('Missing required "paths" section');
+    }
+
+    // OpenAPI 3.x specific validation
+    if (spec.openapi) {
+      if (!spec.openapi.startsWith('3.')) {
+        errors.push(`Unsupported OpenAPI version: ${spec.openapi}`);
+      }
+    }
+
+    return {
+      is_valid: errors.length === 0,
+      validation_errors: errors,
+      last_validated: new Date().toISOString()
+    };
+  }
+}
