@@ -1,10 +1,10 @@
 // Storage Factory - Environment-based storage selection
 // Tests: in-memory, Dev: local Redis, Prod: Upstash Redis
 
-import { IRegistryStorage, IVerificationStorage, VerificationChallengeData } from './interfaces.js';
-import { UpstashRegistryStorage } from './upstash-registry-storage.js';
-import { UpstashVerificationStorage } from './upstash-verification-storage.js';
-import { MCPServerRecord, CapabilityCategory } from '../../schemas/discovery.js';
+import { IRegistryStorage, IVerificationStorage, VerificationChallengeData } from './interfaces';
+import { UpstashRegistryStorage } from './upstash-registry-storage';
+import { UpstashVerificationStorage } from './upstash-verification-storage';
+import { MCPServerRecord, CapabilityCategory } from '../../schemas/discovery';
 
 export interface StorageConfig {
   provider?: 'upstash' | 'local' | 'memory';
