@@ -9,7 +9,7 @@
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
-    "noEmit": true,
+    "outDir": "./dist",
     "esModuleInterop": true,
     "module": "ESNext",
     "moduleResolution": "bundler",
@@ -31,7 +31,8 @@
     "forceConsistentCasingInFileNames": true,
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "noEmit": true
   },
   "include": [
     "next-env.d.ts",
