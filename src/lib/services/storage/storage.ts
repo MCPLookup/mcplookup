@@ -28,7 +28,8 @@ import {
 } from './interfaces';
 import { UpstashRegistryStorage } from './upstash-registry-storage';
 import { UpstashVerificationStorage } from './upstash-verification-storage';
-import { LocalRedisRegistryStorage, LocalRedisVerificationStorage } from './local-redis-storage';
+import { UpstashUserStorage } from './upstash-user-storage';
+import { LocalRedisRegistryStorage, LocalRedisVerificationStorage, LocalRedisUserStorage } from './local-redis-storage';
 import { MCPServerRecord, CapabilityCategory } from '../../schemas/discovery';
 
 export interface StorageConfig {
@@ -934,11 +935,9 @@ export function getUserStorage(config?: StorageConfig): IUserStorage {
 
   switch (provider) {
     case 'upstash':
-      // TODO: Implement UpstashUserStorage
-      return new InMemoryUserStorage();
+      return new UpstashUserStorage();
     case 'local':
-      // TODO: Implement LocalRedisUserStorage
-      return new InMemoryUserStorage();
+      return new LocalRedisUserStorage();
     case 'memory':
       return new InMemoryUserStorage();
     default:
