@@ -100,14 +100,11 @@ export class RegistryService implements IRegistryService {
    * Get servers by exact domain match
    */
   async getServersByDomain(domain: string): Promise<MCPServerRecord[]> {
-    // First check if it's stored
     const result = await this.storage.getServer(domain);
     if (isSuccessResult(result) && result.data) {
       return [result.data];
     }
-
-    // Try real-time discovery
-    return this.discoverWellKnownEndpoint(domain);
+    return [];
   }
 
   /**
@@ -181,100 +178,4 @@ export class RegistryService implements IRegistryService {
   // ========================================================================
   // PRIVATE METHODS
   // ========================================================================
-
-  /**
-   * Try to discover MCP server at well-known endpoint
-   */
-  private async discoverWellKnownEndpoint(domain: string): Promise<MCPServerRecord[]> {
-    const wellKnownUrls = [
-      `https://${domain}/.well-known/mcp-server`,
-      `https://${domain}/api/mcp`,
-      `https://${domain}/mcp`,
-      `https://api.${domain}/mcp`
-    ];
-
-    for (const url of wellKnownUrls) {
-      try {
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            jsonrpc: '2.0',
-            id: 1,
-            method: 'initialize',
-            params: {
-              protocolVersion: '2024-11-05',
-              capabilities: {},
-              clientInfo: { name: 'mcplookup-discovery', version: '1.0.0' }
-            }
-          })
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          if (data.result && data.result.serverInfo) {
-            return [this.createServerRecordFromEndpoint(domain, url, data.result)];
-          }
-        }
-      } catch {
-        // Continue to next URL
-      }
-    }
-
-    return [];
-  }
-
-  private createServerRecordFromEndpoint(domain: string, endpoint: string, serverInfo: any): MCPServerRecord {
-    return {
-      domain,
-      endpoint,
-      name: serverInfo.serverInfo?.name || `${domain} MCP Server`,
-      description: `MCP server for ${domain}`,
-      server_info: {
-        name: serverInfo.serverInfo?.name || 'unknown',
-        version: serverInfo.serverInfo?.version || '1.0.0',
-        protocolVersion: serverInfo.protocolVersion || '2024-11-05',
-        capabilities: serverInfo.capabilities || { tools: true, resources: false }
-      },
-      tools: [],
-      resources: [],
-      transport: 'streamable_http' as const,
-      capabilities: {
-        category: 'other' as CapabilityCategory,
-        subcategories: ['general'],
-        intent_keywords: ['general', 'api'],
-        use_cases: ['General purpose MCP server']
-      },
-      auth: {
-        type: 'none' as const
-      },
-      cors_enabled: true,
-      health: {
-        status: 'healthy' as const,
-        uptime_percentage: 99.0,
-        avg_response_time_ms: 100,
-        error_rate: 0.01,
-        last_check: new Date().toISOString(),
-        consecutive_failures: 0
-      },
-      verification: {
-        dns_verified: false,
-        endpoint_verified: true,
-        ssl_verified: true,
-        last_verification: new Date().toISOString(),
-        verification_method: 'endpoint-check'
-      },
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      maintainer: {
-        name: domain,
-        url: `https://${domain}`
-      }
-    };
-  }
-
-  private getWellKnownServers(): MCPServerRecord[] {
-    // No hardcoded servers - rely on real-time discovery and user registration
-    return [];
-  }
 }

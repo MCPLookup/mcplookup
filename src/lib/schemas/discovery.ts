@@ -99,7 +99,8 @@ export const VerificationSchema = z.object({
   ssl_verified: z.boolean().describe("Endpoint uses valid SSL certificate"),
   last_verification: z.string().datetime().describe("Last successful verification timestamp"),
   verification_method: z.string().describe("Method used for verification (e.g., 'dns-txt-challenge')"),
-  dns_record: z.string().optional().describe("DNS TXT record value used for verification")
+  dns_record: z.string().optional().describe("DNS TXT record value used for verification"),
+  verified_at: z.string().datetime().optional().describe("When domain was first verified")
 });
 
 // ============================================================================
@@ -180,7 +181,15 @@ export const MCPServerRecordSchema = z.object({
     name: z.string().optional(),
     email: z.string().email().optional(),
     url: z.string().url().optional()
-  }).optional().describe("Server maintainer information")
+  }).optional().describe("Server maintainer information"),
+
+  // ---- VERIFICATION TRACKING ----
+  verification_status: z.enum(['verified', 'unverified', 'challenged', 'revoked']).optional().describe("Current verification status"),
+  consecutive_verification_failures: z.number().optional().describe("Number of consecutive verification failures"),
+  marked_unverified_at: z.string().datetime().optional().describe("When server was marked as unverified"),
+  verification_failure_reason: z.string().optional().describe("Reason for verification failure"),
+  last_verification_check: z.string().datetime().optional().describe("Last time verification was checked"),
+  trust_score: z.number().min(0).max(100).optional().describe("Trust score (0-100)")
 });
 
 // ============================================================================

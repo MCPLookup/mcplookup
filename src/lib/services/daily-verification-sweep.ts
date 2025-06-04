@@ -164,7 +164,7 @@ export class DailyVerificationSweepService {
         consecutive_verification_failures: consecutiveFailures,
         last_verification_check: new Date().toISOString(),
         // Reduce trust score for unverified domains
-        trust_score: Math.max(0, server.trust_score - 20)
+        trust_score: Math.max(0, (server.trust_score || 50) - 20)
       };
 
       await this.registryService.updateServer(domain, updates);
@@ -227,7 +227,7 @@ export class DailyVerificationSweepService {
       .map(server => ({
         domain: server.domain,
         endpoint: server.endpoint,
-        last_verified_at: new Date(server.verification.verified_at),
+        last_verified_at: new Date(server.verification.verified_at || server.verification.last_verification),
         marked_unverified_at: new Date(server.marked_unverified_at || Date.now()),
         verification_failure_reason: server.verification_failure_reason || 'Unknown',
         consecutive_failures: server.consecutive_verification_failures || 0
@@ -257,7 +257,7 @@ export class DailyVerificationSweepService {
           verification_status: 'verified',
           consecutive_verification_failures: 0,
           last_verification_check: new Date().toISOString(),
-          trust_score: Math.min(100, server.trust_score + 20) // Restore trust score
+          trust_score: Math.min(100, (server.trust_score || 50) + 20) // Restore trust score
         });
 
         return {
@@ -318,6 +318,3 @@ export class DailyVerificationSweepService {
     console.log(`🗄️ Archiving ${domain}: ${reason}`);
   }
 }
-
-// Export types for external use
-export type { VerificationSweepResult, UnverifiedRegistration };
