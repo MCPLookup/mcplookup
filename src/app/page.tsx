@@ -216,6 +216,14 @@ export default function HomePage() {
                 <strong>Information wants to be free.</strong> We encourage alternative implementations,
                 private deployments, and competing solutions. All we ask: use open standards so the ecosystem stays interoperable.
               </p>
+
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 max-w-3xl mx-auto animate-fade-in-up" style={{ animationDelay: '2.6s' }}>
+                <p className="text-sm text-yellow-800 font-medium">
+                  💰 <strong>The Real Cost:</strong> Right now we're all paying overhead with hardcoded lists.
+                  This site costs me time and money. Major AI leaders will eventually get their shit together.
+                  <strong>Until then, I win when the problem goes away. So say we all.</strong>
+                </p>
+              </div>
             </div>
           </AnimatedCard.Body>
         </AnimatedCard.Root>

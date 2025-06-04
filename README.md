@@ -855,6 +855,16 @@ MIT License - see [LICENSE](./LICENSE) file for details.
                     └─────────────────┘
 ```
 
+### **💰 The Real Cost: Time and Money**
+
+**Here's the brutal truth**: Right now we're all paying a cost in the form of overhead with hardcoded lists of MCP tools. I made this to solve a problem costing me time. This site will in turn cost me money - money I hope to offset with donations, but that just means more of my time spent solving a problem I don't want to have to solve.
+
+**Major AI industry leaders will eventually get their shit together and make MCP tools easy to use.**
+
+**Until that day?** MCPLookup will continue to take up my time and money. **I win when the problem goes away.**
+
+**So say we all.**
+
 **Information wants to be free. Standards want to be open. Innovation wants to be distributed.**
 
 ---

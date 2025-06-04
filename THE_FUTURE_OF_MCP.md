@@ -267,6 +267,16 @@ const agent = new AIAgent({
 
 **This is exactly why we need distributed, open solutions.**
 
+### **💰 The Real Cost: Time and Money**
+
+**Here's the brutal truth**: Right now we're all paying a cost in the form of overhead with hardcoded lists of MCP tools. I made this to solve a problem costing me time. This site will in turn cost me money - money I hope to offset with donations, but that just means more of my time spent solving a problem I don't want to have to solve.
+
+**Major AI industry leaders will eventually get their shit together and make MCP tools easy to use.**
+
+**Until that day?** MCPLookup will continue to take up my time and money. **I win when the problem goes away.**
+
+**So say we all.**
+
 ### **🤝 Our Call to Industry Leaders**
 
 **We encourage and welcome:**
@@ -280,6 +290,8 @@ const agent = new AIAgent({
 - **Open Standards**: Use DNS and HTTP patterns we're establishing
 - **Interoperability**: Let different registries work together
 - **Learning from History**: How can we prevent lock-in?
+
+**Better yet**: Build something so good that MCPLookup.org becomes obsolete. **That's when I truly win.**
 
 ### **📚 Learning from the Past to Avoid Future Lock-in**
 

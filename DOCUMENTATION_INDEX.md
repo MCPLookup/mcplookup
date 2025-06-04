@@ -36,6 +36,7 @@ This isn't just documentation for another API. **This is the blueprint for elimi
 - **[What is MCPLookup.org?](WHAT_IS_THIS.md)** - The service ending hardcoded lists forever
 - **[The Future of MCP](THE_FUTURE_OF_MCP.md)** - Our bold vision for dynamic discovery
 - **[Open Standards Manifesto](OPEN_STANDARDS_MANIFESTO.md)** - 🌍 **Why we build for distribution, not domination**
+- **[The Real Cost](THE_REAL_COST.md)** - 💰 **Why I win when MCPLookup.org becomes obsolete**
 - **[Quick Start Guide](src/app/docs/quickstart/page.tsx)** - Build dynamic discovery in 5 minutes
 - **[Architecture Overview](ARCHITECTURE.md)** - The zero-hardcoding architecture
 - **[Dynamic Discovery Examples](FLEXIBLE_DISCOVERY_EXAMPLES.md)** - Real-world dynamic vs static comparisons

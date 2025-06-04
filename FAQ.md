@@ -192,6 +192,16 @@ Not yet, but our REST API is simple to use with any HTTP client. We may provide 
 
 **They become obsolete.** MCPLookup.org provides a bridge for legacy systems, but the future is clear: **replace all hardcoded lists with registry-based discovery**. This isn't just better - it's inevitable.
 
+### Why did you build this? What's your motivation?
+
+**Here's the brutal truth**: Right now we're all paying a cost in the form of overhead with hardcoded lists of MCP tools. I made this to solve a problem costing me time. This site will in turn cost me money - money I hope to offset with donations, but that just means more of my time spent solving a problem I don't want to have to solve.
+
+**Major AI industry leaders will eventually get their shit together and make MCP tools easy to use.**
+
+**Until that day?** MCPLookup will continue to take up my time and money. **I win when the problem goes away.**
+
+**So say we all.**
+
 ## 🌍 Ecosystem Questions
 
 ### How many MCP servers are registered?
