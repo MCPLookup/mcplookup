@@ -21,8 +21,10 @@ import {
 import { Card } from "@/components/ui/card"
 import { Alert } from "@/components/ui/alert"
 import { Pagination } from "@/components/ui/pagination"
-import { LoadingCard, InlineLoading } from "@/components/ui/loading"
-import { toaster } from "@/components/ui/toaster"
+import { LoadingCard, SearchLoading, StaggeredListLoading } from "@/components/ui/loading"
+import { AnimatedCardNamespace as AnimatedCard, AnimatedList } from "@/components/ui/animated-card"
+import { AnimatedButton } from "@/components/ui/animated-button"
+import { createAnimatedToast } from "@/components/ui/toaster"
 import { FaSearch, FaServer, FaCheckCircle, FaExclamationTriangle, FaFilter, FaTimes } from "react-icons/fa"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
@@ -91,12 +93,10 @@ export default function DiscoverPage() {
         setTotalPages(Math.ceil((data.pagination?.total_count || data.servers.length) / itemsPerPage))
         setCurrentPage(page)
 
-        toaster.create({
-          title: "Search completed",
-          description: `Found ${data.servers.length} servers`,
-          type: "success",
-          duration: 3000,
-        })
+        createAnimatedToast.success(
+          "Search completed",
+          `Found ${data.servers.length} servers`
+        )
       } else {
         setServers([])
         setTotalItems(0)
@@ -108,12 +108,10 @@ export default function DiscoverPage() {
       setError("Failed to search for servers. Please try again.")
       setServers([])
 
-      toaster.create({
-        title: "Search failed",
-        description: "Unable to search for servers. Please try again.",
-        type: "error",
-        duration: 5000,
-      })
+      createAnimatedToast.error(
+        "Search failed",
+        "Unable to search for servers. Please try again."
+      )
     } finally {
       setLoading(false)
     }
@@ -206,19 +204,21 @@ export default function DiscoverPage() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyPress={(e) => e.key === "Enter" && handleSearch()}
                   />
-                  <Button
+                  <AnimatedButton
                     colorPalette="blue"
                     onClick={() => handleSearch(1)}
                     disabled={loading || !searchQuery.trim()}
+                    state={loading ? "loading" : "idle"}
+                    loadingText="Searching..."
+                    hoverScale={1.05}
+                    rippleEffect
                   >
-                    {loading ? (
-                      <Spinner size="sm" />
-                    ) : (
+                    {!loading && (
                       <Icon>
                         <FaSearch />
                       </Icon>
                     )}
-                  </Button>
+                  </AnimatedButton>
                   <Button
                     variant="outline"
                     onClick={() => setShowFilters(!showFilters)}
@@ -304,7 +304,10 @@ export default function DiscoverPage() {
 
           {/* Loading State */}
           {loading && (
-            <LoadingCard message="Searching for MCP servers..." height="300px" />
+            <VStack gap={6}>
+              <SearchLoading message="Searching for MCP servers" showDots />
+              <StaggeredListLoading count={3} variant="card" />
+            </VStack>
           )}
 
           {/* Results */}
@@ -319,19 +322,27 @@ export default function DiscoverPage() {
                 </Text>
               </HStack>
 
-              <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={6}>
-                {servers.map((server) => (
-                  <Card.Root key={server.domain}>
-                    <Card.Body>
-                      <VStack gap={3} align="start">
-                        <HStack justify="space-between" width="full">
-                          <Heading size="sm">{server.domain}</Heading>
-                          {server.verified && (
-                            <Badge colorPalette="green" variant="solid">
-                              Verified
-                            </Badge>
-                          )}
-                        </HStack>
+              <AnimatedList staggerDelay={0.1} direction="up">
+                <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={6}>
+                  {servers.map((server, index) => (
+                    <AnimatedCard.Root
+                      key={server.domain}
+                      staggerDelay={index * 0.05}
+                      hoverScale={1.03}
+                      hoverY={-8}
+                      borderOnHover
+                      glowOnHover={server.verified}
+                    >
+                      <AnimatedCard.Body staggerChildren staggerDelay={0.05}>
+                        <VStack gap={3} align="start">
+                          <HStack justify="space-between" width="full">
+                            <Heading size="sm">{server.domain}</Heading>
+                            {server.verified && (
+                              <Badge colorPalette="green" variant="solid">
+                                Verified
+                              </Badge>
+                            )}
+                          </HStack>
 
                         <Text fontSize="sm" color="gray.600" _dark={{ color: "gray.300" }}>
                           {server.endpoint}
@@ -362,19 +373,26 @@ export default function DiscoverPage() {
                           </HStack>
                         </VStack>
 
-                        <HStack justify="space-between" width="full">
-                          <Text fontSize="sm">
-                            Trust Score: <strong>{server.trust_score}/100</strong>
-                          </Text>
-                          <Button size="sm" variant="outline">
-                            Connect
-                          </Button>
-                        </HStack>
-                      </VStack>
-                    </Card.Body>
-                  </Card.Root>
-                ))}
-              </SimpleGrid>
+                          <HStack justify="space-between" width="full">
+                            <Text fontSize="sm">
+                              Trust Score: <strong>{server.trust_score}/100</strong>
+                            </Text>
+                            <AnimatedButton
+                              size="sm"
+                              variant="outline"
+                              hoverScale={1.05}
+                              clickScale={0.95}
+                              rippleEffect
+                            >
+                              Connect
+                            </AnimatedButton>
+                          </HStack>
+                        </VStack>
+                      </AnimatedCard.Body>
+                    </AnimatedCard.Root>
+                  ))}
+                </SimpleGrid>
+              </AnimatedList>
 
               {/* Pagination */}
               {totalPages > 1 && (
