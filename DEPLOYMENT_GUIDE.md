@@ -6,7 +6,7 @@
 
 ## 🏗️ SERVERLESS ARCHITECTURE OVERVIEW
 
-### Zero-Infrastructure Stack
+### Flexible Storage Architecture
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
 │   CLOUDFLARE    │───▶│     VERCEL       │───▶│  EDGE FUNCTIONS │
@@ -14,22 +14,29 @@
 └─────────────────┘    └──────────────────┘    └─────────────────┘
                                 ▼
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│  IN-MEMORY      │    │   DNS QUERIES    │    │   MONITORING    │
-│  (Registry)     │    │ (TXT Records)    │    │ (Vercel Analytics)│
-│  NO DATABASE    │    │ NO EXTERNAL DB   │    │ NO PERSISTENCE  │
+│ STORAGE LAYER   │    │   DNS QUERIES    │    │   MONITORING    │
+│ • In-Memory     │    │ (TXT Records)    │    │ (Vercel Analytics)│
+│ • Local Redis   │    │ • Multi-resolver │    │ • Health Checks │
+│ • Upstash Redis │    │ • Verification   │    │ • Statistics    │
 └─────────────────┘    └──────────────────┘    └─────────────────┘
 ```
 
 ### Key Benefits
-- ✅ **Zero Infrastructure**: No databases, Redis, or external services
+- ✅ **Flexible Storage**: In-memory, local Redis, or Upstash Redis
 - ✅ **Auto-Scaling**: Handles traffic spikes automatically
 - ✅ **Global Edge**: <100ms response times worldwide
-- ✅ **Zero Configuration**: Deploy without setup
-- ✅ **Zero Maintenance**: No database backups or patches
+- ✅ **Environment Adaptive**: Automatic storage provider selection
+- ✅ **Production Ready**: Persistent storage with Upstash Redis
 
 ---
 
-## 🚀 VERCEL DEPLOYMENT (Zero Setup Required)
+## 🚀 VERCEL DEPLOYMENT OPTIONS
+
+### Option 1: In-Memory Storage (Zero Setup)
+Perfect for testing and simple deployments.
+
+### Option 2: Upstash Redis (Production Recommended)
+Persistent, globally distributed storage for production use.
 
 ### Project Configuration (vercel.json)
 ```json
@@ -97,13 +104,27 @@ vercel domains add mcplookup.org
 # That's it! No database migrations, no external services to configure.
 ```
 
-### Environment Variables (All Optional)
-```bash
-# Optional configuration (system works without these)
-NEXT_PUBLIC_APP_URL=https://mcplookup.org
-NEXT_PUBLIC_API_VERSION=v1
+### Environment Variables
 
-# DNS and health check tuning (optional)
+#### Option 1: In-Memory Storage (Zero Config)
+```bash
+# No environment variables required!
+# System automatically uses in-memory storage
+```
+
+#### Option 2: Upstash Redis (Production)
+```bash
+# Required for Upstash Redis
+UPSTASH_REDIS_REST_URL=https://your-redis.upstash.io
+UPSTASH_REDIS_REST_TOKEN=your-token-here
+NODE_ENV=production
+
+# Application configuration
+NEXT_PUBLIC_APP_URL=https://mcplookup.org
+NEXTAUTH_URL=https://mcplookup.org
+NEXTAUTH_SECRET=your-secret-key
+
+# Optional configuration
 DNS_RESOLVER_URL=https://cloudflare-dns.com/dns-query
 HEALTH_CHECK_TIMEOUT=5000
 VERIFICATION_TOKEN_TTL=86400
@@ -114,20 +135,41 @@ ENABLE_ANALYTICS=true
 ENABLE_EXTERNAL_APIS=true
 
 # Authentication (optional - for UI only)
-NEXTAUTH_URL=https://mcplookup.org
-NEXTAUTH_SECRET=your-secret-key
 GITHUB_CLIENT_ID=your-github-client-id
 GITHUB_CLIENT_SECRET=your-github-client-secret
 ```
 
-### No Database Setup Required ✅
-Unlike traditional applications, this service requires:
+#### Setting Environment Variables in Vercel
+```bash
+# Set Upstash credentials
+vercel env add UPSTASH_REDIS_REST_URL
+vercel env add UPSTASH_REDIS_REST_TOKEN
+
+# Set application URL
+vercel env add NEXT_PUBLIC_APP_URL
+vercel env add NEXTAUTH_URL
+
+# Set authentication secret
+vercel env add NEXTAUTH_SECRET
+```
+
+### Flexible Storage Options ✅
+
+#### In-Memory Storage (Zero Setup)
 - ❌ **No PostgreSQL setup**
-- ❌ **No Redis configuration**  
+- ❌ **No Redis configuration**
 - ❌ **No MongoDB connection**
 - ❌ **No database migrations**
 - ❌ **No backup strategies**
 - ✅ **Zero infrastructure dependencies**
+
+#### Upstash Redis (Production)
+- ✅ **Managed Redis service** (no server management)
+- ✅ **Automatic scaling** (serverless)
+- ✅ **Global replication** (multi-region)
+- ✅ **Built-in persistence** (automatic backups)
+- ✅ **Zero maintenance** (fully managed)
+- ✅ **Pay-per-use pricing** (cost-effective)
 
 ---
 
