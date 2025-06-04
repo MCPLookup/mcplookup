@@ -378,8 +378,9 @@ export class UpstashRegistryStorage implements IRegistryStorage {
       server.server_info.name.split(/\s+/).forEach(word => terms.add(word));
     }
 
-    if (server.server_info?.description) {
-      server.server_info.description.split(/\s+/).forEach(word => terms.add(word));
+    // Add main description (from MCPServerRecord, not server_info)
+    if (server.description) {
+      server.description.split(/\s+/).forEach(word => terms.add(word));
     }
 
     // Add capability terms
