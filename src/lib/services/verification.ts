@@ -216,16 +216,23 @@ export class VerificationService implements IVerificationService {
   }
 
   private async verifyDNSRecordWithResolver(
-    recordName: string, 
-    expectedValue: string, 
+    recordName: string,
+    expectedValue: string,
     resolver: string
   ): Promise<boolean> {
     try {
+      // Validate resolver IP is not private
+      const { isPrivateIP } = await import('../security/url-validation');
+      if (isPrivateIP(resolver)) {
+        console.warn(`Blocked private DNS resolver: ${resolver}`);
+        return false;
+      }
+
       // Set custom resolver
       dns.setServers([resolver]);
-      
+
       const records = await dns.resolveTxt(recordName);
-      
+
       // Check if any TXT record matches our expected value
       for (const record of records) {
         const recordValue = Array.isArray(record) ? record.join('') : record;
@@ -233,7 +240,7 @@ export class VerificationService implements IVerificationService {
           return true;
         }
       }
-      
+
       return false;
 
     } catch (error) {
@@ -332,7 +339,9 @@ export class MCPValidationService implements IMCPValidationService {
 
   async getMCPServerInfo(endpoint: string): Promise<any> {
     try {
-      const response = await fetch(endpoint, {
+      const { safeFetch } = await import('../security/url-validation');
+
+      const response = await safeFetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -368,7 +377,9 @@ export class MCPValidationService implements IMCPValidationService {
 
   async testMCPConnection(endpoint: string): Promise<boolean> {
     try {
-      const response = await fetch(endpoint, {
+      const { safeFetch } = await import('../security/url-validation');
+
+      const response = await safeFetch(endpoint, {
         method: 'GET',
         signal: AbortSignal.timeout(this.TIMEOUT_MS)
       });

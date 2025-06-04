@@ -3,11 +3,18 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerlessServices } from '@/lib/services';
+import { healthRateLimit, addRateLimitHeaders } from '@/lib/security/rate-limiting';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ domain: string }> }
 ) {
+  // Apply rate limiting
+  const rateLimitResponse = await healthRateLimit(request);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   try {
     const { domain } = await params;
     const { searchParams } = new URL(request.url);
@@ -60,14 +67,16 @@ export async function GET(
       trust_score: calculateTrustScore(healthMetrics, capabilitiesWorking, sslValid, server.verification.dns_verified)
     };
 
-    return NextResponse.json(response, {
+    const nextResponse = NextResponse.json(response, {
       headers: {
         'Cache-Control': realtime ? 'no-cache' : 'public, s-maxage=60',
-        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Origin': process.env.ALLOWED_ORIGINS || 'https://mcplookup.org',
         'Access-Control-Allow-Methods': 'GET, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type'
       }
     });
+
+    return addRateLimitHeaders(nextResponse, request);
 
   } catch (error) {
     console.error('Health API error:', error);
@@ -83,7 +92,7 @@ export async function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
     headers: {
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': process.env.ALLOWED_ORIGINS || 'https://mcplookup.org',
       'Access-Control-Allow-Methods': 'GET, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
     },
@@ -95,7 +104,9 @@ export async function OPTIONS() {
  */
 async function checkCapabilities(endpoint: string): Promise<boolean> {
   try {
-    const response = await fetch(`${endpoint}`, {
+    const { safeFetch } = await import('@/lib/security/url-validation');
+
+    const response = await safeFetch(`${endpoint}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -107,7 +118,7 @@ async function checkCapabilities(endpoint: string): Promise<boolean> {
         params: {}
       }),
       signal: AbortSignal.timeout(5000) // 5 second timeout
-    });
+    }, true); // Skip DNS validation for performance
 
     if (!response.ok) {
       return false;
@@ -133,11 +144,13 @@ async function checkSSL(endpoint: string): Promise<boolean> {
       return false;
     }
 
-    // Simple SSL check by making a request
-    const response = await fetch(endpoint, {
+    // Simple SSL check by making a request with SSRF protection
+    const { safeFetch } = await import('@/lib/security/url-validation');
+
+    const response = await safeFetch(endpoint, {
       method: 'HEAD',
       signal: AbortSignal.timeout(5000)
-    });
+    }, true); // Skip DNS validation for performance
 
     // If we can make the request without SSL errors, SSL is valid
     return true;

@@ -4,7 +4,7 @@
 import { RegistryService } from './registry';
 import { HealthService, EnhancedHealthService } from './health';
 import { IntentService, EnhancedIntentService } from './intent';
-import { VerificationService } from './verification';
+import { VerificationService, MCPValidationService } from './verification';
 import { DiscoveryService } from './discovery';
 import { StorageConfig } from './storage/storage.js';
 
@@ -93,7 +93,6 @@ export class ServiceFactory {
    */
   getVerificationService(): VerificationService {
     if (!this.verificationService) {
-      const { MCPValidationService } = require('./verification');
       const mcpService = new MCPValidationService();
       this.verificationService = new VerificationService(mcpService, this.config.storage);
     }
@@ -244,9 +243,7 @@ export {
 };
 
 // Export verification dependencies
-export {
-  MCPValidationService
-} from './verification';
+export { MCPValidationService };
 
 // Export service interfaces
 export type {

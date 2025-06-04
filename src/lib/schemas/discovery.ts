@@ -2,6 +2,7 @@
 // Semantically justified fields based on MCP specification research
 
 import { z } from 'zod';
+import { SecureURLSchema, SecureDomainSchema } from '../security/url-validation';
 
 // ============================================================================
 // MCP PROTOCOL SCHEMAS (Based on MCP Specification)
@@ -256,8 +257,8 @@ export const DiscoveryResponseSchema = z.object({
  * Justified: Minimal data needed to start verification process
  */
 export const RegistrationRequestSchema = z.object({
-  domain: z.string().describe("Domain to register (e.g., 'api.example.com')"),
-  endpoint: z.string().url().describe("MCP endpoint URL"),
+  domain: SecureDomainSchema.describe("Domain to register (e.g., 'api.example.com')"),
+  endpoint: SecureURLSchema.describe("MCP endpoint URL"),
   contact_email: z.string().email().describe("Contact email for verification"),
   description: z.string().optional().describe("Server description")
 });

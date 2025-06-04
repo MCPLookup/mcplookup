@@ -323,9 +323,17 @@ export class RealtimeDomainSecurityService {
   }
 
   private async verifyDNSRecord(recordName: string, expectedValue: string): Promise<boolean> {
-    // Use multiple resolvers for consensus
+    // Use multiple resolvers for consensus with security validation
+    const { isPrivateIP } = await import('../security/url-validation');
+
     const promises = this.DNS_RESOLVERS.map(async resolver => {
       try {
+        // Validate resolver is not private
+        if (isPrivateIP(resolver)) {
+          console.warn(`Blocked private DNS resolver: ${resolver}`);
+          return false;
+        }
+
         dns.setServers([resolver]);
         const records = await dns.resolveTxt(recordName);
         return records.some(record => record.join('') === expectedValue);
@@ -336,7 +344,7 @@ export class RealtimeDomainSecurityService {
 
     const results = await Promise.allSettled(promises);
     const successCount = results.filter(r => r.status === 'fulfilled' && r.value).length;
-    
+
     // Require majority consensus
     return successCount > this.DNS_RESOLVERS.length / 2;
   }

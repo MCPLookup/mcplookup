@@ -118,8 +118,10 @@ export class HealthService implements IHealthService {
     const timeoutId = setTimeout(() => controller.abort(), this.HEALTH_CHECK_TIMEOUT_MS);
 
     try {
-      // Try MCP initialize call
-      const response = await fetch(endpoint, {
+      // Try MCP initialize call with SSRF protection
+      const { safeFetch } = await import('../security/url-validation');
+
+      const response = await safeFetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -139,7 +141,7 @@ export class HealthService implements IHealthService {
           }
         }),
         signal: controller.signal
-      });
+      }, true); // Skip DNS validation for performance in health checks
 
       clearTimeout(timeoutId);
 
