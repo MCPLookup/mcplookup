@@ -28,6 +28,48 @@ export interface ModelState {
   lastUsed?: number;
 }
 
+export interface AIConversation {
+  id: string;
+  sessionId: string;
+  messages: {
+    role: 'user' | 'assistant' | 'system';
+    content: string;
+    timestamp: number;
+  }[];
+  metadata: {
+    provider?: string;
+    model?: string;
+    totalCost?: number;
+    createdAt: number;
+    updatedAt: number;
+  };
+}
+
+export interface QueryAnalysis {
+  query: string;
+  intent: string;
+  capabilities: string[];
+  confidence: number;
+  similarTo?: string[];
+  constraints?: any;
+  timestamp: number;
+  provider?: string;
+  model?: string;
+}
+
+export interface AIResponse {
+  query: string;
+  response: any;
+  provider: string;
+  model: string;
+  cost: number;
+  latency: number;
+  timestamp: number;
+  confidence?: number;
+  capabilities?: string[];
+  metadata?: any;
+}
+
 export interface CachedResponse {
   query: string;
   response: any;
@@ -70,6 +112,19 @@ export interface IAIStorage extends IBaseStorage {
   getProviderStats(provider: string): Promise<StorageResult<ProviderStats | null>>;
   updateProviderStats(provider: string, stats: Partial<ProviderStats>): Promise<StorageResult<void>>;
   getAllProviderStats(): Promise<StorageResult<ProviderStats[]>>;
+
+  // Conversation management
+  storeConversation(sessionId: string, conversation: AIConversation): Promise<StorageResult<void>>;
+  getConversation(sessionId: string): Promise<StorageResult<AIConversation | null>>;
+  deleteConversation(sessionId: string): Promise<StorageResult<void>>;
+
+  // Query analysis
+  storeAnalysis(query: string, analysis: QueryAnalysis): Promise<StorageResult<void>>;
+  getAnalysis(query: string): Promise<StorageResult<QueryAnalysis | null>>;
+
+  // AI Response storage
+  storeResponse(query: string, response: AIResponse): Promise<StorageResult<void>>;
+  getResponse(query: string): Promise<StorageResult<AIResponse | null>>;
 
   // Health and maintenance
   healthCheck(): Promise<HealthCheckResult>;
@@ -270,6 +325,78 @@ export class InMemoryAIStorage implements IAIStorage {
       return createErrorResult(`Failed to get storage stats: ${error}`, 'STATS_ERROR');
     }
   }
+
+  // Conversation management
+  private conversations = new Map<string, AIConversation>();
+
+  async storeConversation(sessionId: string, conversation: AIConversation): Promise<StorageResult<void>> {
+    try {
+      this.conversations.set(sessionId, conversation);
+      return createSuccessResult(undefined);
+    } catch (error) {
+      return createErrorResult(`Failed to store conversation: ${error}`, 'STORE_ERROR');
+    }
+  }
+
+  async getConversation(sessionId: string): Promise<StorageResult<AIConversation | null>> {
+    try {
+      const conversation = this.conversations.get(sessionId) || null;
+      return createSuccessResult(conversation);
+    } catch (error) {
+      return createErrorResult(`Failed to get conversation: ${error}`, 'GET_ERROR');
+    }
+  }
+
+  async deleteConversation(sessionId: string): Promise<StorageResult<void>> {
+    try {
+      this.conversations.delete(sessionId);
+      return createSuccessResult(undefined);
+    } catch (error) {
+      return createErrorResult(`Failed to delete conversation: ${error}`, 'DELETE_ERROR');
+    }
+  }
+
+  // Query analysis
+  private analyses = new Map<string, QueryAnalysis>();
+
+  async storeAnalysis(query: string, analysis: QueryAnalysis): Promise<StorageResult<void>> {
+    try {
+      this.analyses.set(query, analysis);
+      return createSuccessResult(undefined);
+    } catch (error) {
+      return createErrorResult(`Failed to store analysis: ${error}`, 'STORE_ERROR');
+    }
+  }
+
+  async getAnalysis(query: string): Promise<StorageResult<QueryAnalysis | null>> {
+    try {
+      const analysis = this.analyses.get(query) || null;
+      return createSuccessResult(analysis);
+    } catch (error) {
+      return createErrorResult(`Failed to get analysis: ${error}`, 'GET_ERROR');
+    }
+  }
+
+  // AI Response storage
+  private responses = new Map<string, AIResponse>();
+
+  async storeResponse(query: string, response: AIResponse): Promise<StorageResult<void>> {
+    try {
+      this.responses.set(query, response);
+      return createSuccessResult(undefined);
+    } catch (error) {
+      return createErrorResult(`Failed to store response: ${error}`, 'STORE_ERROR');
+    }
+  }
+
+  async getResponse(query: string): Promise<StorageResult<AIResponse | null>> {
+    try {
+      const response = this.responses.get(query) || null;
+      return createSuccessResult(response);
+    } catch (error) {
+      return createErrorResult(`Failed to get response: ${error}`, 'GET_ERROR');
+    }
+  }
 }
 
 /**
@@ -326,7 +453,7 @@ class UpstashAIStorage implements IAIStorage {
       // Add to session index
       await this.redis.sadd('conversations:sessions', sessionId);
 
-      return { success: true };
+      return { success: true, data: undefined };
     } catch (error) {
       console.error('Failed to store conversation:', error);
       return {
@@ -363,7 +490,7 @@ class UpstashAIStorage implements IAIStorage {
       await this.redis.del(`conversation:${sessionId}`);
       await this.redis.srem('conversations:sessions', sessionId);
 
-      return { success: true };
+      return { success: true, data: undefined };
     } catch (error) {
       console.error('Failed to delete conversation:', error);
       return {
