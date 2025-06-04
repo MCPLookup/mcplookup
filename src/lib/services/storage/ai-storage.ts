@@ -434,6 +434,265 @@ class UpstashAIStorage implements IAIStorage {
     }
   }
 
+  getProviderInfo() {
+    return {
+      name: 'UpstashAIStorage',
+      version: '1.0.0',
+      capabilities: ['model_states', 'response_caching', 'provider_stats', 'conversations', 'analysis']
+    };
+  }
+
+  // Model state management
+  async getModelState(modelId: string): Promise<StorageResult<ModelState | null>> {
+    try {
+      await this.ensureRedis();
+      const data = await this.redis.get(`model:${modelId}`);
+      if (!data) {
+        return { success: true, data: null };
+      }
+      const state = typeof data === 'string' ? JSON.parse(data) : data;
+      return { success: true, data: state as ModelState };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  async setModelState(modelId: string, state: ModelState): Promise<StorageResult<void>> {
+    try {
+      await this.ensureRedis();
+      await this.redis.set(`model:${modelId}`, JSON.stringify({ ...state, lastUsed: Date.now() }));
+      return { success: true, data: undefined };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  async getAllModelStates(): Promise<StorageResult<ModelState[]>> {
+    try {
+      await this.ensureRedis();
+      const keys = await this.redis.keys('model:*');
+      const states = [];
+      for (const key of keys) {
+        const data = await this.redis.get(key);
+        if (data) {
+          const state = typeof data === 'string' ? JSON.parse(data) : data;
+          states.push(state as ModelState);
+        }
+      }
+      return { success: true, data: states };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  async resetModelState(modelId: string): Promise<StorageResult<void>> {
+    try {
+      await this.ensureRedis();
+      const existing = await this.redis.get(`model:${modelId}`);
+      if (existing) {
+        const state = typeof existing === 'string' ? JSON.parse(existing) : existing;
+        const reset = {
+          ...state,
+          lastSuccess: undefined,
+          lastFailure: undefined,
+          failureCount: 0,
+          enabled: true,
+          averageLatency: undefined,
+          successCount: 0,
+          totalAttempts: 0
+        };
+        await this.redis.set(`model:${modelId}`, JSON.stringify(reset));
+      }
+      return { success: true, data: undefined };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  async resetAllModelStates(): Promise<StorageResult<void>> {
+    try {
+      await this.ensureRedis();
+      const keys = await this.redis.keys('model:*');
+      for (const key of keys) {
+        const modelId = key.replace('model:', '');
+        await this.resetModelState(modelId);
+      }
+      return { success: true, data: undefined };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  // Response caching
+  async getCachedResponse(queryHash: string): Promise<StorageResult<CachedResponse | null>> {
+    try {
+      await this.ensureRedis();
+      const data = await this.redis.get(`cache:${queryHash}`);
+      if (!data) {
+        return { success: true, data: null };
+      }
+      const response = typeof data === 'string' ? JSON.parse(data) : data;
+      return { success: true, data: response as CachedResponse };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  async setCachedResponse(queryHash: string, response: CachedResponse): Promise<StorageResult<void>> {
+    try {
+      await this.ensureRedis();
+      await this.redis.set(`cache:${queryHash}`, JSON.stringify(response), { ex: 60 * 60 }); // 1 hour expiry
+      return { success: true, data: undefined };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  async clearExpiredCache(maxAge: number): Promise<StorageResult<number>> {
+    try {
+      await this.ensureRedis();
+      const keys = await this.redis.keys('cache:*');
+      let cleared = 0;
+      const cutoffTime = Date.now() - maxAge;
+      
+      for (const key of keys) {
+        const data = await this.redis.get(key);
+        if (data) {
+          const response = typeof data === 'string' ? JSON.parse(data) : data;
+          if (response.timestamp < cutoffTime) {
+            await this.redis.del(key);
+            cleared++;
+          }
+        }
+      }
+      return { success: true, data: cleared };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  async clearAllCache(): Promise<StorageResult<void>> {
+    try {
+      await this.ensureRedis();
+      const keys = await this.redis.keys('cache:*');
+      if (keys.length > 0) {
+        await this.redis.del(...keys);
+      }
+      return { success: true, data: undefined };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  // Provider statistics
+  async getProviderStats(provider: string): Promise<StorageResult<ProviderStats | null>> {
+    try {
+      await this.ensureRedis();
+      const data = await this.redis.get(`stats:${provider}`);
+      if (!data) {
+        return { success: true, data: null };
+      }
+      const stats = typeof data === 'string' ? JSON.parse(data) : data;
+      return { success: true, data: stats as ProviderStats };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  async updateProviderStats(provider: string, updates: Partial<ProviderStats>): Promise<StorageResult<void>> {
+    try {
+      await this.ensureRedis();
+      const existing = await this.redis.get(`stats:${provider}`);
+      const currentStats = existing ? (typeof existing === 'string' ? JSON.parse(existing) : existing) : {
+        provider,
+        totalRequests: 0,
+        successfulRequests: 0,
+        failedRequests: 0,
+        averageLatency: 0,
+        totalCost: 0
+      };
+      
+      const updated = { ...currentStats, ...updates, lastUsed: Date.now() };
+      await this.redis.set(`stats:${provider}`, JSON.stringify(updated));
+      return { success: true, data: undefined };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  async getAllProviderStats(): Promise<StorageResult<ProviderStats[]>> {
+    try {
+      await this.ensureRedis();
+      const keys = await this.redis.keys('stats:*');
+      const stats = [];
+      for (const key of keys) {
+        const data = await this.redis.get(key);
+        if (data) {
+          const stat = typeof data === 'string' ? JSON.parse(data) : data;
+          stats.push(stat as ProviderStats);
+        }
+      }
+      return { success: true, data: stats };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  // Health and maintenance
+  async healthCheck(): Promise<HealthCheckResult> {
+    try {
+      const start = Date.now();
+      await this.ensureRedis();
+      await this.redis.ping();
+      const latency = Date.now() - start;
+      return createHealthCheckResult(true, latency, {
+        redisConnected: true,
+        provider: 'upstash'
+      });
+    } catch (error) {
+      return createHealthCheckResult(false, undefined, {
+        redisConnected: false,
+        provider: 'upstash',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  async getStorageStats(): Promise<StorageResult<{
+    totalModels: number;
+    enabledModels: number;
+    cachedResponses: number;
+    totalProviders: number;
+  }>> {
+    try {
+      await this.ensureRedis();
+      const modelKeys = await this.redis.keys('model:*');
+      const cacheKeys = await this.redis.keys('cache:*');
+      const statsKeys = await this.redis.keys('stats:*');
+      
+      let enabledModels = 0;
+      for (const key of modelKeys) {
+        const data = await this.redis.get(key);
+        if (data) {
+          const state = typeof data === 'string' ? JSON.parse(data) : data;
+          if (state.enabled) enabledModels++;
+        }
+      }
+      
+      return { success: true, data: {
+        totalModels: modelKeys.length,
+        enabledModels,
+        cachedResponses: cacheKeys.length,
+        totalProviders: statsKeys.length
+      }};
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  // Conversation management
+  private conversations = new Map<string, AIConversation>();
+
   async storeConversation(sessionId: string, conversation: AIConversation): Promise<StorageResult<void>> {
     try {
       await this.ensureRedis();
@@ -500,6 +759,9 @@ class UpstashAIStorage implements IAIStorage {
     }
   }
 
+  // Query analysis
+  private analyses = new Map<string, QueryAnalysis>();
+
   async storeAnalysis(query: string, analysis: QueryAnalysis): Promise<StorageResult<void>> {
     try {
       await this.ensureRedis();
@@ -520,7 +782,7 @@ class UpstashAIStorage implements IAIStorage {
         { ex: 60 * 60 } // 1 hour expiry
       );
 
-      return { success: true };
+      return { success: true, data: undefined };
     } catch (error) {
       console.error('Failed to store analysis:', error);
       return {
@@ -572,7 +834,7 @@ class UpstashAIStorage implements IAIStorage {
         { ex: 30 * 60 } // 30 minute expiry
       );
 
-      return { success: true };
+      return { success: true, data: undefined };
     } catch (error) {
       console.error('Failed to store response:', error);
       return {
@@ -640,14 +902,6 @@ class UpstashAIStorage implements IAIStorage {
       };
     }
   }
-
-  getProviderInfo() {
-    return {
-      name: 'upstash',
-      version: '1.0.0',
-      capabilities: ['persistence', 'global-replication', 'auto-scaling', 'production-ready']
-    };
-  }
 }
 
 /**
@@ -679,245 +933,243 @@ class LocalRedisAIStorage implements IAIStorage {
     }
   }
 
-  // Implementation similar to UpstashAIStorage but using ioredis
-  async storeConversation(sessionId: string, conversation: AIConversation): Promise<StorageResult<void>> {
-    try {
-      await this.ensureRedis();
-
-      const conversationWithTimestamp = {
-        ...conversation,
-        updated_at: new Date().toISOString()
-      };
-
-      await this.redis.setex(
-        `conversation:${sessionId}`,
-        24 * 60 * 60, // 24 hour expiry
-        JSON.stringify(conversationWithTimestamp)
-      );
-
-      await this.redis.sadd('conversations:sessions', sessionId);
-      return { success: true };
-    } catch (error) {
-      console.error('Failed to store conversation:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      };
-    }
+  getProviderInfo() {
+    return {
+      name: 'LocalRedisAIStorage',
+      version: '1.0.0',
+      capabilities: ['model_states', 'response_caching', 'provider_stats', 'conversations', 'analysis']
+    };
   }
 
-  async getConversation(sessionId: string): Promise<StorageResult<AIConversation | null>> {
+  // Model state management
+  async getModelState(modelId: string): Promise<StorageResult<ModelState | null>> {
     try {
       await this.ensureRedis();
-
-      const data = await this.redis.get(`conversation:${sessionId}`);
+      const data = await this.redis.get(`model:${modelId}`);
       if (!data) {
         return { success: true, data: null };
       }
-
-      const conversation = JSON.parse(data);
-      return { success: true, data: conversation as AIConversation };
+      const state = JSON.parse(data);
+      return { success: true, data: state as ModelState };
     } catch (error) {
-      console.error('Failed to get conversation:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      };
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
 
-  async deleteConversation(sessionId: string): Promise<StorageResult<void>> {
+  async setModelState(modelId: string, state: ModelState): Promise<StorageResult<void>> {
     try {
       await this.ensureRedis();
-
-      await this.redis.del(`conversation:${sessionId}`);
-      await this.redis.srem('conversations:sessions', sessionId);
-      return { success: true };
+      await this.redis.set(`model:${modelId}`, JSON.stringify({ ...state, lastUsed: Date.now() }));
+      return { success: true, data: undefined };
     } catch (error) {
-      console.error('Failed to delete conversation:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      };
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
 
-  async storeAnalysis(query: string, analysis: QueryAnalysis): Promise<StorageResult<void>> {
+  async getAllModelStates(): Promise<StorageResult<ModelState[]>> {
     try {
       await this.ensureRedis();
-
-      const crypto = await import('crypto');
-      const queryHash = crypto.createHash('sha256').update(query.toLowerCase().trim()).digest('hex');
-
-      await this.redis.setex(
-        `analysis:${queryHash}`,
-        60 * 60, // 1 hour expiry
-        JSON.stringify({ ...analysis, cached_at: new Date().toISOString() })
-      );
-
-      return { success: true };
+      const keys = await this.redis.keys('model:*');
+      const states = [];
+      for (const key of keys) {
+        const data = await this.redis.get(key);
+        if (data) {
+          const state = JSON.parse(data);
+          states.push(state as ModelState);
+        }
+      }
+      return { success: true, data: states };
     } catch (error) {
-      console.error('Failed to store analysis:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      };
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
 
-  async getAnalysis(query: string): Promise<StorageResult<QueryAnalysis | null>> {
+  async resetModelState(modelId: string): Promise<StorageResult<void>> {
     try {
       await this.ensureRedis();
+      const existing = await this.redis.get(`model:${modelId}`);
+      if (existing) {
+        const state = JSON.parse(existing);
+        const reset = {
+          ...state,
+          lastSuccess: undefined,
+          lastFailure: undefined,
+          failureCount: 0,
+          enabled: true,
+          averageLatency: undefined,
+          successCount: 0,
+          totalAttempts: 0
+        };
+        await this.redis.set(`model:${modelId}`, JSON.stringify(reset));
+      }
+      return { success: true, data: undefined };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
 
-      const crypto = await import('crypto');
-      const queryHash = crypto.createHash('sha256').update(query.toLowerCase().trim()).digest('hex');
+  async resetAllModelStates(): Promise<StorageResult<void>> {
+    try {
+      await this.ensureRedis();
+      const keys = await this.redis.keys('model:*');
+      for (const key of keys) {
+        const modelId = key.replace('model:', '');
+        await this.resetModelState(modelId);
+      }
+      return { success: true, data: undefined };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
 
-      const data = await this.redis.get(`analysis:${queryHash}`);
+  // Response caching
+  async getCachedResponse(queryHash: string): Promise<StorageResult<CachedResponse | null>> {
+    try {
+      await this.ensureRedis();
+      const data = await this.redis.get(`cache:${queryHash}`);
       if (!data) {
         return { success: true, data: null };
       }
-
-      const analysis = JSON.parse(data);
-      return { success: true, data: analysis as QueryAnalysis };
-    } catch (error) {
-      console.error('Failed to get analysis:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      };
-    }
-  }
-
-  async storeResponse(query: string, response: AIResponse): Promise<StorageResult<void>> {
-    try {
-      await this.ensureRedis();
-
-      const crypto = await import('crypto');
-      const queryHash = crypto.createHash('sha256').update(query.toLowerCase().trim()).digest('hex');
-
-      await this.redis.setex(
-        `response:${queryHash}`,
-        30 * 60, // 30 minute expiry
-        JSON.stringify({ ...response, cached_at: new Date().toISOString() })
-      );
-
-      return { success: true };
-    } catch (error) {
-      console.error('Failed to store response:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      };
-    }
-  }
-
-  async getResponse(query: string): Promise<StorageResult<AIResponse | null>> {
-    try {
-      await this.ensureRedis();
-
-      const crypto = await import('crypto');
-      const queryHash = crypto.createHash('sha256').update(query.toLowerCase().trim()).digest('hex');
-
-      const data = await this.redis.get(`response:${queryHash}`);
-      if (!data) {
-        return { success: true, data: null };
-      }
-
       const response = JSON.parse(data);
-      return { success: true, data: response as AIResponse };
+      return { success: true, data: response as CachedResponse };
     } catch (error) {
-      console.error('Failed to get response:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      };
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
 
-  async cleanup(): Promise<StorageResult<{ removedCount: number }>> {
+  async setCachedResponse(queryHash: string, response: CachedResponse): Promise<StorageResult<void>> {
     try {
       await this.ensureRedis();
+      await this.redis.setex(`cache:${queryHash}`, 60 * 60, JSON.stringify(response)); // 1 hour expiry
+      return { success: true, data: undefined };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
 
-      const sessions = await this.redis.smembers('conversations:sessions');
-      let removedCount = 0;
-
-      const cutoffTime = Date.now() - (24 * 60 * 60 * 1000);
-
-      for (const sessionId of sessions) {
-        const conversationResult = await this.getConversation(sessionId);
-        if (conversationResult.success && conversationResult.data) {
-          const conversation = conversationResult.data;
-          const lastMessageTime = conversation.messages.length > 0
-            ? new Date(conversation.messages[conversation.messages.length - 1].timestamp).getTime()
-            : 0;
-
-          if (lastMessageTime < cutoffTime) {
-            await this.deleteConversation(sessionId);
-            removedCount++;
+  async clearExpiredCache(maxAge: number): Promise<StorageResult<number>> {
+    try {
+      await this.ensureRedis();
+      const keys = await this.redis.keys('cache:*');
+      let cleared = 0;
+      const cutoffTime = Date.now() - maxAge;
+      
+      for (const key of keys) {
+        const data = await this.redis.get(key);
+        if (data) {
+          const response = JSON.parse(data);
+          if (response.timestamp < cutoffTime) {
+            await this.redis.del(key);
+            cleared++;
           }
         }
       }
-
-      return { success: true, data: { removedCount } };
+      return { success: true, data: cleared };
     } catch (error) {
-      console.error('Failed to cleanup AI storage:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      };
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
 
-  getProviderInfo() {
-    return {
-      name: 'local-redis',
-      version: '1.0.0',
-      capabilities: ['persistence', 'local-development']
-    };
-  }
-}
-
-// =============================================================================
-// STORAGE FACTORY
-// =============================================================================
-
-/**
- * Get AI storage based on environment
- */
-export function getAIStorage(config?: { provider?: 'upstash' | 'local' | 'memory' }): IAIStorage {
-  const provider = config?.provider || detectStorageProvider();
-
-  switch (provider) {
-    case 'upstash':
-      try {
-        return new UpstashAIStorage();
-      } catch (error) {
-        console.warn('UpstashAIStorage initialization failed, falling back to memory:', error);
-        return new InMemoryAIStorage();
+  async clearAllCache(): Promise<StorageResult<void>> {
+    try {
+      await this.ensureRedis();
+      const keys = await this.redis.keys('cache:*');
+      if (keys.length > 0) {
+        await this.redis.del(...keys);
       }
-    case 'local':
-      try {
-        return new LocalRedisAIStorage();
-      } catch (error) {
-        console.warn('LocalRedisAIStorage initialization failed, falling back to memory:', error);
-        return new InMemoryAIStorage();
-      }
-    case 'memory':
-      return new InMemoryAIStorage();
-    default:
-      return new InMemoryAIStorage();
+      return { success: true, data: undefined };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
   }
-}
 
-/**
- * Detect storage provider from environment
- */
-function detectStorageProvider(): 'upstash' | 'local' | 'memory' {
-  if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
-    return 'upstash';
+  // Provider statistics
+  async getProviderStats(provider: string): Promise<StorageResult<ProviderStats | null>> {
+    try {
+      await this.ensureRedis();
+      const data = await this.redis.get(`stats:${provider}`);
+      if (!data) {
+        return { success: true, data: null };
+      }
+      const stats = JSON.parse(data);
+      return { success: true, data: stats as ProviderStats };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
   }
-  if (process.env.REDIS_URL || process.env.LOCAL_REDIS_URL) {
-    return 'local';
+
+  async updateProviderStats(provider: string, updates: Partial<ProviderStats>): Promise<StorageResult<void>> {
+    try {
+      await this.ensureRedis();
+      const existing = await this.redis.get(`stats:${provider}`);
+      const currentStats = existing ? JSON.parse(existing) : {
+        provider,
+        totalRequests: 0,
+        successfulRequests: 0,
+        failedRequests: 0,
+        averageLatency: 0,
+        totalCost: 0
+      };
+      
+      const updated = { ...currentStats, ...updates, lastUsed: Date.now() };
+      await this.redis.set(`stats:${provider}`, JSON.stringify(updated));
+      return { success: true, data: undefined };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
   }
-  return 'memory';
-}
+
+  async getAllProviderStats(): Promise<StorageResult<ProviderStats[]>> {
+    try {
+      await this.ensureRedis();
+      const keys = await this.redis.keys('stats:*');
+      const stats = [];
+      for (const key of keys) {
+        const data = await this.redis.get(key);
+        if (data) {
+          const stat = JSON.parse(data);
+          stats.push(stat as ProviderStats);
+        }
+      }
+      return { success: true, data: stats };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  // Health and maintenance
+  async healthCheck(): Promise<HealthCheckResult> {
+    try {
+      const start = Date.now();
+      await this.ensureRedis();
+      await this.redis.ping();
+      const latency = Date.now() - start;
+      return createHealthCheckResult(true, latency, {
+        redisConnected: true,
+        provider: 'local'
+      });
+    } catch (error) {
+      return createHealthCheckResult(false, undefined, {
+        redisConnected: false,
+        provider: 'local',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  async getStorageStats(): Promise<StorageResult<{
+    totalModels: number;
+    enabledModels: number;
+    cachedResponses: number;
+    totalProviders: number;
+  }>> {
+    try {
+      await this.ensureRedis();
+      const modelKeys = await this.redis.keys('model:*');
+      const cacheKeys = await this.redis.keys('cache:*');
+      const statsKeys = await this.redis.keys('stats:*');
+      
+      let enabledModels = 0;
+      for (const key of modelKeys) {
+        const data = await this.redis.get(key);
+        if
