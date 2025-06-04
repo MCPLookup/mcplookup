@@ -35,7 +35,16 @@ export default function SignInPage() {
               </div>
 
               <div className="space-y-4">
-                <SignInButton />
+                <SignInButton
+                  provider="github"
+                  width="full"
+                  size="lg"
+                />
+                <SignInButton
+                  provider="google"
+                  width="full"
+                  size="lg"
+                />
               </div>
 
               <p className="text-sm text-gray-500 text-center">
