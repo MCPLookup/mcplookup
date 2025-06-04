@@ -31,16 +31,23 @@ async function testStorageProvider(providerName: string, provider: 'memory' | 'l
     console.log('\n📝 Testing Registry Storage:');
     
     const mockServer: MCPServerRecord = {
+      // Identity
       domain: 'test-example.com',
       endpoint: 'https://test-example.com/.well-known/mcp',
-      capabilities: {
-        category: 'productivity' as CapabilityCategory,
-        subcategories: ['email', 'calendar']
-      },
+      name: 'Test Server',
+      description: 'A test MCP server for storage testing',
+
+      // MCP Protocol Data
       server_info: {
         name: 'Test Server',
-        description: 'A test MCP server for storage testing',
-        version: '1.0.0'
+        version: '1.0.0',
+        protocolVersion: '2024-11-05',
+        capabilities: {
+          tools: true,
+          resources: false,
+          prompts: false,
+          logging: false
+        }
       },
       tools: [
         {
@@ -54,6 +61,33 @@ async function testStorageProvider(providerName: string, provider: 'memory' | 'l
           }
         }
       ],
+      resources: [],
+      transport: 'streamable_http',
+
+      // Semantic Organization
+      capabilities: {
+        category: 'productivity' as CapabilityCategory,
+        subcategories: ['email', 'calendar'],
+        intent_keywords: ['email', 'calendar', 'schedule', 'meeting'],
+        use_cases: ['Send emails', 'Manage calendar events', 'Schedule meetings']
+      },
+
+      // Technical Requirements
+      auth: {
+        type: 'none'
+      },
+      cors_enabled: true,
+
+      // Operational Status
+      health: {
+        status: 'healthy',
+        uptime_percentage: 99.9,
+        avg_response_time_ms: 150,
+        response_time_ms: 150,
+        error_rate: 0.001,
+        last_check: new Date().toISOString(),
+        consecutive_failures: 0
+      },
       verification: {
         dns_verified: true,
         endpoint_verified: true,
@@ -61,15 +95,14 @@ async function testStorageProvider(providerName: string, provider: 'memory' | 'l
         last_verification: new Date().toISOString(),
         verification_method: 'dns-txt-challenge'
       },
-      health: {
-        status: 'healthy',
-        last_check: new Date().toISOString(),
-        response_time_ms: 150,
-        uptime_percentage: 99.9,
-        error_count: 0
-      },
-      discovery_method: 'well-known',
-      last_updated: new Date().toISOString()
+
+      // Metadata
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      maintainer: {
+        name: 'Test Maintainer',
+        email: 'test@example.com'
+      }
     };
 
     // Store server

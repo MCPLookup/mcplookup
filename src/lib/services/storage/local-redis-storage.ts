@@ -2,7 +2,7 @@
 // Uses standard Redis client for local development with Docker
 
 import { createClient, RedisClientType } from 'redis';
-import { MCPServerRecord, CapabilityCategory } from '../../schemas/discovery.js';
+import { MCPServerRecord, CapabilityCategory } from '../../schemas/discovery';
 import {
   IRegistryStorage,
   IVerificationStorage,
@@ -21,7 +21,7 @@ import {
   createEmptyPaginatedResult,
   validatePaginationOptions,
   DEFAULT_SEARCH_OPTIONS
-} from './interfaces.js';
+} from './interfaces';
 
 /**
  * Local Redis Registry Storage
@@ -345,10 +345,14 @@ export class LocalRedisRegistryStorage implements IRegistryStorage {
       // Get memory usage if available
       let memoryUsed = 'N/A';
       try {
-        const memoryInfo = await this.redis.memory('USAGE', 'servers:all');
-        memoryUsed = `${Math.round(memoryInfo / 1024)}KB`;
+        // Use INFO command instead of MEMORY which might not be available
+        const info = await this.redis.info('memory');
+        const match = info.match(/used_memory:(\d+)/);
+        if (match) {
+          memoryUsed = `${Math.round(parseInt(match[1]) / 1024)}KB`;
+        }
       } catch (error) {
-        // Memory command might not be available in all Redis versions
+        // Memory info might not be available in all Redis versions
       }
 
       return createSuccessResult({
@@ -911,10 +915,14 @@ export class LocalRedisVerificationStorage implements IVerificationStorage {
       // Get memory usage if available
       let memoryUsed = 'N/A';
       try {
-        const memoryInfo = await this.redis.memory('USAGE', 'challenges:all');
-        memoryUsed = `${Math.round(memoryInfo / 1024)}KB`;
+        // Use INFO command instead of MEMORY which might not be available
+        const info = await this.redis.info('memory');
+        const match = info.match(/used_memory:(\d+)/);
+        if (match) {
+          memoryUsed = `${Math.round(parseInt(match[1]) / 1024)}KB`;
+        }
       } catch (error) {
-        // Memory command might not be available in all Redis versions
+        // Memory info might not be available in all Redis versions
       }
 
       return createSuccessResult({

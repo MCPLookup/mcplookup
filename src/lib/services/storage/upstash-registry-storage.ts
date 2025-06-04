@@ -2,8 +2,8 @@
 // Implements the full IRegistryStorage interface with pagination and error handling
 
 import { Redis } from '@upstash/redis';
-import { MCPServerRecord, CapabilityCategory } from '../../schemas/discovery.js';
-import { 
+import { MCPServerRecord, CapabilityCategory } from '../../schemas/discovery';
+import {
   IRegistryStorage,
   StorageResult,
   PaginatedResult,
@@ -17,7 +17,7 @@ import {
   createEmptyPaginatedResult,
   validatePaginationOptions,
   DEFAULT_SEARCH_OPTIONS
-} from './interfaces.js';
+} from './interfaces';
 
 /**
  * Upstash Redis Registry Storage
