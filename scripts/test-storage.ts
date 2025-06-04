@@ -160,12 +160,18 @@ async function testStorageProvider(providerName: string, provider: 'memory' | 'l
     console.log('\n🔐 Testing Verification Storage:');
     
     const mockChallenge: VerificationChallengeData = {
-      id: 'test-challenge-123',
+      // Base VerificationChallenge fields
+      challenge_id: 'test-challenge-123',
       domain: 'test-example.com',
-      challenge: 'mcp_verify_test123',
-      createdAt: new Date(),
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-      verified: false
+      txt_record_name: '_mcp-verify.test-example.com',
+      txt_record_value: 'mcp_verify_test123',
+      expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+
+      // Extended VerificationChallengeData fields
+      endpoint: 'https://test-example.com/.well-known/mcp',
+      contact_email: 'test@example.com',
+      token: 'test-token-123',
+      created_at: new Date().toISOString()
     };
 
     // Store challenge
