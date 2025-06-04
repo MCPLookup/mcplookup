@@ -26,9 +26,15 @@ describe('HealthService', () => {
           'content-type': 'application/json'
         }),
         json: vi.fn().mockResolvedValue({
-          server_info: {
-            name: 'Test Server',
-            version: '1.0.0'
+          jsonrpc: '2.0',
+          id: 'health-check-123',
+          result: {
+            protocolVersion: '2024-11-05',
+            capabilities: {},
+            serverInfo: {
+              name: 'Test Server',
+              version: '1.0.0'
+            }
           }
         })
       };
@@ -64,7 +70,11 @@ describe('HealthService', () => {
         ok: true,
         status: 200,
         headers: new Headers(),
-        json: vi.fn().mockResolvedValue({})
+        json: vi.fn().mockResolvedValue({
+          jsonrpc: '2.0',
+          id: 'health-check-123',
+          result: { protocolVersion: '2024-11-05', capabilities: {} }
+        })
       };
 
       // Mock a slow response by delaying the fetch

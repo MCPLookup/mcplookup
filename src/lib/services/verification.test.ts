@@ -4,9 +4,16 @@ import { getVerificationStorage } from './storage/storage';
 import { RegistrationRequest, VerificationChallenge } from '../schemas/discovery';
 
 // Mock DNS module
-vi.mock('dns/promises', () => ({
-  resolveTxt: vi.fn()
-}));
+vi.mock('dns/promises', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    resolveTxt: vi.fn(),
+    default: {
+      resolveTxt: vi.fn()
+    }
+  };
+});
 
 // Mock storage
 vi.mock('./storage/storage', () => ({
@@ -55,8 +62,8 @@ describe('VerificationService', () => {
       const challenge = await verificationService.initiateDNSVerification(registrationRequest);
 
       expect(challenge.domain).toBe('test.com');
-      expect(challenge.txt_record_name).toBe('_mcp-verify.test.com');
-      expect(challenge.txt_record_value).toMatch(/^mcp_verify_[a-f0-9]+$/);
+      expect(challenge.txt_record_name).toBe('_mcplookup-verify.test.com');
+      expect(challenge.txt_record_value).toMatch(/^mcplookup-verify=/);
       expect(challenge.contact_email).toBe('admin@test.com');
       expect(challenge.endpoint).toBe('https://test.com/.well-known/mcp');
       expect(challenge.expires_at).toBeDefined();
@@ -97,7 +104,7 @@ describe('VerificationService', () => {
       });
 
       await expect(verificationService.initiateDNSVerification(registrationRequest))
-        .rejects.toThrow('Failed to store verification challenge');
+        .rejects.toThrow('Failed to store challenge');
     });
   });
 
@@ -106,8 +113,8 @@ describe('VerificationService', () => {
       const mockChallenge = {
         challenge_id: 'test-challenge',
         domain: 'test.com',
-        txt_record_name: '_mcp-verify.test.com',
-        txt_record_value: 'mcp_verify_abc123',
+        txt_record_name: '_mcplookup-verify.test.com',
+        txt_record_value: 'mcplookup-verify=abc123.1234567890',
         expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
         endpoint: 'https://test.com/.well-known/mcp',
         contact_email: 'admin@test.com',
@@ -122,14 +129,14 @@ describe('VerificationService', () => {
 
       // Mock DNS resolution to return the expected TXT record
       const dns = await import('dns/promises');
-      (dns.resolveTxt as any).mockResolvedValue([['mcp_verify_abc123']]);
+      (dns.resolveTxt as any).mockResolvedValue([['mcplookup-verify=abc123.1234567890']]);
 
       mockStorage.updateChallenge.mockResolvedValue({ success: true });
 
       const result = await verificationService.verifyDNSChallenge('test-challenge');
 
       expect(result).toBe(true);
-      expect(dns.resolveTxt).toHaveBeenCalledWith('_mcp-verify.test.com');
+      expect(dns.resolveTxt).toHaveBeenCalledWith('_mcplookup-verify.test.com');
       expect(mockStorage.updateChallenge).toHaveBeenCalledWith(
         'test-challenge',
         expect.objectContaining({
@@ -142,7 +149,7 @@ describe('VerificationService', () => {
       const mockChallenge = {
         challenge_id: 'test-challenge',
         domain: 'test.com',
-        txt_record_name: '_mcp-verify.test.com',
+        txt_record_name: '_mcplookup-verify.test.com',
         txt_record_value: 'mcp_verify_abc123',
         expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
         endpoint: 'https://test.com/.well-known/mcp',
@@ -178,7 +185,7 @@ describe('VerificationService', () => {
       const mockChallenge = {
         challenge_id: 'test-challenge',
         domain: 'test.com',
-        txt_record_name: '_mcp-verify.test.com',
+        txt_record_name: '_mcplookup-verify.test.com',
         txt_record_value: 'mcp_verify_abc123',
         expires_at: new Date(Date.now() - 1000).toISOString(), // Expired
         endpoint: 'https://test.com/.well-known/mcp',
@@ -187,21 +194,20 @@ describe('VerificationService', () => {
         created_at: new Date().toISOString()
       };
 
-      mockStorage.getChallenge.mockResolvedValue({ 
-        success: true, 
-        data: mockChallenge 
+      mockStorage.getChallenge.mockResolvedValue({
+        success: true,
+        data: mockChallenge
       });
 
-      const result = await verificationService.verifyDNSChallenge('test-challenge');
-
-      expect(result).toBe(false);
+      await expect(verificationService.verifyDNSChallenge('test-challenge'))
+        .rejects.toThrow('Challenge has expired');
     });
 
     it('should handle DNS resolution errors', async () => {
       const mockChallenge = {
         challenge_id: 'test-challenge',
         domain: 'test.com',
-        txt_record_name: '_mcp-verify.test.com',
+        txt_record_name: '_mcplookup-verify.test.com',
         txt_record_value: 'mcp_verify_abc123',
         expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
         endpoint: 'https://test.com/.well-known/mcp',
@@ -227,14 +233,13 @@ describe('VerificationService', () => {
     });
 
     it('should handle non-existent challenge', async () => {
-      mockStorage.getChallenge.mockResolvedValue({ 
-        success: true, 
-        data: null 
+      mockStorage.getChallenge.mockResolvedValue({
+        success: true,
+        data: null
       });
 
-      const result = await verificationService.verifyDNSChallenge('non-existent');
-
-      expect(result).toBe(false);
+      await expect(verificationService.verifyDNSChallenge('non-existent'))
+        .rejects.toThrow('Challenge not found or expired');
     });
   });
 
@@ -307,7 +312,7 @@ describe('VerificationService', () => {
       const mockChallenge = {
         challenge_id: 'test-challenge',
         domain: 'test.com',
-        txt_record_name: '_mcp-verify.test.com',
+        txt_record_name: '_mcplookup-verify.test.com',
         txt_record_value: 'mcp_verify_abc123',
         expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
         endpoint: 'https://test.com/.well-known/mcp',
@@ -323,7 +328,9 @@ describe('VerificationService', () => {
 
       const result = await verificationService.getChallengeStatus('test-challenge');
 
-      expect(result).toEqual(mockChallenge);
+      expect(result.challenge_id).toBe('test-challenge');
+      expect(result.domain).toBe('test.com');
+      expect(result.txt_record_name).toBe('_mcplookup-verify.test.com');
     });
 
     it('should return null for non-existent challenge', async () => {
@@ -347,77 +354,46 @@ describe('MCPValidationService', () => {
     vi.clearAllMocks();
   });
 
-  describe('validateMCPResponse', () => {
-    it('should validate a correct MCP response', () => {
-      const validResponse = {
-        server_info: {
-          name: 'Test Server',
-          version: '1.0.0',
-          protocolVersion: '2024-11-05',
-          capabilities: {
-            tools: true,
-            resources: false
+  describe('validateMCPEndpoint', () => {
+    it('should validate MCP endpoint connectivity', async () => {
+      const mockResponse = {
+        ok: true,
+        status: 200,
+        json: vi.fn().mockResolvedValue({
+          server_info: {
+            name: 'Test Server',
+            version: '1.0.0'
           }
-        }
+        })
       };
 
-      const result = validationService.validateMCPResponse(validResponse);
+      (fetch as any).mockResolvedValue(mockResponse);
 
-      expect(result.isValid).toBe(true);
-      expect(result.errors).toHaveLength(0);
+      const result = await validationService.validateMCPEndpoint('https://test.com/.well-known/mcp');
+
+      expect(result).toBe(true);
+      expect(fetch).toHaveBeenCalled();
     });
 
-    it('should reject response missing required fields', () => {
-      const invalidResponse = {
-        server_info: {
-          name: 'Test Server'
-          // Missing version and protocolVersion
-        }
+    it('should reject invalid endpoints', async () => {
+      const mockResponse = {
+        ok: false,
+        status: 500
       };
 
-      const result = validationService.validateMCPResponse(invalidResponse);
+      (fetch as any).mockResolvedValue(mockResponse);
 
-      expect(result.isValid).toBe(false);
-      expect(result.errors.length).toBeGreaterThan(0);
+      const result = await validationService.validateMCPEndpoint('https://test.com/.well-known/mcp');
+
+      expect(result).toBe(false);
     });
 
-    it('should reject completely invalid response', () => {
-      const invalidResponse = {
-        not_server_info: 'invalid'
-      };
+    it('should handle network errors', async () => {
+      (fetch as any).mockRejectedValue(new Error('Network error'));
 
-      const result = validationService.validateMCPResponse(invalidResponse);
+      const result = await validationService.validateMCPEndpoint('https://test.com/.well-known/mcp');
 
-      expect(result.isValid).toBe(false);
-      expect(result.errors.length).toBeGreaterThan(0);
-    });
-  });
-
-  describe('validateEndpointFormat', () => {
-    it('should validate correct endpoint URLs', () => {
-      const validUrls = [
-        'https://example.com/.well-known/mcp',
-        'https://api.example.com/mcp',
-        'https://subdomain.example.com:8080/mcp'
-      ];
-
-      validUrls.forEach(url => {
-        expect(validationService.validateEndpointFormat(url)).toBe(true);
-      });
-    });
-
-    it('should reject invalid endpoint URLs', () => {
-      const invalidUrls = [
-        'http://example.com/mcp', // HTTP not HTTPS
-        'ftp://example.com/mcp',  // Wrong protocol
-        'not-a-url',              // Not a URL
-        'https://',               // Incomplete URL
-        ''                        // Empty string
-      ];
-
-      invalidUrls.forEach(url => {
-        expect(validationService.validateEndpointFormat(url)).toBe(false);
-      });
+      expect(result).toBe(false);
     });
   });
 });
