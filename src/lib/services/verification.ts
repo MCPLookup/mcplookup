@@ -66,15 +66,15 @@ export class VerificationService implements IVerificationService {
       // Base VerificationChallenge fields
       challenge_id: challengeId,
       domain: request.domain,
-      txt_record_name: challenge.txt_record_name,
-      txt_record_value: challenge.txt_record_value,
+      txt_record_name: txtRecordName,
+      txt_record_value: txtRecordValue,
       expires_at: challenge.expires_at,
-      instructions: challenge.instructions,
+      instructions: this.generateInstructions(txtRecordName, txtRecordValue, request.domain),
 
       // Extended VerificationChallengeData fields
       endpoint: request.endpoint,
       contact_email: request.contact_email,
-      token: txtRecordValue,
+      token: 'verification-token-' + challengeId,
       created_at: new Date().toISOString()
     };
 
