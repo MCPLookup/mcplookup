@@ -1,7 +1,6 @@
 "use client";
 
-import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
+import { DocsLayout } from "@/components/docs/docs-layout";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -92,6 +91,7 @@ export default function DocsPage() {
   });
 
   return (
+<<<<<<< HEAD
     <div className="min-h-screen bg-gray-50">
       <Header />
 
@@ -282,6 +282,57 @@ export default function DocsPage() {
                   Report Issue
                 </a>
               </div>
+=======
+    <DocsLayout
+      title="📚 MCPLookup.org Documentation"
+      description="Complete guide to the universal MCP server discovery service"
+    >
+      <div className="p-8">
+        <div className="space-y-12">
+          {/* Quick Navigation */}
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">🚀 Getting Started</h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Link href="/docs/what-is-this" className="group">
+                <div className="text-center space-y-4 p-6 border border-gray-200 rounded-lg hover:shadow-md hover:border-blue-300 transition-all group-hover:bg-blue-50">
+                  <div className="text-4xl">🤔</div>
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-900">What is this?</h3>
+                  <p className="text-gray-600 text-sm group-hover:text-blue-700">
+                    New to MCP? Start here to understand what MCPLookup.org does and why it matters.
+                  </p>
+                  <div className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md group-hover:bg-blue-700 transition-colors">
+                    📖 Read Introduction
+                  </div>
+                </div>
+              </Link>
+
+              <Link href="/docs/user-guide" className="group">
+                <div className="text-center space-y-4 p-6 border border-gray-200 rounded-lg hover:shadow-md hover:border-green-300 transition-all group-hover:bg-green-50">
+                  <div className="text-4xl">👤</div>
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-green-900">User Guide</h3>
+                  <p className="text-gray-600 text-sm group-hover:text-green-700">
+                    Step-by-step guide for discovering servers, registering your own, and troubleshooting.
+                  </p>
+                  <div className="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md group-hover:bg-green-700 transition-colors">
+                    📚 User Guide
+                  </div>
+                </div>
+              </Link>
+
+              <Link href="/docs/api-specification" className="group">
+                <div className="text-center space-y-4 p-6 border border-gray-200 rounded-lg hover:shadow-md hover:border-purple-300 transition-all group-hover:bg-purple-50">
+                  <div className="text-4xl">⚡</div>
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-purple-900">API Reference</h3>
+                  <p className="text-gray-600 text-sm group-hover:text-purple-700">
+                    Complete REST API specification with examples, error codes, and response formats.
+                  </p>
+                  <div className="inline-flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-md group-hover:bg-purple-700 transition-colors">
+                    🔌 API Docs
+                  </div>
+                </div>
+              </Link>
+>>>>>>> ba0512b (fix)
             </div>
 
             <div className="mt-8 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg text-center">
@@ -290,10 +341,143 @@ export default function DocsPage() {
               </p>
             </div>
           </div>
+<<<<<<< HEAD
+=======
+
+          {/* All Documentation */}
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">📖 All Documentation</h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Guides */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900">📚 Guides</h3>
+                <div className="space-y-3">
+                  <Link href="/docs/developer-guide" className="block p-4 border border-gray-200 rounded-lg hover:shadow-md hover:border-blue-300 transition-all">
+                    <div className="flex items-center space-x-3">
+                      <span className="text-2xl">🛠️</span>
+                      <div>
+                        <div className="font-medium text-gray-900">Developer Guide</div>
+                        <div className="text-sm text-gray-600">Architecture, setup, and contribution guide</div>
+                      </div>
+                    </div>
+                  </Link>
+
+                  <Link href="/docs/deployment-guide" className="block p-4 border border-gray-200 rounded-lg hover:shadow-md hover:border-blue-300 transition-all">
+                    <div className="flex items-center space-x-3">
+                      <span className="text-2xl">🚀</span>
+                      <div>
+                        <div className="font-medium text-gray-900">Deployment Guide</div>
+                        <div className="text-sm text-gray-600">Production deployment instructions</div>
+                      </div>
+                    </div>
+                  </Link>
+
+                  <Link href="/docs/faq" className="block p-4 border border-gray-200 rounded-lg hover:shadow-md hover:border-blue-300 transition-all">
+                    <div className="flex items-center space-x-3">
+                      <span className="text-2xl">❓</span>
+                      <div>
+                        <div className="font-medium text-gray-900">FAQ</div>
+                        <div className="text-sm text-gray-600">Frequently asked questions</div>
+                      </div>
+                    </div>
+                  </Link>
+                </div>
+              </div>
+
+              {/* Reference */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900">📖 Reference</h3>
+                <div className="space-y-3">
+                  <Link href="/docs/project-spec" className="block p-4 border border-gray-200 rounded-lg hover:shadow-md hover:border-blue-300 transition-all">
+                    <div className="flex items-center space-x-3">
+                      <span className="text-2xl">📋</span>
+                      <div>
+                        <div className="font-medium text-gray-900">Project Specification</div>
+                        <div className="text-sm text-gray-600">Complete project overview</div>
+                      </div>
+                    </div>
+                  </Link>
+
+                  <Link href="/docs/mcp-server-spec" className="block p-4 border border-gray-200 rounded-lg hover:shadow-md hover:border-blue-300 transition-all">
+                    <div className="flex items-center space-x-3">
+                      <span className="text-2xl">💍</span>
+                      <div>
+                        <div className="font-medium text-gray-900">MCP Server Spec</div>
+                        <div className="text-sm text-gray-600">The One Ring MCP server details</div>
+                      </div>
+                    </div>
+                  </Link>
+
+                  <Link href="/docs/security" className="block p-4 border border-gray-200 rounded-lg hover:shadow-md hover:border-blue-300 transition-all">
+                    <div className="flex items-center space-x-3">
+                      <span className="text-2xl">🛡️</span>
+                      <div>
+                        <div className="font-medium text-gray-900">Security Guide</div>
+                        <div className="text-sm text-gray-600">Security best practices</div>
+                      </div>
+                    </div>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Start */}
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">⚡ Quick Start</h2>
+
+            <div className="bg-gray-50 rounded-lg p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                    🔍 Discovering MCP Servers
+                  </h3>
+                  <p className="text-gray-600 mb-4">
+                    Use our discovery API to find MCP servers:
+                  </p>
+                  <div className="bg-gray-900 text-gray-100 rounded-md p-4 font-mono text-sm">
+                    <div>
+                      # Find servers by domain<br/>
+                      curl https://mcplookup.org/api/v1/discover/domain/gmail.com<br/><br/>
+                      # Find servers by capability<br/>
+                      curl https://mcplookup.org/api/v1/discover/capability/email
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                    ➕ Registering Your Server
+                  </h3>
+                  <p className="text-gray-600 mb-4">
+                    Register your MCP server to make it discoverable:
+                  </p>
+                  <div className="bg-gray-900 text-gray-100 rounded-md p-4 font-mono text-sm">
+                    <div>
+                      curl -X POST https://mcplookup.org/api/v1/register \<br/>
+                      &nbsp;&nbsp;-H "Content-Type: application/json" \<br/>
+                      &nbsp;&nbsp;-d '{`{"domain": "mycompany.com"}`}'
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 p-4 bg-blue-50 rounded-md">
+                <p className="text-blue-800 text-center">
+                  <strong>📖 Need more details?</strong> Check out our{" "}
+                  <Link href="/docs/api-specification" className="underline hover:text-blue-600">
+                    complete API documentation
+                  </Link>{" "}
+                  for examples and specifications.
+                </p>
+              </div>
+            </div>
+          </div>
+
+>>>>>>> ba0512b (fix)
         </div>
       </div>
-
-      <Footer />
-    </div>
+    </DocsLayout>
   );
 }
