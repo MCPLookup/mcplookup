@@ -1,0 +1,96 @@
+name: Two-Way Mirror Sync
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+    types: [ closed ]
+  schedule:
+    # Sync every 6 hours to catch any manual changes in the org repo
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      direction:
+        description: 'Sync direction'
+        required: true
+        default: 'both'
+        type: choice
+        options:
+        - both
+        - to-org
+        - from-org
+
+jobs:
+  sync-to-org:
+    if: github.event_name == 'push' || github.event.inputs.direction == 'to-org' || github.event.inputs.direction == 'both'
+    runs-on: ubuntu-latest
+    name: Sync to Organization Repo
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.MIRROR_SYNC_TOKEN || github.token }}
+
+    - name: Configure Git
+      run: |
+        git config --global user.name "Mirror Sync Bot"
+        git config --global user.email "action@github.com"
+
+    - name: Add organization remote
+      run: |
+        git remote add org https://x-access-token:${{ secrets.MIRROR_SYNC_TOKEN || github.token }}@github.com/MCPLookup-org/mcplookup.org.git
+
+    - name: Sync to organization
+      run: |
+        echo "🔄 Syncing to organization repo..."
+        git fetch org --prune
+        
+        # Push all branches and tags
+        git push org --all
+        git push org --tags
+        
+        echo "✅ Successfully synced to organization repo"
+
+  sync-from-org:
+    if: github.event_name == 'schedule' || github.event.inputs.direction == 'from-org' || github.event.inputs.direction == 'both'
+    runs-on: ubuntu-latest
+    name: Sync from Organization Repo
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.MIRROR_SYNC_TOKEN || github.token }}
+
+    - name: Configure Git
+      run: |
+        git config --global user.name "Mirror Sync Bot"
+        git config --global user.email "action@github.com"
+
+    - name: Add organization remote
+      run: |
+        git remote add org https://x-access-token:${{ secrets.MIRROR_SYNC_TOKEN || github.token }}@github.com/MCPLookup-org/mcplookup.org.git
+
+    - name: Sync from organization
+      run: |
+        echo "🔄 Checking for changes in organization repo..."
+        git fetch org --prune
+        
+        # Check if org has new commits
+        if git log HEAD..org/main --oneline | grep -q .; then
+          echo "📥 Found new commits in org repo, merging..."
+          
+          # Merge changes from org
+          git merge org/main --no-edit
+          
+          # Push back to origin (TSavo repo)
+          git push origin main
+          
+          echo "✅ Successfully merged changes from organization repo"
+        else
+          echo "ℹ️ No new changes in organization repo"
+        fi
