@@ -904,9 +904,19 @@ export function getRegistryStorage(config?: StorageConfig): IRegistryStorage {
 
   switch (provider) {
     case 'upstash':
-      return new UpstashRegistryStorage();
+      try {
+        return new UpstashRegistryStorage();
+      } catch (error) {
+        console.warn('UpstashRegistryStorage initialization failed, falling back to memory:', error);
+        return new InMemoryRegistryStorage();
+      }
     case 'local':
-      return new LocalRedisRegistryStorage();
+      try {
+        return new LocalRedisRegistryStorage();
+      } catch (error) {
+        console.warn('LocalRedisRegistryStorage initialization failed, falling back to memory:', error);
+        return new InMemoryRegistryStorage();
+      }
     case 'memory':
       return new InMemoryRegistryStorage();
     default:
