@@ -29,9 +29,14 @@ export function Header() {
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2">
               <div className="text-2xl">🔍</div>
-              <span className="text-xl font-bold text-gray-900 dark:text-white">
-                MCPLookup.org
-              </span>
+              <div className="flex flex-col">
+                <span className="text-xl font-bold text-gray-900 dark:text-white">
+                  MCPLookup.org
+                </span>
+                <span className="text-xs text-red-600 dark:text-red-400 font-medium hidden sm:block">
+                  The End of Hardcoded Lists
+                </span>
+              </div>
             </Link>
           </div>
 
