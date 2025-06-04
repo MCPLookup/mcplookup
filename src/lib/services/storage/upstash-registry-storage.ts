@@ -317,7 +317,7 @@ export class UpstashRegistryStorage implements IRegistryStorage {
       const servers = await this.getServersByDomains(domains);
       
       const cutoffDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
-      const serversToRemove = servers.filter(server => 
+      const serversToRemove = servers.filter((server: MCPServerRecord) => 
         !server.updated_at ||
         new Date(server.updated_at) < cutoffDate ||
         server.health?.status === 'unhealthy'
@@ -375,12 +375,12 @@ export class UpstashRegistryStorage implements IRegistryStorage {
 
     // Add server info terms
     if (server.server_info?.name) {
-      server.server_info.name.split(/\s+/).forEach(word => terms.add(word));
+      server.server_info.name.split(/\s+/).forEach((word: string) => terms.add(word));
     }
 
     // Add main description (from MCPServerRecord, not server_info)
     if (server.description) {
-      server.description.split(/\s+/).forEach(word => terms.add(word));
+      server.description.split(/\s+/).forEach((word: string) => terms.add(word));
     }
 
     // Add capability terms
