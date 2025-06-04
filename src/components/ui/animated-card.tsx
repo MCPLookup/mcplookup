@@ -126,14 +126,14 @@ export const AnimatedCard = React.forwardRef<HTMLDivElement, AnimatedCardProps>(
 
         <ChakraCard.Root
           bg="white"
-          _dark={{ bg: "gray.800" }}
+          _dark={{
+            bg: "gray.800",
+            borderColor: borderOnHover && isHovered ? "blue.400" : "gray.700"
+          }}
           shadow={isHovered ? "xl" : "md"}
           rounded="lg"
           border={borderOnHover && isHovered ? "2px" : "1px"}
           borderColor={borderOnHover && isHovered ? "blue.400" : "gray.200"}
-          _dark={{
-            borderColor: borderOnHover && isHovered ? "blue.400" : "gray.700"
-          }}
           transition="all 0.2s ease"
           overflow="hidden"
           {...props}

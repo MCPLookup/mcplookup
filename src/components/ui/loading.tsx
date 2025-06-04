@@ -1,6 +1,6 @@
 "use client"
 
-import { Spinner, Box, Text, VStack, HStack, Progress } from "@chakra-ui/react"
+import { Spinner, Box, Text, VStack, HStack } from "@chakra-ui/react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useState, useEffect } from "react"
 
@@ -80,7 +80,14 @@ export function LoadingOverlay({
           </Text>
           {showProgress && progress !== undefined && (
             <Box width="200px">
-              <Progress value={progress} colorPalette="blue" />
+              <Box bg="gray.200" rounded="full" height="8px" overflow="hidden">
+                <Box
+                  bg="blue.500"
+                  height="100%"
+                  width={`${progress}%`}
+                  transition="width 0.3s ease"
+                />
+              </Box>
               <Text fontSize="sm" color="gray.600" textAlign="center" mt={2}>
                 {Math.round(progress)}%
               </Text>
@@ -338,10 +345,14 @@ export function ProgressiveLoading({
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
     >
-      <Progress
-        value={completed ? 100 : (currentStep / steps.length) * 100}
-        colorPalette={completed ? "green" : "blue"}
-      />
+      <Box bg="gray.200" rounded="full" height="8px" overflow="hidden">
+        <Box
+          bg={completed ? "green.500" : "blue.500"}
+          height="100%"
+          width={`${completed ? 100 : (currentStep / steps.length) * 100}%`}
+          transition="width 0.3s ease"
+        />
+      </Box>
       <VStack gap={2} align="start">
         {steps.map((step, index) => (
           <MotionBox

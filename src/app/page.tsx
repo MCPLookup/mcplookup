@@ -39,7 +39,7 @@ export default function HomePage() {
             <div className="flex space-x-4 justify-center">
               <Link href="/discover">
                 <AnimatedButton
-                  colorPalette="orange"
+                  variant="primary"
                   size="lg"
                   hoverScale={1.05}
                   clickScale={0.95}
@@ -52,7 +52,6 @@ export default function HomePage() {
               <Link href="/register">
                 <AnimatedButton
                   variant="outline"
-                  colorPalette="orange"
                   size="lg"
                   hoverScale={1.05}
                   clickScale={0.95}
