@@ -27,11 +27,24 @@ export function Header() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center">
+<<<<<<< HEAD
             <Link href="/" className="flex items-center space-x-3">
               <div className="text-xl text-blue-600">🔍</div>
               <span className="text-xl font-semibold text-slate-900 dark:text-white">
                 MCPLookup.org
               </span>
+=======
+            <Link href="/" className="flex items-center space-x-2">
+              <div className="text-2xl">🔍</div>
+              <div className="flex flex-col">
+                <span className="text-xl font-bold text-gray-900 dark:text-white">
+                  MCPLookup.org
+                </span>
+                <span className="text-xs text-red-600 dark:text-red-400 font-medium hidden sm:block">
+                  The End of Hardcoded Lists
+                </span>
+              </div>
+>>>>>>> f875de7ed68e4b6afc20ae296af9c9517983d892
             </Link>
           </div>
 

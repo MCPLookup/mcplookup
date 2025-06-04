@@ -1,32 +1,49 @@
-# 🔍 Flexible Discovery Protocol Examples
+# 🔍 Dynamic Discovery: The Death of Hardcoded Lists
 
-**How AI agents can express complex search requirements naturally**
+**How AI agents discover tools dynamically instead of relying on static, hardcoded configurations**
 
 ---
 
-## 🎯 **The Problem with Rigid Discovery**
+## 🔥 **The Revolution: From Static Hell to Dynamic Paradise**
 
-### **Before: Rigid and Limited**
-```json
-// Old way: Agents forced into predefined boxes
-{
-  "capability": "email",           // Only one capability
-  "category": "communication",     // Predefined enum
-  "verified_only": true           // Boolean only
-}
+### **Before: Hardcoded Nightmare**
+```typescript
+// Every AI agent today:
+const HARDCODED_SERVERS = {
+  "gmail": { endpoint: "https://gmail.com/mcp", capabilities: ["email"] },
+  "slack": { endpoint: "https://slack.com/api/mcp", capabilities: ["messaging"] },
+  "github": { endpoint: "https://api.github.com/mcp", capabilities: ["code"] }
+  // Manually maintained... forever... by developers... who hate their lives...
+};
+
+// Rigid, inflexible discovery:
+const server = HARDCODED_SERVERS["gmail"]; // What if Gmail changes their endpoint?
 ```
 
-**Limitations:**
-- ❌ Can't combine capabilities: "email AND calendar"
-- ❌ Can't express preferences: "like Gmail but faster"
-- ❌ Can't exclude options: "NOT Slack"
-- ❌ Can't do similarity search: "similar to GitHub"
+### **After: Dynamic Discovery**
+```typescript
+// With MCPLookup.org:
+const server = await mcplookup.discover({
+  intent: "I need to send emails and manage calendar",
+  performance: { min_uptime: 99.5, max_latency: 100 },
+  auth: ["oauth2"],
+  exclude: ["experimental"]
+});
+// No hardcoding. No maintenance. Pure intelligence.
+```
 
-### **After: Flexible and Expressive**
+### **The Problems with Rigid Discovery**
+- ❌ **Hardcoded endpoints**: Break when servers move
+- ❌ **Static capabilities**: Can't discover new features
+- ❌ **No intelligence**: Can't combine requirements
+- ❌ **Manual maintenance**: Developers must update lists constantly
+- ❌ **Limited expression**: "email AND calendar" is impossible
+
+### **The Power of Dynamic Discovery**
 ```json
-// New way: Agents can express complex requirements naturally
+// AI agents can now express complex requirements naturally:
 {
-  "query": "Find email servers like Gmail but with better privacy",
+  "intent": "Find email servers like Gmail but with better privacy",
   "capabilities": {
     "operator": "AND",
     "required": ["email_send", "email_read"],
@@ -41,9 +58,18 @@
   "performance": {
     "min_trust_score": 80,
     "max_response_time": 200
-  }
+  },
+  "discovery_methods": ["dns", "standard_endpoint", "registry", "health_check"]
 }
 ```
+
+**Benefits of Dynamic Discovery:**
+- ✅ **No hardcoding**: Servers discovered in real-time
+- ✅ **Intelligent matching**: Natural language intent processing
+- ✅ **Complex logic**: AND/OR/NOT capability combinations
+- ✅ **Similarity search**: Find alternatives and competitors
+- ✅ **Performance constraints**: Only fast, reliable servers
+- ✅ **Self-updating**: New servers appear automatically
 
 ---
 
