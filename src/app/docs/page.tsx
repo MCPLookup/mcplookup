@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import { Header } from "@/components/layout/header"
-import { Footer } from "@/components/layout/footer"
-import Link from "next/link"
+import { Header } from "@/components/layout/header";
+import { Footer } from "@/components/layout/footer";
+import Link from "next/link";
 
 export default function DocsPage() {
   return (
@@ -126,6 +126,127 @@ curl https://mcplookup.org/api/v1/discover/capability/email`}
             </div>
           </section>
 
+          {/* Architecture Overview */}
+          <section className="bg-white rounded-lg shadow-md p-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Architecture Overview</h2>
+            
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                  🏗️ Serverless, Zero-Infrastructure Design
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  MCPLookup.org is built with a truly serverless architecture:
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-green-50 border border-green-200 rounded-md p-4">
+                    <h4 className="font-semibold text-green-800 mb-2">✅ What We Use</h4>
+                    <ul className="text-green-700 text-sm space-y-1">
+                      <li>• Next.js 15 (App Router)</li>
+                      <li>• Vercel Edge Functions</li>
+                      <li>• Upstash Redis (optional)</li>
+                      <li>• DNS-based verification</li>
+                      <li>• In-memory caching</li>
+                      <li>• TypeScript + Zod validation</li>
+                    </ul>
+                  </div>
+                  <div className="bg-red-50 border border-red-200 rounded-md p-4">
+                    <h4 className="font-semibold text-red-800 mb-2">❌ What We Don't Need</h4>
+                    <ul className="text-red-700 text-sm space-y-1">
+                      <li>• No traditional database</li>
+                      <li>• No persistent servers</li>
+                      <li>• No file system storage</li>
+                      <li>• No complex infrastructure</li>
+                      <li>• No manual scaling</li>
+                      <li>• No maintenance overhead</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                  🔄 Smart Storage Strategy
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  Our storage automatically adapts to the environment:
+                </p>
+                <div className="bg-gray-100 rounded-md p-4 font-mono text-sm">
+                  <div className="text-gray-800">
+                    # Production: Upstash Redis (serverless)<br/>
+                    UPSTASH_REDIS_REST_URL=https://your-db.upstash.io<br/><br/>
+                    # Development: In-memory (zero setup)<br/>
+                    # No configuration needed!<br/><br/>
+                    # Testing: Automatic in-memory<br/>
+                    NODE_ENV=test
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                  🔍 Real-time Discovery
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  We discover MCP servers through multiple methods:
+                </p>
+                <ul className="list-disc list-inside text-gray-600 space-y-2">
+                  <li><strong>Registered servers:</strong> Stored in Redis with DNS verification</li>
+                  <li><strong>Well-known endpoints:</strong> Auto-discovery via /.well-known/mcp</li>
+                  <li><strong>DNS TXT records:</strong> Real-time DNS queries for _mcp records</li>
+                  <li><strong>Health monitoring:</strong> Live endpoint testing and status</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          {/* MCP Integration */}
+          <section className="bg-white rounded-lg shadow-md p-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">MCP Integration</h2>
+            
+            <div className="space-y-6">
+              <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
+                <h3 className="text-lg font-semibold text-yellow-800 mb-3">
+                  🚧 The One Ring MCP Server (Coming Soon)
+                </h3>
+                <p className="text-yellow-700 mb-4">
+                  The native MCP server endpoint is currently under development. For now, use our REST API:
+                </p>
+                <div className="bg-white rounded-md p-4 font-mono text-sm border">
+                  <div className="text-gray-800">
+                    # Current: REST API<br/>
+                    curl https://mcplookup.org/api/v1/discover/domain/gmail.com<br/><br/>
+                    # Coming: Native MCP Server<br/>
+                    # mcp connect https://mcplookup.org/mcp
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                  AI Agent Integration (Current)
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  How AI agents can use MCPLookup.org today:
+                </p>
+                <div className="bg-gray-100 rounded-md p-4 font-mono text-sm">
+                  <div className="text-gray-800">
+                    // User: "Check my Gmail"<br/>
+                    const response = await fetch(<br/>
+                    &nbsp;&nbsp;'https://mcplookup.org/api/v1/discover/domain/gmail.com'<br/>
+                    );<br/>
+                    const server = await response.json();<br/><br/>
+                    // Connect to discovered server<br/>
+                    const mcpClient = new MCPClient(server.endpoint);<br/>
+                    await mcpClient.connect();<br/><br/>
+                    // Use Gmail tools<br/>
+                    const emails = await mcpClient.callTool('read_emails', {`{ limit: 10 }`});
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
           {/* Support */}
           <section className="bg-white rounded-lg shadow-md p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Support & Community</h2>
@@ -178,5 +299,5 @@ curl https://mcplookup.org/api/v1/discover/capability/email`}
 
       <Footer />
     </div>
-  )
+  );
 }

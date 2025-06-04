@@ -89,15 +89,27 @@ export default function PrivacyPage() {
               <h2 className="text-2xl font-bold text-gray-900">Data Storage and Security</h2>
               <div className="space-y-4">
                 <p className="text-gray-700 leading-relaxed">
-                  MCPLookup.org operates on a serverless, no-database architecture:
+                  MCPLookup.org uses a hybrid serverless architecture with minimal data storage:
                 </p>
                 <ul className="list-disc list-inside text-gray-700 space-y-2">
-                  <li>No persistent storage of personal data</li>
-                  <li>Server information is discovered in real-time via DNS and API calls</li>
-                  <li>Temporary caching for performance, with automatic expiration</li>
-                  <li>Industry-standard encryption for data in transit</li>
-                  <li>Regular security audits and monitoring</li>
+                  <li><strong>Production:</strong> Upstash Redis for registered server metadata (serverless, encrypted)</li>
+                  <li><strong>Development:</strong> In-memory storage only (no persistence)</li>
+                  <li><strong>Personal data:</strong> Only contact emails for verification (encrypted, TTL-based)</li>
+                  <li><strong>Discovery data:</strong> Real-time DNS queries and API calls</li>
+                  <li><strong>Caching:</strong> 60-second public cache for performance</li>
+                  <li><strong>Encryption:</strong> TLS 1.3 for all data in transit</li>
+                  <li><strong>Deployment:</strong> Vercel Edge Functions (globally distributed)</li>
                 </ul>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-md p-4 mt-4">
+                  <h4 className="font-semibold text-blue-800 mb-2">Zero-Infrastructure Benefits:</h4>
+                  <ul className="list-disc list-inside text-blue-700 text-sm space-y-1">
+                    <li>No traditional databases to breach</li>
+                    <li>Automatic scaling and security updates</li>
+                    <li>Data automatically expires (TTL-based)</li>
+                    <li>Minimal attack surface</li>
+                  </ul>
+                </div>
               </div>
             </section>
 

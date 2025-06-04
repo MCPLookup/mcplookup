@@ -61,10 +61,11 @@ export default function SecurityPage() {
               </div>
               
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No Database Storage</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Minimal Data Storage</h3>
                 <p className="text-gray-700">
-                  We don't store sensitive data in databases. Server information is discovered 
-                  in real-time through DNS queries and API calls, reducing data breach risks.
+                  We use Upstash Redis (serverless) for registered server metadata only.
+                  All data has automatic TTL expiration. No traditional databases,
+                  no file system storage, minimal attack surface.
                 </p>
               </div>
 
