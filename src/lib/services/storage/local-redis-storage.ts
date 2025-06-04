@@ -784,10 +784,10 @@ export class LocalRedisVerificationStorage implements IVerificationStorage {
 
       // Apply date filters
       if (opts.createdAfter) {
-        challenges = challenges.filter(c => new Date(c.created_at) >= opts.createdAfter!);
+        challenges = challenges.filter((c: VerificationChallengeData) => new Date(c.created_at) >= new Date(opts.createdAfter!));
       }
       if (opts.createdBefore) {
-        challenges = challenges.filter(c => new Date(c.created_at) <= opts.createdBefore!);
+        challenges = challenges.filter((c: VerificationChallengeData) => new Date(c.created_at) <= new Date(opts.createdBefore!));
       }
 
       // Apply pagination
