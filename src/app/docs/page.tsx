@@ -34,12 +34,13 @@ export default function DocsPage() {
                   Use our discovery API to find MCP servers by domain or capability:
                 </p>
                 <div className="bg-gray-100 rounded-md p-4 font-mono text-sm">
-                  <div className="text-gray-800">
-                    # Find servers by domain<br/>
-                    curl https://mcplookup.org/api/v1/discover/domain/gmail.com<br/><br/>
-                    # Find servers by capability<br/>
-                    curl https://mcplookup.org/api/v1/discover/capability/email
-                  </div>
+                  <pre className="text-gray-800 whitespace-pre-wrap">
+{`# Find servers by domain
+curl https://mcplookup.org/api/v1/discover/domain/gmail.com
+
+# Find servers by capability
+curl https://mcplookup.org/api/v1/discover/capability/email`}
+                  </pre>
                 </div>
               </div>
 
@@ -51,16 +52,16 @@ export default function DocsPage() {
                   Register your MCP server to make it discoverable:
                 </p>
                 <div className="bg-gray-100 rounded-md p-4 font-mono text-sm">
-                  <div className="text-gray-800">
-                    curl -X POST https://mcplookup.org/api/v1/register \<br/>
-                    &nbsp;&nbsp;-H "Content-Type: application/json" \<br/>
-                    &nbsp;&nbsp;-d '{<br/>
-                    &nbsp;&nbsp;&nbsp;&nbsp;"domain": "mycompany.com",<br/>
-                    &nbsp;&nbsp;&nbsp;&nbsp;"endpoint": "https://mycompany.com/mcp",<br/>
-                    &nbsp;&nbsp;&nbsp;&nbsp;"capabilities": ["email", "calendar"],<br/>
-                    &nbsp;&nbsp;&nbsp;&nbsp;"contact_email": "admin@mycompany.com"<br/>
-                    &nbsp;&nbsp;}'
-                  </div>
+                  <pre className="text-gray-800 whitespace-pre-wrap">
+{`curl -X POST https://mcplookup.org/api/v1/register \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "domain": "mycompany.com",
+    "endpoint": "https://mycompany.com/mcp",
+    "capabilities": ["email", "calendar"],
+    "contact_email": "admin@mycompany.com"
+  }'`}
+                  </pre>
                 </div>
               </div>
             </div>

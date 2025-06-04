@@ -19,11 +19,11 @@ import {
   createEmptyPaginatedResult,
   validatePaginationOptions,
   DEFAULT_SEARCH_OPTIONS
-} from './interfaces.js';
-import { UpstashRegistryStorage } from './upstash-registry-storage.js';
-import { UpstashVerificationStorage } from './upstash-verification-storage.js';
-import { LocalRedisRegistryStorage, LocalRedisVerificationStorage } from './local-redis-storage.js';
-import { MCPServerRecord, CapabilityCategory } from '../../schemas/discovery.js';
+} from './interfaces';
+import { UpstashRegistryStorage } from './upstash-registry-storage';
+import { UpstashVerificationStorage } from './upstash-verification-storage';
+import { LocalRedisRegistryStorage, LocalRedisVerificationStorage } from './local-redis-storage';
+import { MCPServerRecord, CapabilityCategory } from '../../schemas/discovery';
 
 export interface StorageConfig {
   provider?: 'upstash' | 'local' | 'memory';
