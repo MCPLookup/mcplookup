@@ -2,8 +2,10 @@ import NextAuth from "next-auth"
 import GitHub from "next-auth/providers/github"
 import Google from "next-auth/providers/google"
 import type { NextAuthConfig } from "next-auth"
+import { createStorageAdapter } from "./src/lib/auth/storage-adapter"
 
 export const config = {
+  adapter: createStorageAdapter(),
   providers: [
     GitHub({
       clientId: process.env.AUTH_GITHUB_ID,
@@ -30,24 +32,22 @@ export const config = {
         if (isLoggedIn) return true
         return false // Redirect unauthenticated users to login page
       }
-      
+
       return true
     },
-    session({ session, token }) {
-      if (token.sub && session.user) {
-        session.user.id = token.sub
+    session({ session, user }) {
+      // With database sessions, user data comes from the database
+      if (user && session.user) {
+        session.user.id = user.id
+        session.user.email = user.email
+        session.user.name = user.name
+        session.user.image = user.image
       }
       return session
     },
-    jwt({ token, user }) {
-      if (user) {
-        token.sub = user.id
-      }
-      return token
-    },
   },
   session: {
-    strategy: "jwt",
+    strategy: "database",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   trustHost: true,
