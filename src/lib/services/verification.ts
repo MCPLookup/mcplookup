@@ -4,7 +4,7 @@
 import dns from 'dns/promises';
 import { randomUUID } from 'crypto';
 import { getVerificationStorage, StorageConfig } from './storage/storage';
-import { IVerificationStorage, VerificationChallengeData } from './storage/interfaces';
+import { IVerificationStorage, VerificationChallengeData, isSuccessResult } from './storage/interfaces';
 import { VerificationChallenge, RegistrationRequest } from '../schemas/discovery';
 
 export interface IVerificationService {
@@ -63,19 +63,25 @@ export class VerificationService implements IVerificationService {
 
     // Store challenge for later verification
     const challengeData: VerificationChallengeData = {
+      // Base VerificationChallenge fields
       challenge_id: challengeId,
       domain: request.domain,
       txt_record_name: txtRecordName,
       txt_record_value: txtRecordValue,
       expires_at: challenge.expires_at,
       instructions: this.generateInstructions(txtRecordName, txtRecordValue, request.domain),
+
+      // Extended VerificationChallengeData fields
       endpoint: request.endpoint,
       contact_email: request.contact_email,
       token: 'verification-token-' + challengeId,
       created_at: new Date().toISOString()
     };
 
-    await this.storageService.storeChallenge(challengeId, challengeData);
+    const storeResult = await this.storageService.storeChallenge(challengeId, challengeData);
+    if (!storeResult.success) {
+      throw new Error(`Failed to store challenge: ${storeResult.error}`);
+    }
 
     return challenge;
   }
@@ -101,7 +107,7 @@ export class VerificationService implements IVerificationService {
       // Verify DNS record across multiple resolvers
       const verificationResults = await Promise.allSettled(
         this.DNS_RESOLVERS.map(resolver =>
-          this.verifyDNSRecordWithResolver(`_mcp-lookup.${challenge.domain}`, challenge.txt_record_value, resolver)
+          this.verifyDNSRecordWithResolver(challenge.txt_record_name, challenge.txt_record_value, resolver)
         )
       );
 
@@ -114,7 +120,10 @@ export class VerificationService implements IVerificationService {
 
       if (isVerified) {
         // Mark as verified in storage
-        await this.storageService.markChallengeVerified(challengeId);
+        const verifyResult = await this.storageService.markChallengeVerified(challengeId);
+        if (!verifyResult.success) {
+          console.error('Failed to mark challenge as verified:', verifyResult.error);
+        }
         return true;
       }
 
