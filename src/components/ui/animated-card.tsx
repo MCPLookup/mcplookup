@@ -223,6 +223,16 @@ export const AnimatedCardNamespace = {
   Footer: AnimatedCardFooter,
 }
 
+// Default export with namespace structure
+const AnimatedCardWithNamespace = Object.assign(AnimatedCard, {
+  Root: AnimatedCard,
+  Body: AnimatedCardBody,
+  Header: AnimatedCardHeader,
+  Footer: AnimatedCardFooter,
+})
+
+export default AnimatedCardWithNamespace
+
 // List container for staggered animations
 interface AnimatedListProps {
   children: React.ReactNode

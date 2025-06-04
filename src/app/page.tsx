@@ -4,7 +4,7 @@ import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { SignInButton } from "@/components/auth/signin-button"
 import { AnimatedButton } from "@/components/ui/animated-button"
-import { AnimatedCardNamespace as AnimatedCard, AnimatedList } from "@/components/ui/animated-card"
+import AnimatedCard, { AnimatedList } from "@/components/ui/animated-card"
 import Link from "next/link"
 
 export default function HomePage() {
