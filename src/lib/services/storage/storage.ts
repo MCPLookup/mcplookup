@@ -267,7 +267,7 @@ class InMemoryRegistryStorage implements IRegistryStorage {
     return [
       server.domain,
       server.server_info?.name || '',
-      server.server_info?.description || '',
+      server.description || '',
       server.capabilities.category,
       ...(server.capabilities.subcategories || []),
       ...(server.tools?.map(t => `${t.name} ${t.description || ''}`) || [])
