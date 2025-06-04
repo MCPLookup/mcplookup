@@ -9,6 +9,10 @@
     "start": "next start",
     "dev": "next dev",
     "dev:mcp": "tsx watch src/server.ts",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:storage": "tsx scripts/test-storage.ts",
     "lint": "eslint src/**/*.ts",
     "format": "prettier --write src/**/*.ts",
@@ -38,6 +42,7 @@
   "dependencies": {
     "@chakra-ui/react": "^3.19.2",
     "@emotion/react": "^11.14.0",
+    "@esbuild/win32-x64": "^0.25.5",
     "@hookform/resolvers": "^3.9.1",
     "@modelcontextprotocol/sdk": "^1.12.1",
     "@types/prismjs": "^1.26.5",
@@ -85,11 +90,14 @@
     "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
+    "@vitest/ui": "^3.2.1",
     "eslint": "^8.57.0",
+    "happy-dom": "^17.6.3",
     "prettier": "^3.5.3",
     "prismjs": "^1.30.0",
     "tsx": "^4.19.4",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.1"
   },
   "engines": {
     "node": ">=22.0.0"
