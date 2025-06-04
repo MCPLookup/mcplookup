@@ -1,8 +1,9 @@
 node_modules
-git 
+git
 .next
 .DS_Store
 .env*
+dist/
 
 # TypeScript build info
 *.tsbuildinfo
