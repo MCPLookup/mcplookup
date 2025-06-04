@@ -1,6 +1,7 @@
 "use client"
 
 import { Header } from "@/components/layout/header"
+import { Footer } from "@/components/layout/footer"
 import { SignInButton } from "@/components/auth/signin-button"
 import Link from "next/link"
 
@@ -104,6 +105,8 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+
+      <Footer />
     </div>
   )
 }

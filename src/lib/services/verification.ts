@@ -3,9 +3,9 @@
 
 import dns from 'dns/promises';
 import { randomUUID } from 'crypto';
-import { getVerificationStorage, StorageConfig } from './storage/storage.js';
-import { IVerificationStorage, VerificationChallengeData } from './storage/interfaces.js';
-import { VerificationChallenge, RegistrationRequest } from '../schemas/discovery.js';
+import { getVerificationStorage, StorageConfig } from './storage/storage';
+import { IVerificationStorage, VerificationChallengeData } from './storage/interfaces';
+import { VerificationChallenge, RegistrationRequest } from '../schemas/discovery';
 
 export interface IVerificationService {
   initiateDNSVerification(request: RegistrationRequest): Promise<VerificationChallenge>;
@@ -62,12 +62,13 @@ export class VerificationService implements IVerificationService {
     };
 
     // Store challenge for later verification
-    await this.storageService.storeChallenge(challengeId, {
-      ...challenge,
-      endpoint: request.endpoint,
-      contact_email: request.contact_email,
-      token,
-      created_at: new Date().toISOString()
+    await this.storageService.storeChallenge({
+      id: challengeId,
+      domain: request.domain,
+      challenge: challenge.txt_record_value,
+      createdAt: new Date(),
+      expiresAt: new Date(challenge.expires_at),
+      verified: false
     });
 
     return challenge;
@@ -83,16 +84,16 @@ export class VerificationService implements IVerificationService {
     }
 
     // Check if challenge has expired
-    if (new Date() > new Date(challenge.expires_at)) {
-      await this.storageService.deleteChallenge(challengeId);
+    if (new Date() > challenge.expiresAt) {
+      await this.storageService.removeChallenge(challengeId);
       throw new Error('Challenge has expired');
     }
 
     try {
       // Verify DNS record across multiple resolvers
       const verificationResults = await Promise.allSettled(
-        this.DNS_RESOLVERS.map(resolver => 
-          this.verifyDNSRecordWithResolver(challenge.txt_record_name, challenge.txt_record_value, resolver)
+        this.DNS_RESOLVERS.map(resolver =>
+          this.verifyDNSRecordWithResolver(`_mcp-lookup.${challenge.domain}`, challenge.challenge, resolver)
         )
       );
 
@@ -104,16 +105,9 @@ export class VerificationService implements IVerificationService {
       const isVerified = successCount > this.DNS_RESOLVERS.length / 2;
 
       if (isVerified) {
-        // Also verify the MCP endpoint
-        const endpointValid = await this.verifyMCPEndpoint(challenge.endpoint);
-        
-        if (endpointValid) {
-          // Mark as verified in storage
-          await this.storageService.markChallengeVerified(challengeId);
-          return true;
-        } else {
-          throw new Error('MCP endpoint verification failed');
-        }
+        // Mark as verified in storage
+        await this.storageService.markChallengeVerified(challengeId);
+        return true;
       }
 
       return false;
@@ -166,21 +160,20 @@ export class VerificationService implements IVerificationService {
       }
 
       // Check if challenge has expired
-      const expiresAt = new Date(challengeData.expires_at);
-      if (expiresAt < new Date()) {
-        await this.storageService.deleteChallenge(challengeId);
+      if (challengeData.expiresAt < new Date()) {
+        await this.storageService.removeChallenge(challengeId);
         return null;
       }
 
       // Return the challenge without sensitive data
       return {
-        challenge_id: challengeData.challenge_id,
+        challenge_id: challengeData.id,
         domain: challengeData.domain,
-        txt_record_name: challengeData.txt_record_name,
-        txt_record_value: challengeData.txt_record_value,
-        expires_at: challengeData.expires_at,
-        instructions: challengeData.instructions,
-        status: challengeData.verified_at ? 'verified' : 'pending'
+        txt_record_name: `_mcp-lookup.${challengeData.domain}`,
+        txt_record_value: challengeData.challenge,
+        expires_at: challengeData.expiresAt.toISOString(),
+        instructions: this.generateInstructions(`_mcp-lookup.${challengeData.domain}`, challengeData.challenge, challengeData.domain),
+        status: challengeData.verified ? 'verified' : 'pending'
       };
 
     } catch (error) {
