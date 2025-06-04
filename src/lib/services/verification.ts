@@ -4,7 +4,7 @@
 import dns from 'dns/promises';
 import { randomUUID } from 'crypto';
 import { getVerificationStorage, StorageConfig } from './storage/storage';
-import { IVerificationStorage, VerificationChallengeData } from './storage/interfaces';
+import { IVerificationStorage, VerificationChallengeData, isSuccessResult } from './storage/interfaces';
 import { VerificationChallenge, RegistrationRequest } from '../schemas/discovery';
 
 export interface IVerificationService {
@@ -62,13 +62,26 @@ export class VerificationService implements IVerificationService {
     };
 
     // Store challenge for later verification
-    await this.storageService.storeChallenge(challengeId, {
-      ...challenge,
+    const challengeData: VerificationChallengeData = {
+      // Base VerificationChallenge fields
+      challenge_id: challengeId,
+      domain: request.domain,
+      txt_record_name: challenge.txt_record_name,
+      txt_record_value: challenge.txt_record_value,
+      expires_at: challenge.expires_at,
+      instructions: challenge.instructions,
+
+      // Extended VerificationChallengeData fields
       endpoint: request.endpoint,
       contact_email: request.contact_email,
-      token,
+      token: txtRecordValue,
       created_at: new Date().toISOString()
-    });
+    };
+
+    const storeResult = await this.storageService.storeChallenge(challengeId, challengeData);
+    if (!storeResult.success) {
+      throw new Error(`Failed to store challenge: ${storeResult.error}`);
+    }
 
     return challenge;
   }
@@ -107,7 +120,10 @@ export class VerificationService implements IVerificationService {
 
       if (isVerified) {
         // Mark as verified in storage
-        await this.storageService.markChallengeVerified(challengeId);
+        const verifyResult = await this.storageService.markChallengeVerified(challengeId);
+        if (!verifyResult.success) {
+          console.error('Failed to mark challenge as verified:', verifyResult.error);
+        }
         return true;
       }
 
@@ -163,8 +179,7 @@ export class VerificationService implements IVerificationService {
       const challengeData = challengeResult.data;
 
       // Check if challenge has expired
-      const expiresAt = new Date(challengeData.expires_at);
-      if (expiresAt < new Date()) {
+      if (new Date(challengeData.expires_at) < new Date()) {
         await this.storageService.deleteChallenge(challengeId);
         return null;
       }
