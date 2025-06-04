@@ -4,7 +4,7 @@
 import dns from 'dns/promises';
 import { randomUUID } from 'crypto';
 import { getVerificationStorage, StorageConfig } from './storage/storage';
-import { IVerificationStorage, VerificationChallengeData } from './storage/interfaces';
+import { IVerificationStorage, VerificationChallengeData, isSuccessResult } from './storage/interfaces';
 import { VerificationChallenge, RegistrationRequest } from '../schemas/discovery';
 
 export interface IVerificationService {
@@ -62,14 +62,26 @@ export class VerificationService implements IVerificationService {
     };
 
     // Store challenge for later verification
-    await this.storageService.storeChallenge({
-      id: challengeId,
+    const challengeData: VerificationChallengeData = {
+      // Base VerificationChallenge fields
+      challenge_id: challengeId,
       domain: request.domain,
-      challenge: challenge.txt_record_value,
-      createdAt: new Date(),
-      expiresAt: new Date(challenge.expires_at),
-      verified: false
-    });
+      txt_record_name: challenge.txt_record_name,
+      txt_record_value: challenge.txt_record_value,
+      expires_at: challenge.expires_at,
+      instructions: challenge.instructions,
+
+      // Extended VerificationChallengeData fields
+      endpoint: request.endpoint,
+      contact_email: request.contact_email,
+      token: txtRecordValue,
+      created_at: new Date().toISOString()
+    };
+
+    const storeResult = await this.storageService.storeChallenge(challengeId, challengeData);
+    if (!storeResult.success) {
+      throw new Error(`Failed to store challenge: ${storeResult.error}`);
+    }
 
     return challenge;
   }
@@ -78,14 +90,16 @@ export class VerificationService implements IVerificationService {
    * Verify DNS challenge by checking TXT records across multiple resolvers
    */
   async verifyDNSChallenge(challengeId: string): Promise<boolean> {
-    const challenge = await this.storageService.getChallenge(challengeId);
-    if (!challenge) {
+    const challengeResult = await this.storageService.getChallenge(challengeId);
+    if (!challengeResult.success || !challengeResult.data) {
       throw new Error('Challenge not found or expired');
     }
 
+    const challenge = challengeResult.data;
+
     // Check if challenge has expired
-    if (new Date() > challenge.expiresAt) {
-      await this.storageService.removeChallenge(challengeId);
+    if (new Date() > new Date(challenge.expires_at)) {
+      await this.storageService.deleteChallenge(challengeId);
       throw new Error('Challenge has expired');
     }
 
@@ -93,7 +107,7 @@ export class VerificationService implements IVerificationService {
       // Verify DNS record across multiple resolvers
       const verificationResults = await Promise.allSettled(
         this.DNS_RESOLVERS.map(resolver =>
-          this.verifyDNSRecordWithResolver(`_mcp-lookup.${challenge.domain}`, challenge.challenge, resolver)
+          this.verifyDNSRecordWithResolver(challenge.txt_record_name, challenge.txt_record_value, resolver)
         )
       );
 
@@ -106,7 +120,10 @@ export class VerificationService implements IVerificationService {
 
       if (isVerified) {
         // Mark as verified in storage
-        await this.storageService.markChallengeVerified(challengeId);
+        const verifyResult = await this.storageService.markChallengeVerified(challengeId);
+        if (!verifyResult.success) {
+          console.error('Failed to mark challenge as verified:', verifyResult.error);
+        }
         return true;
       }
 
@@ -153,27 +170,29 @@ export class VerificationService implements IVerificationService {
    */
   async getChallengeStatus(challengeId: string): Promise<VerificationChallenge | null> {
     try {
-      const challengeData = await this.storageService.getChallenge(challengeId);
+      const challengeResult = await this.storageService.getChallenge(challengeId);
 
-      if (!challengeData) {
+      if (!challengeResult.success || !challengeResult.data) {
         return null;
       }
 
+      const challengeData = challengeResult.data;
+
       // Check if challenge has expired
-      if (challengeData.expiresAt < new Date()) {
-        await this.storageService.removeChallenge(challengeId);
+      if (new Date(challengeData.expires_at) < new Date()) {
+        await this.storageService.deleteChallenge(challengeId);
         return null;
       }
 
       // Return the challenge without sensitive data
       return {
-        challenge_id: challengeData.id,
+        challenge_id: challengeData.challenge_id,
         domain: challengeData.domain,
-        txt_record_name: `_mcp-lookup.${challengeData.domain}`,
-        txt_record_value: challengeData.challenge,
-        expires_at: challengeData.expiresAt.toISOString(),
-        instructions: this.generateInstructions(`_mcp-lookup.${challengeData.domain}`, challengeData.challenge, challengeData.domain),
-        status: challengeData.verified ? 'verified' : 'pending'
+        txt_record_name: challengeData.txt_record_name,
+        txt_record_value: challengeData.txt_record_value,
+        expires_at: challengeData.expires_at,
+        instructions: challengeData.instructions,
+        status: challengeData.verified_at ? 'verified' : 'pending'
       };
 
     } catch (error) {
