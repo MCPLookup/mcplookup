@@ -272,6 +272,484 @@ export class InMemoryAIStorage implements IAIStorage {
   }
 }
 
+/**
+ * Upstash Redis AI Storage
+ * Production-ready AI storage using Upstash Redis
+ */
+class UpstashAIStorage implements IAIStorage {
+  private redis: any;
+
+  constructor() {
+    this.initializeRedis();
+  }
+
+  private async initializeRedis() {
+    try {
+      const { Redis } = await import('@upstash/redis');
+
+      if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
+        throw new Error('Upstash Redis environment variables not configured');
+      }
+
+      this.redis = new Redis({
+        url: process.env.UPSTASH_REDIS_REST_URL,
+        token: process.env.UPSTASH_REDIS_REST_TOKEN,
+      });
+    } catch (error) {
+      console.error('Failed to initialize Upstash Redis for AI storage:', error);
+      throw error;
+    }
+  }
+
+  private async ensureRedis() {
+    if (!this.redis) {
+      await this.initializeRedis();
+    }
+  }
+
+  async storeConversation(sessionId: string, conversation: AIConversation): Promise<StorageResult<void>> {
+    try {
+      await this.ensureRedis();
+
+      const conversationWithTimestamp = {
+        ...conversation,
+        updated_at: new Date().toISOString()
+      };
+
+      // Store conversation
+      await this.redis.set(
+        `conversation:${sessionId}`,
+        JSON.stringify(conversationWithTimestamp),
+        { ex: 24 * 60 * 60 } // 24 hour expiry
+      );
+
+      // Add to session index
+      await this.redis.sadd('conversations:sessions', sessionId);
+
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to store conversation:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  async getConversation(sessionId: string): Promise<StorageResult<AIConversation | null>> {
+    try {
+      await this.ensureRedis();
+
+      const data = await this.redis.get(`conversation:${sessionId}`);
+      if (!data) {
+        return { success: true, data: null };
+      }
+
+      const conversation = typeof data === 'string' ? JSON.parse(data) : data;
+      return { success: true, data: conversation as AIConversation };
+    } catch (error) {
+      console.error('Failed to get conversation:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  async deleteConversation(sessionId: string): Promise<StorageResult<void>> {
+    try {
+      await this.ensureRedis();
+
+      await this.redis.del(`conversation:${sessionId}`);
+      await this.redis.srem('conversations:sessions', sessionId);
+
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to delete conversation:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  async storeAnalysis(query: string, analysis: QueryAnalysis): Promise<StorageResult<void>> {
+    try {
+      await this.ensureRedis();
+
+      const analysisWithTimestamp = {
+        ...analysis,
+        cached_at: new Date().toISOString()
+      };
+
+      // Create a hash of the query for the key
+      const crypto = await import('crypto');
+      const queryHash = crypto.createHash('sha256').update(query.toLowerCase().trim()).digest('hex');
+
+      // Store analysis with 1 hour expiry
+      await this.redis.set(
+        `analysis:${queryHash}`,
+        JSON.stringify(analysisWithTimestamp),
+        { ex: 60 * 60 } // 1 hour expiry
+      );
+
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to store analysis:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  async getAnalysis(query: string): Promise<StorageResult<QueryAnalysis | null>> {
+    try {
+      await this.ensureRedis();
+
+      const crypto = await import('crypto');
+      const queryHash = crypto.createHash('sha256').update(query.toLowerCase().trim()).digest('hex');
+
+      const data = await this.redis.get(`analysis:${queryHash}`);
+      if (!data) {
+        return { success: true, data: null };
+      }
+
+      const analysis = typeof data === 'string' ? JSON.parse(data) : data;
+      return { success: true, data: analysis as QueryAnalysis };
+    } catch (error) {
+      console.error('Failed to get analysis:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  async storeResponse(query: string, response: AIResponse): Promise<StorageResult<void>> {
+    try {
+      await this.ensureRedis();
+
+      const responseWithTimestamp = {
+        ...response,
+        cached_at: new Date().toISOString()
+      };
+
+      const crypto = await import('crypto');
+      const queryHash = crypto.createHash('sha256').update(query.toLowerCase().trim()).digest('hex');
+
+      // Store response with 30 minute expiry
+      await this.redis.set(
+        `response:${queryHash}`,
+        JSON.stringify(responseWithTimestamp),
+        { ex: 30 * 60 } // 30 minute expiry
+      );
+
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to store response:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  async getResponse(query: string): Promise<StorageResult<AIResponse | null>> {
+    try {
+      await this.ensureRedis();
+
+      const crypto = await import('crypto');
+      const queryHash = crypto.createHash('sha256').update(query.toLowerCase().trim()).digest('hex');
+
+      const data = await this.redis.get(`response:${queryHash}`);
+      if (!data) {
+        return { success: true, data: null };
+      }
+
+      const response = typeof data === 'string' ? JSON.parse(data) : data;
+      return { success: true, data: response as AIResponse };
+    } catch (error) {
+      console.error('Failed to get response:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  async cleanup(): Promise<StorageResult<{ removedCount: number }>> {
+    try {
+      await this.ensureRedis();
+
+      // Get all conversation sessions
+      const sessions = await this.redis.smembers('conversations:sessions') as string[];
+      let removedCount = 0;
+
+      // Check each conversation for expiry (older than 24 hours)
+      const cutoffTime = Date.now() - (24 * 60 * 60 * 1000);
+
+      for (const sessionId of sessions) {
+        const conversationResult = await this.getConversation(sessionId);
+        if (conversationResult.success && conversationResult.data) {
+          const conversation = conversationResult.data;
+          const lastMessageTime = conversation.messages.length > 0
+            ? new Date(conversation.messages[conversation.messages.length - 1].timestamp).getTime()
+            : 0;
+
+          if (lastMessageTime < cutoffTime) {
+            await this.deleteConversation(sessionId);
+            removedCount++;
+          }
+        }
+      }
+
+      return { success: true, data: { removedCount } };
+    } catch (error) {
+      console.error('Failed to cleanup AI storage:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  getProviderInfo() {
+    return {
+      name: 'upstash',
+      version: '1.0.0',
+      capabilities: ['persistence', 'global-replication', 'auto-scaling', 'production-ready']
+    };
+  }
+}
+
+/**
+ * Local Redis AI Storage
+ * For development with local Redis instance
+ */
+class LocalRedisAIStorage implements IAIStorage {
+  private redis: any;
+
+  constructor() {
+    this.initializeRedis();
+  }
+
+  private async initializeRedis() {
+    try {
+      const { Redis } = await import('ioredis');
+
+      const redisUrl = process.env.REDIS_URL || process.env.LOCAL_REDIS_URL || 'redis://localhost:6379';
+      this.redis = new Redis(redisUrl);
+    } catch (error) {
+      console.error('Failed to initialize local Redis for AI storage:', error);
+      throw error;
+    }
+  }
+
+  private async ensureRedis() {
+    if (!this.redis) {
+      await this.initializeRedis();
+    }
+  }
+
+  // Implementation similar to UpstashAIStorage but using ioredis
+  async storeConversation(sessionId: string, conversation: AIConversation): Promise<StorageResult<void>> {
+    try {
+      await this.ensureRedis();
+
+      const conversationWithTimestamp = {
+        ...conversation,
+        updated_at: new Date().toISOString()
+      };
+
+      await this.redis.setex(
+        `conversation:${sessionId}`,
+        24 * 60 * 60, // 24 hour expiry
+        JSON.stringify(conversationWithTimestamp)
+      );
+
+      await this.redis.sadd('conversations:sessions', sessionId);
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to store conversation:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  async getConversation(sessionId: string): Promise<StorageResult<AIConversation | null>> {
+    try {
+      await this.ensureRedis();
+
+      const data = await this.redis.get(`conversation:${sessionId}`);
+      if (!data) {
+        return { success: true, data: null };
+      }
+
+      const conversation = JSON.parse(data);
+      return { success: true, data: conversation as AIConversation };
+    } catch (error) {
+      console.error('Failed to get conversation:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  async deleteConversation(sessionId: string): Promise<StorageResult<void>> {
+    try {
+      await this.ensureRedis();
+
+      await this.redis.del(`conversation:${sessionId}`);
+      await this.redis.srem('conversations:sessions', sessionId);
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to delete conversation:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  async storeAnalysis(query: string, analysis: QueryAnalysis): Promise<StorageResult<void>> {
+    try {
+      await this.ensureRedis();
+
+      const crypto = await import('crypto');
+      const queryHash = crypto.createHash('sha256').update(query.toLowerCase().trim()).digest('hex');
+
+      await this.redis.setex(
+        `analysis:${queryHash}`,
+        60 * 60, // 1 hour expiry
+        JSON.stringify({ ...analysis, cached_at: new Date().toISOString() })
+      );
+
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to store analysis:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  async getAnalysis(query: string): Promise<StorageResult<QueryAnalysis | null>> {
+    try {
+      await this.ensureRedis();
+
+      const crypto = await import('crypto');
+      const queryHash = crypto.createHash('sha256').update(query.toLowerCase().trim()).digest('hex');
+
+      const data = await this.redis.get(`analysis:${queryHash}`);
+      if (!data) {
+        return { success: true, data: null };
+      }
+
+      const analysis = JSON.parse(data);
+      return { success: true, data: analysis as QueryAnalysis };
+    } catch (error) {
+      console.error('Failed to get analysis:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  async storeResponse(query: string, response: AIResponse): Promise<StorageResult<void>> {
+    try {
+      await this.ensureRedis();
+
+      const crypto = await import('crypto');
+      const queryHash = crypto.createHash('sha256').update(query.toLowerCase().trim()).digest('hex');
+
+      await this.redis.setex(
+        `response:${queryHash}`,
+        30 * 60, // 30 minute expiry
+        JSON.stringify({ ...response, cached_at: new Date().toISOString() })
+      );
+
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to store response:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  async getResponse(query: string): Promise<StorageResult<AIResponse | null>> {
+    try {
+      await this.ensureRedis();
+
+      const crypto = await import('crypto');
+      const queryHash = crypto.createHash('sha256').update(query.toLowerCase().trim()).digest('hex');
+
+      const data = await this.redis.get(`response:${queryHash}`);
+      if (!data) {
+        return { success: true, data: null };
+      }
+
+      const response = JSON.parse(data);
+      return { success: true, data: response as AIResponse };
+    } catch (error) {
+      console.error('Failed to get response:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  async cleanup(): Promise<StorageResult<{ removedCount: number }>> {
+    try {
+      await this.ensureRedis();
+
+      const sessions = await this.redis.smembers('conversations:sessions');
+      let removedCount = 0;
+
+      const cutoffTime = Date.now() - (24 * 60 * 60 * 1000);
+
+      for (const sessionId of sessions) {
+        const conversationResult = await this.getConversation(sessionId);
+        if (conversationResult.success && conversationResult.data) {
+          const conversation = conversationResult.data;
+          const lastMessageTime = conversation.messages.length > 0
+            ? new Date(conversation.messages[conversation.messages.length - 1].timestamp).getTime()
+            : 0;
+
+          if (lastMessageTime < cutoffTime) {
+            await this.deleteConversation(sessionId);
+            removedCount++;
+          }
+        }
+      }
+
+      return { success: true, data: { removedCount } };
+    } catch (error) {
+      console.error('Failed to cleanup AI storage:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  getProviderInfo() {
+    return {
+      name: 'local-redis',
+      version: '1.0.0',
+      capabilities: ['persistence', 'local-development']
+    };
+  }
+}
+
 // =============================================================================
 // STORAGE FACTORY
 // =============================================================================
@@ -284,13 +762,19 @@ export function getAIStorage(config?: { provider?: 'upstash' | 'local' | 'memory
 
   switch (provider) {
     case 'upstash':
-      // TODO: Implement UpstashAIStorage
-      console.warn('UpstashAIStorage not implemented yet, falling back to memory');
-      return new InMemoryAIStorage();
+      try {
+        return new UpstashAIStorage();
+      } catch (error) {
+        console.warn('UpstashAIStorage initialization failed, falling back to memory:', error);
+        return new InMemoryAIStorage();
+      }
     case 'local':
-      // TODO: Implement LocalRedisAIStorage
-      console.warn('LocalRedisAIStorage not implemented yet, falling back to memory');
-      return new InMemoryAIStorage();
+      try {
+        return new LocalRedisAIStorage();
+      } catch (error) {
+        console.warn('LocalRedisAIStorage initialization failed, falling back to memory:', error);
+        return new InMemoryAIStorage();
+      }
     case 'memory':
       return new InMemoryAIStorage();
     default:

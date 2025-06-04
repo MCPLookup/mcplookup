@@ -23,11 +23,15 @@ export async function POST(
     
     // Verify DNS challenge
     const verified = await verificationService.verifyDNSChallenge(challengeId);
-    
+
     if (verified) {
+      // Get the challenge to extract the domain
+      const challenge = await verificationService.getChallengeStatus(challengeId);
+      const domain = challenge?.domain || 'unknown';
+
       const response = {
         verified: true,
-        domain: 'example.com', // TODO: Get actual domain from challenge
+        domain: domain,
         verified_at: new Date().toISOString(),
         registration_status: 'verified' as const,
         next_steps: 'Your MCP server has been successfully registered and is now discoverable.'
