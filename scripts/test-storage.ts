@@ -166,6 +166,7 @@ async function testStorageProvider(providerName: string, provider: 'memory' | 'l
       txt_record_name: '_mcp-verify.test-example.com',
       txt_record_value: 'mcp_verify_test123',
       expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      instructions: 'Add the DNS TXT record for testing',
 
       // Extended VerificationChallengeData fields
       endpoint: 'https://test-example.com/.well-known/mcp',
