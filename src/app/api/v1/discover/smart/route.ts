@@ -40,9 +40,11 @@ export async function POST(request: NextRequest) {
       // Use existing discovery service
       const searchQuery = keywords.join(' ');
       const discoveryResult = await discovery.discoverServers({
-        q: searchQuery,
         limit: 50, // Get more results for AI to narrow down
-        verified: context?.user_type === 'business' ? true : undefined
+        sort_by: 'relevance',
+        offset: 0,
+        // Use intent for search instead of q
+        intent: searchQuery
       });
       
       // Transform to format expected by AI
@@ -51,7 +53,7 @@ export async function POST(request: NextRequest) {
         name: server.name || server.domain,
         description: server.description || `MCP server at ${server.domain}`,
         capabilities: server.capabilities || [],
-        tags: server.tags || [],
+        tags: [], // Tags not available in current schema
         domain: server.domain
       }));
     };
@@ -64,8 +66,15 @@ export async function POST(request: NextRequest) {
     for (const slug of aiResult.selectedSlugs) {
       try {
         const serverResult = await discovery.discoverServers({
-          domain: slug,
-          limit: 1
+          domain: {
+            value: slug,
+            type: 'exact',
+            weight: 1.0,
+            required: true
+          },
+          limit: 1,
+          sort_by: 'relevance',
+          offset: 0
         });
         if (serverResult.servers.length > 0) {
           selectedServers.push(serverResult.servers[0]);

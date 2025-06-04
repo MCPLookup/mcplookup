@@ -12,12 +12,12 @@ import {
   Text,
   Button,
   Icon,
-  Avatar
+
 } from "@chakra-ui/react"
 import { FaSignOutAlt, FaArrowLeft, FaUser } from "react-icons/fa"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
-import { AnimatedCard } from "@/components/ui/animated-card"
+import AnimatedCard from "@/components/ui/animated-card"
 import { AnimatedButton } from "@/components/ui/animated-button"
 import { useColorModeValue } from "@/components/ui/color-mode"
 
@@ -150,11 +150,20 @@ export default function SignOutPage() {
               <VStack gap={6}>
                 {/* User Info */}
                 <VStack gap={4} textAlign="center">
-                  <Avatar
-                    size="lg"
-                    name={session.user?.name || session.user?.email || 'User'}
-                    src={session.user?.image || undefined}
-                  />
+                  <Box
+                    width="64px"
+                    height="64px"
+                    borderRadius="full"
+                    bg="blue.500"
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    color="white"
+                    fontSize="xl"
+                    fontWeight="bold"
+                  >
+                    {session.user?.name?.[0] || session.user?.email?.[0] || 'U'}
+                  </Box>
                   <VStack gap={1}>
                     <Heading size="md">
                       {session.user?.name || 'User'}
@@ -214,7 +223,7 @@ export default function SignOutPage() {
               onClick={() => router.push('/')}
               variant="ghost"
               hoverScale={1.05}
-              ripileEffect
+              rippleEffect
             >
               <HStack gap={2}>
                 <Icon color="whiteAlpha.800">

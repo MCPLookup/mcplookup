@@ -227,7 +227,7 @@ export default function AdminUsersPage() {
             🔄 Refresh
           </AnimatedButton>
           <AnimatedButton
-            variant="primary"
+            variant="solid"
             hoverScale={1.02}
             onClick={() => setShowCreateModal(true)}
           >
