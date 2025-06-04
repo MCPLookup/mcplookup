@@ -58,6 +58,89 @@ export interface HealthCheckResult {
 }
 
 // =============================================================================
+// USER STORAGE TYPES
+// =============================================================================
+
+/**
+ * User profile data for authentication and authorization
+ */
+export interface UserProfile {
+  readonly id: string;
+  email: string;
+  name?: string;
+  image?: string;
+  provider: 'github' | 'google' | 'email';
+  provider_id: string;
+  role: 'user' | 'admin' | 'moderator';
+  readonly created_at: string;
+  updated_at: string;
+  last_login_at?: string;
+  email_verified: boolean;
+  is_active: boolean;
+  preferences?: {
+    theme?: 'light' | 'dark' | 'system';
+    notifications?: boolean;
+    newsletter?: boolean;
+  };
+  metadata?: Record<string, unknown>;
+}
+
+/**
+ * User session data for active sessions
+ */
+export interface UserSession {
+  readonly id: string;
+  readonly user_id: string;
+  readonly token: string;
+  readonly expires_at: string;
+  readonly created_at: string;
+  readonly ip_address?: string;
+  readonly user_agent?: string;
+  readonly is_active: boolean;
+}
+
+/**
+ * User registration/server ownership tracking
+ */
+export interface UserRegistration {
+  readonly id: string;
+  readonly user_id: string;
+  readonly domain: string;
+  readonly challenge_id: string;
+  readonly verified_at?: string;
+  readonly created_at: string;
+  readonly status: 'pending' | 'verified' | 'failed' | 'expired';
+}
+
+/**
+ * User query options for filtering and pagination
+ */
+export interface UserQueryOptions extends PaginationOptions {
+  role?: 'user' | 'admin' | 'moderator';
+  provider?: 'github' | 'google' | 'email';
+  is_active?: boolean;
+  email_verified?: boolean;
+  created_after?: string;
+  created_before?: string;
+  status?: 'pending' | 'verified' | 'failed' | 'expired'; // For registration filtering
+}
+
+/**
+ * User statistics with detailed metrics
+ */
+export interface UserStats {
+  totalUsers: number;
+  activeUsers: number;
+  verifiedUsers: number;
+  usersByProvider: Record<string, number>;
+  usersByRole: Record<string, number>;
+  registrationsToday: number;
+  registrationsThisWeek: number;
+  registrationsThisMonth: number;
+  lastUpdated: string;
+}
+
+// =============================================================================
 // VERIFICATION STORAGE TYPES
 // =============================================================================
 
@@ -342,6 +425,173 @@ export interface IVerificationStorage {
    * @returns Promise resolving to health check result
    */
   healthCheck(): Promise<HealthCheckResult>;
+}
+
+// =============================================================================
+// USER STORAGE INTERFACE
+// =============================================================================
+
+/**
+ * User Storage Interface
+ * Handles user authentication, profiles, and session management
+ */
+export interface IUserStorage {
+  // ==========================================================================
+  // USER PROFILE OPERATIONS
+  // ==========================================================================
+
+  /**
+   * Store or update a user profile
+   * @param userId - Unique user identifier
+   * @param user - Complete user profile
+   * @returns Promise resolving to operation result
+   */
+  storeUser(userId: string, user: UserProfile): Promise<StorageResult<void>>;
+
+  /**
+   * Retrieve a user by ID
+   * @param userId - User identifier
+   * @returns Promise resolving to user profile or null if not found
+   */
+  getUser(userId: string): Promise<StorageResult<UserProfile | null>>;
+
+  /**
+   * Retrieve a user by email
+   * @param email - User email address
+   * @returns Promise resolving to user profile or null if not found
+   */
+  getUserByEmail(email: string): Promise<StorageResult<UserProfile | null>>;
+
+  /**
+   * Retrieve a user by provider ID
+   * @param provider - OAuth provider name
+   * @param providerId - Provider-specific user ID
+   * @returns Promise resolving to user profile or null if not found
+   */
+  getUserByProvider(provider: string, providerId: string): Promise<StorageResult<UserProfile | null>>;
+
+  /**
+   * Update user profile
+   * @param userId - User identifier
+   * @param updates - Partial user profile updates
+   * @returns Promise resolving to operation result
+   */
+  updateUser(userId: string, updates: Partial<UserProfile>): Promise<StorageResult<void>>;
+
+  /**
+   * Delete a user and all associated data
+   * @param userId - User identifier
+   * @returns Promise resolving to operation result
+   */
+  deleteUser(userId: string): Promise<StorageResult<void>>;
+
+  // ==========================================================================
+  // SESSION MANAGEMENT
+  // ==========================================================================
+
+  /**
+   * Store a user session
+   * @param sessionId - Unique session identifier
+   * @param session - Session data
+   * @returns Promise resolving to operation result
+   */
+  storeSession(sessionId: string, session: UserSession): Promise<StorageResult<void>>;
+
+  /**
+   * Retrieve a session by ID
+   * @param sessionId - Session identifier
+   * @returns Promise resolving to session data or null if not found
+   */
+  getSession(sessionId: string): Promise<StorageResult<UserSession | null>>;
+
+  /**
+   * Delete a session
+   * @param sessionId - Session identifier
+   * @returns Promise resolving to operation result
+   */
+  deleteSession(sessionId: string): Promise<StorageResult<void>>;
+
+  /**
+   * Delete all sessions for a user
+   * @param userId - User identifier
+   * @returns Promise resolving to operation result
+   */
+  deleteUserSessions(userId: string): Promise<StorageResult<void>>;
+
+  // ==========================================================================
+  // REGISTRATION TRACKING
+  // ==========================================================================
+
+  /**
+   * Store a user registration record
+   * @param registrationId - Unique registration identifier
+   * @param registration - Registration data
+   * @returns Promise resolving to operation result
+   */
+  storeRegistration(registrationId: string, registration: UserRegistration): Promise<StorageResult<void>>;
+
+  /**
+   * Get registrations by user
+   * @param userId - User identifier
+   * @param options - Query options for filtering and pagination
+   * @returns Promise resolving to paginated registration list
+   */
+  getRegistrationsByUser(
+    userId: string,
+    options?: UserQueryOptions
+  ): Promise<StorageResult<PaginatedResult<UserRegistration>>>;
+
+  /**
+   * Get registrations by domain
+   * @param domain - Domain name
+   * @returns Promise resolving to registration records
+   */
+  getRegistrationsByDomain(domain: string): Promise<StorageResult<UserRegistration[]>>;
+
+  // ==========================================================================
+  // SEARCH & FILTERING
+  // ==========================================================================
+
+  /**
+   * Get all users with pagination and filtering
+   * @param options - Query options for filtering and pagination
+   * @returns Promise resolving to paginated user list
+   */
+  getAllUsers(options?: UserQueryOptions): Promise<StorageResult<PaginatedResult<UserProfile>>>;
+
+  /**
+   * Search users by name or email
+   * @param query - Search query string
+   * @param options - Search and pagination options
+   * @returns Promise resolving to paginated search results
+   */
+  searchUsers(
+    query: string,
+    options?: UserQueryOptions
+  ): Promise<StorageResult<PaginatedResult<UserProfile>>>;
+
+  // ==========================================================================
+  // MONITORING & MAINTENANCE
+  // ==========================================================================
+
+  /**
+   * Get comprehensive user statistics
+   * @returns Promise resolving to detailed statistics
+   */
+  getStats(): Promise<StorageResult<UserStats>>;
+
+  /**
+   * Perform health check with detailed diagnostics
+   * @returns Promise resolving to health check result
+   */
+  healthCheck(): Promise<HealthCheckResult>;
+
+  /**
+   * Clean up expired sessions and inactive users
+   * @param dryRun - If true, return what would be cleaned without actually doing it
+   * @returns Promise resolving to cleanup result
+   */
+  cleanup(dryRun?: boolean): Promise<StorageResult<{ removedCount: number; freedSpace?: string }>>;
 }
 
 // =============================================================================
