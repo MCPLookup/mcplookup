@@ -72,21 +72,30 @@ This repository contains **THE MCP server that discovers all other MCP servers**
 └─────────────────┘    └──────────────────┘    └─────────────────┘
 ```
 
-### Serverless Architecture
+### Flexible Storage Architecture
 
-**🚀 Zero Infrastructure Dependencies**
-- **No Database**: In-memory registry with well-known server discovery
-- **No Redis**: Intelligent caching with TTL-based expiration
-- **No File System**: Stateless verification using DNS + API calls
-- **Serverless Ready**: Deploys to Vercel, Netlify, Cloudflare Workers
+**🚀 Multi-Environment Storage Abstraction**
+- **Development**: In-memory storage for fast iteration and testing
+- **Local Development**: Redis with Docker for persistence and realistic testing
+- **Production**: Upstash Redis for serverless, globally distributed storage
+- **Automatic Selection**: Environment-based provider detection
+
+### Storage Features
+
+- **Consistent API**: All storage providers implement identical interfaces
+- **Error Handling**: `StorageResult<T>` pattern for robust error management
+- **Pagination**: Built-in pagination for all bulk operations
+- **Batch Operations**: Efficient bulk processing with atomic transactions
+- **Health Monitoring**: Real-time diagnostics and performance metrics
+- **Cleanup Operations**: Automated maintenance with dry-run support
 
 ### Core Components
 
 1. **MCP Server**: The "One Ring" that provides discovery tools to AI agents
 2. **REST API**: HTTP endpoints for registration and discovery (Next.js API routes)
-3. **DNS Verification**: Cryptographic proof using TXT records (no storage needed)
-4. **In-Memory Registry**: Well-known servers + real-time discovery
-5. **Health Monitoring**: Live endpoint testing (no historical data storage)
+3. **DNS Verification**: Cryptographic proof using TXT records with Redis persistence
+4. **Storage Abstraction**: Flexible storage layer with automatic provider selection
+5. **Health Monitoring**: Comprehensive monitoring with statistics and cleanup
 
 ---
 
@@ -94,10 +103,12 @@ This repository contains **THE MCP server that discovers all other MCP servers**
 
 ### Prerequisites
 - Node.js 20+
-- **No database required** (serverless architecture)
-- **No external services** (self-contained)
+- **Optional**: Docker for local Redis development
+- **Optional**: Upstash account for production Redis
 
 ### Local Development
+
+#### Option 1: In-Memory Storage (Fastest)
 ```bash
 # Clone the repository
 git clone https://github.com/TSavo/mcplookup.org.git
@@ -106,15 +117,39 @@ cd mcplookup.org
 # Install dependencies
 npm install
 
-# Set up environment (optional - no database setup needed)
-cp .env.example .env
-# Edit .env with your configuration if needed
-
-# Start development server
+# Start development server (uses in-memory storage)
 npm run dev
 
 # Or run the MCP server directly
 npm run dev:mcp
+```
+
+#### Option 2: Local Redis with Docker
+```bash
+# Set up environment for local Redis
+cp .env.example .env.local
+# Add: REDIS_URL=redis://localhost:6379
+
+# Start Redis with Docker
+docker-compose up -d redis
+
+# Start development server
+npm run dev
+
+# Test storage providers
+npm run test:storage
+```
+
+#### Option 3: Production Setup with Upstash
+```bash
+# Set up environment for Upstash
+cp .env.example .env.local
+# Add your Upstash credentials:
+# UPSTASH_REDIS_REST_URL=https://your-redis.upstash.io
+# UPSTASH_REDIS_REST_TOKEN=your-token
+
+# Start development server
+npm run dev
 ```
 
 ### Vercel Deployment
@@ -320,12 +355,34 @@ vercel env add HEALTH_CHECK_TIMEOUT
 ```
 
 ### Environment Variables
+
+#### Production (Upstash Redis)
 ```bash
-# Optional (serverless architecture)
+# Required for production
+UPSTASH_REDIS_REST_URL=https://your-redis.upstash.io
+UPSTASH_REDIS_REST_TOKEN=your-token-here
+NODE_ENV=production
+NEXTAUTH_URL=https://mcplookup.org
+
+# Optional configuration
 DNS_RESOLVER_URL=https://cloudflare-dns.com/dns-query
 HEALTH_CHECK_TIMEOUT=5000
 VERIFICATION_TOKEN_TTL=86400
 NEXT_PUBLIC_APP_URL=https://mcplookup.org
+```
+
+#### Development (Local Redis)
+```bash
+# For local Redis development
+REDIS_URL=redis://localhost:6379
+NODE_ENV=development
+NEXTAUTH_URL=http://localhost:3000
+```
+
+#### Testing (In-Memory)
+```bash
+# Automatically uses in-memory storage
+NODE_ENV=test
 ```
 
 ---
@@ -354,8 +411,11 @@ curl http://localhost:3000/metrics
 
 ### Run Tests
 ```bash
-# Unit tests
+# Unit tests (uses in-memory storage)
 npm test
+
+# Storage abstraction tests
+npm run test:storage
 
 # Type checking
 npm run type-check
@@ -365,6 +425,21 @@ npm run lint
 
 # Build test
 npm run build
+```
+
+### Storage Testing
+```bash
+# Test all available storage providers
+npm run test:storage
+
+# Test with local Redis (requires Docker)
+docker-compose up -d redis
+npm run test:storage
+
+# Test with Upstash (requires credentials)
+UPSTASH_REDIS_REST_URL=https://your-redis.upstash.io \
+UPSTASH_REDIS_REST_TOKEN=your-token \
+npm run test:storage
 ```
 
 ### Test Coverage
@@ -386,6 +461,67 @@ npm run test:coverage
 ### API Documentation
 - **Swagger UI**: http://localhost:3000/docs
 - **OpenAPI Spec**: http://localhost:3000/openapi.json
+
+### Storage Documentation
+- [`Storage Architecture`](./src/lib/services/storage/DESIGN.md) - Storage design principles
+- [`Storage Interfaces`](./src/lib/services/storage/interfaces.ts) - TypeScript interfaces
+- [`Implementation Guide`](./src/lib/services/storage/README.md) - Usage examples
+- [`Security Guide`](./SECURITY.md) - Environment and secrets management
+
+---
+
+## 🗄️ **STORAGE ARCHITECTURE**
+
+### Automatic Provider Selection
+
+The storage system automatically selects the best provider based on your environment:
+
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   ENVIRONMENT   │───▶│  STORAGE LAYER   │───▶│   PROVIDER      │
+│                 │    │                  │    │                 │
+│ NODE_ENV=test   │    │ Auto Detection   │    │ In-Memory       │
+│ REDIS_URL set   │    │ Error Handling   │    │ Local Redis     │
+│ Upstash creds   │    │ Pagination       │    │ Upstash Redis   │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+```
+
+### Storage Features
+
+| Feature | In-Memory | Local Redis | Upstash Redis |
+|---------|-----------|-------------|---------------|
+| **Development** | ✅ Perfect | ✅ Realistic | ✅ Production-like |
+| **Testing** | ✅ Fast | ✅ Persistent | ✅ Cloud-based |
+| **Production** | ❌ No persistence | ❌ Single instance | ✅ Globally distributed |
+| **Pagination** | ✅ | ✅ | ✅ |
+| **Batch Ops** | ✅ | ✅ | ✅ |
+| **Health Checks** | ✅ | ✅ | ✅ |
+| **Statistics** | ✅ | ✅ | ✅ |
+
+### Usage Examples
+
+```typescript
+import { getRegistryStorage, isSuccessResult } from './storage/storage.js';
+
+// Automatic provider selection
+const storage = getRegistryStorage();
+
+// Consistent error handling
+const result = await storage.storeServer(domain, server);
+if (isSuccessResult(result)) {
+  console.log('✅ Success');
+} else {
+  console.error(`❌ Error: ${result.error}`);
+}
+
+// Built-in pagination
+const servers = await storage.getAllServers({
+  limit: 50,
+  offset: 0,
+  sortBy: 'updated_at',
+  sortOrder: 'desc'
+});
+```
 
 ---
 
