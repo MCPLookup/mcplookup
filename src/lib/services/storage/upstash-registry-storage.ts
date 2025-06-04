@@ -39,7 +39,7 @@ export class UpstashRegistryStorage implements IRegistryStorage {
 
   async storeServer(domain: string, server: MCPServerRecord): Promise<StorageResult<void>> {
     try {
-      const serverWithTimestamp = { ...server, last_updated: new Date().toISOString() };
+      const serverWithTimestamp = { ...server, updated_at: new Date().toISOString() };
       const pipeline = this.redis.pipeline();
       
       // Store the full server record
@@ -317,9 +317,8 @@ export class UpstashRegistryStorage implements IRegistryStorage {
       const servers = await this.getServersByDomains(domains);
       
       const cutoffDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
-      const serversToRemove = servers.filter(server => 
-        !server.last_updated || 
-        new Date(server.last_updated) < cutoffDate ||
+      const serversToRemove = servers.filter(server =>        !server.updated_at ||
+        new Date(server.updated_at) < cutoffDate ||
         server.health?.status === 'unhealthy'
       );
       
@@ -375,11 +374,11 @@ export class UpstashRegistryStorage implements IRegistryStorage {
 
     // Add server info terms
     if (server.server_info?.name) {
-      server.server_info.name.split(/\s+/).forEach(word => terms.add(word));
+      server.server_info.name.split(/\s+/).forEach((word: string) => terms.add(word));
     }
 
-    if (server.server_info?.description) {
-      server.server_info.description.split(/\s+/).forEach(word => terms.add(word));
+    if (server.description) {
+      server.description.split(/\s+/).forEach((word: string) => terms.add(word));
     }
 
     // Add capability terms
@@ -436,7 +435,7 @@ export class UpstashRegistryStorage implements IRegistryStorage {
     switch (sortBy) {
       case 'domain': return server.domain;
       case 'name': return server.server_info?.name || server.domain;
-      case 'updated_at': return server.last_updated || '';
+      case 'updated_at': return server.updated_at || '';
       case 'health_score': return String(server.health?.uptime_percentage || 0);
       default: return server.domain;
     }

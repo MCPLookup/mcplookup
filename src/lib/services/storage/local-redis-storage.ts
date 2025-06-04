@@ -37,11 +37,11 @@ export class LocalRedisRegistryStorage implements IRegistryStorage {
     this.redis = createClient({
       url: redisUrl,
       socket: {
-        reconnectStrategy: (retries) => Math.min(retries * 50, 500)
+        reconnectStrategy: (retries: number) => Math.min(retries * 50, 500)
       }
     });
 
-    this.redis.on('error', (err) => {
+    this.redis.on('error', (err: Error) => {
       console.error('Local Redis connection error:', err);
     });
 
@@ -69,7 +69,7 @@ export class LocalRedisRegistryStorage implements IRegistryStorage {
     try {
       await this.ensureConnection();
 
-      const serverWithTimestamp = { ...server, last_updated: new Date().toISOString() };
+      const serverWithTimestamp = { ...server, updated_at: new Date().toISOString() };
       const multi = this.redis.multi();
 
       // 1. Store the full server record
@@ -414,8 +414,8 @@ export class LocalRedisRegistryStorage implements IRegistryStorage {
 
       const cutoffDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
       const serversToRemove = servers.filter(server =>
-        !server.last_updated ||
-        new Date(server.last_updated) < cutoffDate ||
+        !server.updated_at ||
+        new Date(server.updated_at) < cutoffDate ||
         server.health?.status === 'unhealthy'
       );
 
@@ -455,8 +455,8 @@ export class LocalRedisRegistryStorage implements IRegistryStorage {
     const results = await this.redis.mGet(keys);
     
     return results
-      .filter(result => result !== null)
-      .map(result => {
+      .filter((result: string | null) => result !== null)
+      .map((result: string | null) => {
         try {
           return JSON.parse(result as string) as MCPServerRecord;
         } catch (error) {
@@ -464,7 +464,7 @@ export class LocalRedisRegistryStorage implements IRegistryStorage {
           return null;
         }
       })
-      .filter(server => server !== null) as MCPServerRecord[];
+      .filter((server: MCPServerRecord | null) => server !== null) as MCPServerRecord[];
   }
 
   /**
@@ -479,11 +479,11 @@ export class LocalRedisRegistryStorage implements IRegistryStorage {
     
     // Add server info terms
     if (server.server_info?.name) {
-      server.server_info.name.split(/\s+/).forEach(word => terms.add(word));
+      server.server_info.name.split(/\s+/).forEach((word: string) => terms.add(word));
     }
     
-    if (server.server_info?.description) {
-      server.server_info.description.split(/\s+/).forEach(word => terms.add(word));
+    if (server.description) {
+      server.description.split(/\s+/).forEach((word: string) => terms.add(word));
     }
     
     // Add capability terms
@@ -497,7 +497,7 @@ export class LocalRedisRegistryStorage implements IRegistryStorage {
       server.tools.forEach(tool => {
         terms.add(tool.name);
         if (tool.description) {
-          tool.description.split(/\s+/).forEach(word => terms.add(word));
+          tool.description.split(/\s+/).forEach((word: string) => terms.add(word));
         }
       });
     }
@@ -546,7 +546,7 @@ export class LocalRedisRegistryStorage implements IRegistryStorage {
     switch (sortBy) {
       case 'domain': return server.domain;
       case 'name': return server.server_info?.name || server.domain;
-      case 'updated_at': return server.last_updated || '';
+      case 'updated_at': return server.updated_at || '';
       case 'health_score': return String(server.health?.uptime_percentage || 0);
       default: return server.domain;
     }
@@ -577,11 +577,11 @@ export class LocalRedisVerificationStorage implements IVerificationStorage {
     this.redis = createClient({
       url: redisUrl,
       socket: {
-        reconnectStrategy: (retries) => Math.min(retries * 50, 500)
+        reconnectStrategy: (retries: number) => Math.min(retries * 50, 500)
       }
     });
 
-    this.redis.on('error', (err) => {
+    this.redis.on('error', (err: Error) => {
       console.error('Local Redis connection error:', err);
     });
 
@@ -753,12 +753,12 @@ export class LocalRedisVerificationStorage implements IVerificationStorage {
       }
 
       // Get all challenges
-      const keys = challengeIds.map(id => `challenge:${id}`);
+      const keys = challengeIds.map((id: string) => `challenge:${id}`);
       const results = await this.redis.mGet(keys);
 
       let challenges = results
-        .filter(result => result !== null)
-        .map(result => {
+        .filter((result: string | null) => result !== null)
+        .map((result: string | null) => {
           try {
             return JSON.parse(result as string);
           } catch (error) {
@@ -766,7 +766,7 @@ export class LocalRedisVerificationStorage implements IVerificationStorage {
             return null;
           }
         })
-        .filter(challenge => challenge !== null) as VerificationChallengeData[];
+        .filter((challenge: VerificationChallengeData | null) => challenge !== null) as VerificationChallengeData[];
 
       // Apply status filter
       if (opts.status) {
@@ -822,13 +822,13 @@ export class LocalRedisVerificationStorage implements IVerificationStorage {
       }
 
       // Get all challenges to check expiration
-      const keys = challengeIds.map(id => `challenge:${id}`);
+      const keys = challengeIds.map((id: string) => `challenge:${id}`);
       const results = await this.redis.mGet(keys);
 
       const now = new Date();
       const expiredChallenges: string[] = [];
 
-      results.forEach((result, index) => {
+      results.forEach((result: string | null, index: number) => {
         if (result) {
           try {
             const challenge = JSON.parse(result as string);
@@ -884,19 +884,19 @@ export class LocalRedisVerificationStorage implements IVerificationStorage {
       }
 
       // Get all challenges
-      const keys = challengeIds.map(id => `challenge:${id}`);
+      const keys = challengeIds.map((id: string) => `challenge:${id}`);
       const results = await this.redis.mGet(keys);
 
       const challenges = results
-        .filter(result => result !== null)
-        .map(result => {
+        .filter((result: string | null) => result !== null)
+        .map((result: string | null) => {
           try {
             return JSON.parse(result as string);
           } catch (error) {
             return null;
           }
         })
-        .filter(challenge => challenge !== null) as VerificationChallengeData[];
+        .filter((challenge: VerificationChallengeData | null) => challenge !== null) as VerificationChallengeData[];
 
       const now = new Date();
       const activeChallenges = challenges.filter(c => new Date(c.expires_at) > now && !c.verified_at);
