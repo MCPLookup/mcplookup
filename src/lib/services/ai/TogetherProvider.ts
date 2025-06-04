@@ -1,8 +1,8 @@
 // Together AI Provider - fetches models dynamically from API with storage integration
 
-import { Provider, QueryRequest } from './Provider.js';
-import { Model, ModelMetadata } from './Model.js';
-import type { IAIStorage } from '../storage/ai-storage.js';
+import { Provider, QueryRequest } from './Provider';
+import { Model, ModelMetadata } from './Model';
+import type { IAIStorage } from '../storage/ai-storage';
 
 export class TogetherProvider extends Provider {
   readonly name = 'together';
@@ -40,14 +40,14 @@ export class TogetherProvider extends Provider {
 
     // Filter and map models
     return data.data
-      .filter(model => {
+      .filter((model: any) => {
         // Only include chat/instruct models
         return model.type === 'chat' && 
                model.id.includes('instruct') &&
                !model.id.includes('vision') && // Skip vision models for now
                !model.id.includes('code'); // Skip code-specific models for now
       })
-      .map(model => ({
+      .map((model: any) => ({
         id: model.id,
         name: model.display_name || model.id,
         provider: 'together',
@@ -71,8 +71,11 @@ export class TogetherProvider extends Provider {
 
     // Choose appropriate prompt based on phase
     const prompts = request.useRefinement && request.candidates
-      ? this.promptBuilder.buildRefinementPrompt(request.query, request.candidates)
-      : this.promptBuilder.buildKeywordExtractionPrompt(request.query);
+      ? this.promptBuilder.buildSlugSelectionPrompt(request.query, request.candidates)
+      : {
+          systemPrompt: "You are an AI assistant that helps extract keywords from user queries.",
+          userPrompt: `Extract relevant keywords from this query: "${request.query}"`
+        };
 
     const body: any = {
       model: model.id,

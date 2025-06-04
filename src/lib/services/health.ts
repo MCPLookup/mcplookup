@@ -1,8 +1,8 @@
 // Health Service - Real-time MCP Server Health Monitoring
 // Serverless-ready, no SQL dependencies
 
-import { HealthMetrics } from '../schemas/discovery.js';
-import { IHealthService } from './discovery.js';
+import { HealthMetrics } from '../schemas/discovery';
+import { IHealthService } from './discovery';
 
 /**
  * Health Service Implementation

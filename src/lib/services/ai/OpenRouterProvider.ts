@@ -1,8 +1,8 @@
 // OpenRouter Provider - fetches models dynamically from API with storage integration
 
-import { Provider, QueryRequest } from './Provider.js';
-import { Model, ModelMetadata } from './Model.js';
-import type { IAIStorage } from '../storage/ai-storage.js';
+import { Provider, QueryRequest } from './Provider';
+import { Model, ModelMetadata } from './Model';
+import type { IAIStorage } from '../storage/ai-storage';
 
 export class OpenRouterProvider extends Provider {
   readonly name = 'openrouter';
@@ -34,7 +34,7 @@ export class OpenRouterProvider extends Provider {
 
     // Filter and map models
     return data.data
-      .filter(model => {
+      .filter((model: any) => {
         // Only include models that are available and suitable for chat
         return !model.id.includes('vision') && 
                !model.id.includes('whisper') &&
@@ -42,7 +42,7 @@ export class OpenRouterProvider extends Provider {
                !model.id.includes('tts') &&
                model.context_length > 0;
       })
-      .map(model => ({
+      .map((model: any) => ({
         id: model.id,
         name: model.name || model.id,
         provider: 'openrouter',
@@ -53,7 +53,7 @@ export class OpenRouterProvider extends Provider {
         supportsStreaming: true,
         maxTokens: Math.min(model.context_length || 32768, 4096)
       }))
-      .sort((a, b) => {
+      .sort((a: any, b: any) => {
         // Sort by cost (free first, then by price)
         if (a.inputCost === 0 && b.inputCost !== 0) return -1;
         if (a.inputCost !== 0 && b.inputCost === 0) return 1;
@@ -72,8 +72,11 @@ export class OpenRouterProvider extends Provider {
 
     // Choose appropriate prompt based on phase
     const prompts = request.useRefinement && request.candidates
-      ? this.promptBuilder.buildRefinementPrompt(request.query, request.candidates)
-      : this.promptBuilder.buildKeywordExtractionPrompt(request.query);
+      ? this.promptBuilder.buildSlugSelectionPrompt(request.query, request.candidates)
+      : {
+          systemPrompt: "You are an AI assistant that helps extract keywords from user queries.",
+          userPrompt: `Extract relevant keywords from this query: "${request.query}"`
+        };
 
     const body: any = {
       model: model.id,

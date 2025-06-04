@@ -4,7 +4,7 @@
 
 import { createMcpHandler } from '@vercel/mcp-adapter';
 import { z } from 'zod';
-import { getServerlessServices } from '../../../lib/services/index.js';
+import { getServerlessServices } from '../../../lib/services/index';
 
 // Initialize services for serverless deployment
 const services = getServerlessServices();

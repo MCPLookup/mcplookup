@@ -1,7 +1,7 @@
 // Intent Service - NLP-based Intent to Capability Matching
 // Serverless-ready, no external AI APIs required
 
-import { IIntentService } from './discovery.js';
+import { IIntentService } from './discovery';
 
 /**
  * Intent Service Implementation
@@ -236,16 +236,16 @@ export class IntentService implements IIntentService {
  * Supports complex natural language queries with semantic understanding
  */
 export class EnhancedIntentService extends IntentService {
-  private smartAI?: import('./ai/index.js').SmartProvider;
+  private smartAI?: import('./ai/index').SmartProvider;
   private readonly USE_EXTERNAL_AI = this.hasAnyAIProvider();
 
   private hasAnyAIProvider(): boolean {
     return !!(process.env.TOGETHER_API_KEY || process.env.OPENROUTER_API_KEY);
   }
 
-  private async getSmartAI(): Promise<import('./ai/index.js').SmartProvider> {
+  private async getSmartAI(): Promise<import('./ai/index').SmartProvider> {
     if (!this.smartAI) {
-      const { SmartProvider } = await import('./ai/index.js');
+      const { SmartProvider } = await import('./ai/index');
       this.smartAI = new SmartProvider();
     }
     return this.smartAI;

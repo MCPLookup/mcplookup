@@ -1,11 +1,11 @@
 // Smart AI Provider - Orchestrates multiple providers with fallback to problematic models
 // Phase 1: Try healthy models, Phase 2: Try problematic models as last resort
 
-import { Provider, AIResponse } from './Provider.js';
-import { Model } from './Model.js';
-import { TogetherProvider } from './TogetherProvider.js';
-import { OpenRouterProvider } from './OpenRouterProvider.js';
-import { getAIStorage, type IAIStorage } from '../storage/ai-storage.js';
+import { Provider, AIResponse } from './Provider';
+import { Model } from './Model';
+import { TogetherProvider } from './TogetherProvider';
+import { OpenRouterProvider } from './OpenRouterProvider';
+import { getAIStorage, type IAIStorage } from '../storage/ai-storage';
 import { createHash } from 'crypto';
 
 export class SmartProvider {
@@ -37,7 +37,7 @@ export class SmartProvider {
     console.log(`🔍 Three-step AI processing for: "${query}"`);
 
     // Step 1: Extract clean keywords for search
-    const promptBuilder = new (await import('./PromptBuilder.js')).PromptBuilder();
+    const promptBuilder = new (await import('./PromptBuilder')).PromptBuilder();
     const keywords = promptBuilder.extractSearchKeywords(query);
     console.log(`📝 Extracted keywords: ${keywords.join(', ')}`);
 
@@ -92,7 +92,7 @@ export class SmartProvider {
 
       const result = await this.tryModelsForNarrowing(sortedHealthyModels, query, searchResults, false);
       if (result.success) return result.response!;
-      lastError = result.lastError;
+      lastError = result.lastError || null;
     }
 
     // Try problematic models as last resort
@@ -102,7 +102,7 @@ export class SmartProvider {
 
       const result = await this.tryModelsForNarrowing(sortedProblematicModels, query, searchResults, true);
       if (result.success) return result.response!;
-      lastError = result.lastError || lastError;
+      lastError = result.lastError || lastError || null;
     }
 
     throw new Error(`AI narrowing failed with all models. Last error: ${lastError?.message}`);
@@ -127,20 +127,18 @@ export class SmartProvider {
         const healthStatus = model.isHealthy ? 'healthy' : `unhealthy (${model.state.failureCount} failures)`;
         console.log(`${prefix} AI narrowing: ${model.provider}/${model.name} (${model.isFree ? 'FREE' : `$${model.estimatedCostPerQuery.toFixed(6)}`}) [${healthStatus}]`);
 
-        // Use the slug selection prompt through the provider's processQuery method
-        const response = await provider.callAPI(model, {
-          query,
-          maxTokens: 500,
-          temperature: 0.1,
-          candidates: searchResults,
-          useRefinement: true
-        });
+        // Use the provider's processQuery method which handles parsing
+        const response = await provider.processQuery(model, query, searchResults);
 
-        // Parse the AI response
-        const analysis = provider.parseResponse(response.content);
+        // Extract the analysis from the response
+        const analysis = {
+          selectedSlugs: response.selectedServers?.map(s => s.domain) || [],
+          reasoning: response.selectedServers?.map(s => s.reasoning).join('; ') || 'AI processing completed',
+          confidence: response.confidence || 0.8
+        };
 
-        // Record success
-        model.recordSuccess(Date.now() - Date.now());
+        // Record success (latency already recorded by provider)
+        // model.recordSuccess is already called by provider.processQuery
         this.lastSuccessfulModel = model.id;
 
         const successPrefix = isLastResort ? '🎉 Last resort SUCCESS' : '✅ Success';
@@ -159,7 +157,7 @@ export class SmartProvider {
         // Record failure
         model.recordFailure();
         const failPrefix = isLastResort ? '💥 Last resort failed' : '❌';
-        console.warn(`${failPrefix}: ${model.provider}/${model.name} - ${error.message}`);
+        console.warn(`${failPrefix}: ${model.provider}/${model.name} - ${error instanceof Error ? error.message : String(error)}`);
         lastError = error as Error;
         continue;
       }
@@ -176,7 +174,7 @@ export class SmartProvider {
         const models = await provider.getModels();
         allModels.push(...models);
       } catch (error) {
-        console.warn(`Failed to get models from ${provider.name}:`, error.message);
+        console.warn(`Failed to get models from ${provider.name}:`, error instanceof Error ? error.message : String(error));
       }
     }
     return allModels;
@@ -238,17 +236,17 @@ export class SmartProvider {
     });
   }
 
-  private async cacheResponse(query: string, response: AIResponse): Promise<void> {
+  private async cacheResponse(query: string, response: { selectedSlugs: string[]; reasoning: string; confidence: number }): Promise<void> {
     try {
       const queryHash = this.hashQuery(query);
       const cachedResponse = {
         query,
         response,
         timestamp: Date.now(),
-        provider: response.provider,
-        model: response.model,
-        cost: response.cost,
-        latency: response.latency
+        provider: 'smart-provider',
+        model: 'multi-model',
+        cost: 0,
+        latency: 0
       };
       await this.storage.setCachedResponse(queryHash, cachedResponse);
     } catch (error) {
@@ -256,7 +254,7 @@ export class SmartProvider {
     }
   }
 
-  private async getCachedResponse(query: string): Promise<AIResponse | null> {
+  private async getCachedResponse(query: string): Promise<{ selectedSlugs: string[]; reasoning: string; confidence: number } | null> {
     try {
       const queryHash = this.hashQuery(query);
       const result = await this.storage.getCachedResponse(queryHash);

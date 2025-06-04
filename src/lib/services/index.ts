@@ -6,7 +6,7 @@ import { HealthService, EnhancedHealthService } from './health';
 import { IntentService, EnhancedIntentService } from './intent';
 import { VerificationService, MCPValidationService } from './verification';
 import { DiscoveryService } from './discovery';
-import { StorageConfig } from './storage/storage.js';
+import { StorageConfig } from './storage/storage';
 
 /**
  * Service Configuration Options

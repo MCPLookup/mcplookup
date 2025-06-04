@@ -1,8 +1,8 @@
 // Provider abstraction - base class for AI providers with storage integration
 
-import { Model, ModelMetadata } from './Model.js';
-import { PromptBuilder, type MCPServerCandidate } from './PromptBuilder.js';
-import type { IAIStorage } from '../storage/ai-storage.js';
+import { Model, ModelMetadata } from './Model';
+import { PromptBuilder, type MCPSearchResult } from './PromptBuilder';
+import type { IAIStorage } from '../storage/ai-storage';
 
 export interface AIResponse {
   capabilities: string[];
@@ -29,7 +29,7 @@ export interface QueryRequest {
   query: string;
   maxTokens?: number;
   temperature?: number;
-  candidates?: MCPServerCandidate[];
+  candidates?: MCPSearchResult[];
   useRefinement?: boolean;
 }
 
@@ -88,7 +88,7 @@ export abstract class Provider {
       console.log(`Fetched ${this.models.length} models from ${this.name}`);
       
     } catch (error) {
-      console.warn(`Failed to fetch models from ${this.name}:`, error.message);
+      console.warn(`Failed to fetch models from ${this.name}:`, error instanceof Error ? error.message : String(error));
       // Return cached models if fetch fails
       if (this.models.length > 0) {
         console.log(`Using cached models for ${this.name}`);
@@ -103,7 +103,7 @@ export abstract class Provider {
   /**
    * Process query with specific model (with two-phase approach)
    */
-  async processQuery(model: Model, query: string, candidates?: MCPServerCandidate[]): Promise<AIResponse> {
+  async processQuery(model: Model, query: string, candidates?: MCPSearchResult[]): Promise<AIResponse> {
     const startTime = Date.now();
 
     try {
@@ -155,7 +155,7 @@ export abstract class Provider {
     } catch (error) {
       // Record failure in model
       model.recordFailure();
-      throw new Error(`${this.name}/${model.id} failed: ${error.message}`);
+      throw new Error(`${this.name}/${model.id} failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 

@@ -1,6 +1,6 @@
 // Model abstraction - represents an AI model with persistent state
 
-import type { IAIStorage } from '../storage/ai-storage.js';
+import type { IAIStorage } from '../storage/ai-storage';
 
 export interface ModelMetadata {
   id: string;
