@@ -76,9 +76,9 @@ export default function HomePage() {
               <AnimatedCard.Body>
                 <div className="text-center">
                   <div className="text-4xl text-blue-500 mb-4 animate-bounce-in" style={{ animationDelay: '0.8s' }}>🔍</div>
-                  <h3 className="text-lg font-semibold mb-2">Discovery</h3>
+                  <h3 className="text-lg font-semibold mb-2">Smart Discovery</h3>
                   <p className="text-sm text-gray-600">
-                    Find MCP servers by domain, capability, or intent
+                    AI-powered search with transport capabilities and OpenAPI documentation
                   </p>
                 </div>
               </AnimatedCard.Body>
@@ -93,9 +93,9 @@ export default function HomePage() {
               <AnimatedCard.Body>
                 <div className="text-center">
                   <div className="text-4xl text-green-500 mb-4 animate-bounce-in" style={{ animationDelay: '1.0s' }}>➕</div>
-                  <h3 className="text-lg font-semibold mb-2">Registration</h3>
+                  <h3 className="text-lg font-semibold mb-2">Auto-Discovery</h3>
                   <p className="text-sm text-gray-600">
-                    Register your MCP server with DNS verification
+                    Automatic transport capabilities and OpenAPI documentation discovery
                   </p>
                 </div>
               </AnimatedCard.Body>
