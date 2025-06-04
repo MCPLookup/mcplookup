@@ -14,11 +14,72 @@ export default function DocsPage() {
           {/* Header */}
           <div className="text-center space-y-4">
             <h1 className="text-4xl font-bold text-gray-900">
-              Documentation
+              📚 MCPLookup.org Documentation
             </h1>
             <p className="text-xl text-gray-600">
-              Learn how to use MCPLookup.org to discover and register MCP servers
+              Complete guide to the universal MCP server discovery service
             </p>
+          </div>
+
+          {/* Quick Navigation */}
+          <div className="bg-white rounded-lg shadow-md p-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">🚀 Documentation Hub</h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="text-center space-y-4 p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
+                <div className="text-4xl">🤔</div>
+                <h3 className="text-lg font-semibold text-gray-900">What is this?</h3>
+                <p className="text-gray-600 text-sm">
+                  New to MCP? Start here to understand what MCPLookup.org does and why it matters.
+                </p>
+                <a
+                  href="https://github.com/TSavo/mcplookup.org/blob/main/WHAT_IS_THIS.md"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  📖 Read Introduction
+                </a>
+              </div>
+
+              <div className="text-center space-y-4 p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
+                <div className="text-4xl">👤</div>
+                <h3 className="text-lg font-semibold text-gray-900">User Guide</h3>
+                <p className="text-gray-600 text-sm">
+                  Step-by-step guide for discovering servers, registering your own, and troubleshooting.
+                </p>
+                <a
+                  href="https://github.com/TSavo/mcplookup.org/blob/main/USER_GUIDE.md"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 transition-colors"
+                >
+                  📚 User Guide
+                </a>
+              </div>
+
+              <div className="text-center space-y-4 p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
+                <div className="text-4xl">⚡</div>
+                <h3 className="text-lg font-semibold text-gray-900">API Reference</h3>
+                <p className="text-gray-600 text-sm">
+                  Complete REST API specification with examples, error codes, and response formats.
+                </p>
+                <a
+                  href="https://github.com/TSavo/mcplookup.org/blob/main/API_SPECIFICATION.md"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700 transition-colors"
+                >
+                  🔌 API Docs
+                </a>
+              </div>
+            </div>
+
+            <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+              <p className="text-yellow-800 text-center">
+                <strong>💡 Pro Tip:</strong> Start with "What is this?" if you're new to MCP, then move to the User Guide for hands-on instructions, and finally check the API Reference for technical integration details.
+              </p>
+            </div>
           </div>
 
           {/* Quick Start */}
