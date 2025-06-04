@@ -42,7 +42,7 @@ interface MCPServer {
 
 export default function DiscoverPage() {
   const [searchQuery, setSearchQuery] = useState("")
-  const [searchType, setSearchType] = useState<"domain" | "capability">("domain")
+  const [searchType, setSearchType] = useState<"domain" | "capability" | "smart">("domain")
   const [servers, setServers] = useState<MCPServer[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -56,6 +56,7 @@ export default function DiscoverPage() {
     minTrustScore: 0
   })
   const [showFilters, setShowFilters] = useState(false)
+  const [aiMetadata, setAiMetadata] = useState<any>(null)
   const toast = useToast()
 
   const bgGradient = useColorModeValue(
@@ -68,41 +69,76 @@ export default function DiscoverPage() {
 
     setLoading(true)
     setError(null)
+    setAiMetadata(null)
 
     try {
-      const params = new URLSearchParams({
-        q: searchQuery,
-        type: searchType,
-        page: page.toString(),
-        limit: itemsPerPage.toString(),
-        ...(filters.verified && { verified: 'true' }),
-        ...(filters.health && { health: filters.health }),
-        ...(filters.minTrustScore > 0 && { min_trust_score: filters.minTrustScore.toString() })
-      })
+      if (searchType === "smart") {
+        // AI-powered smart search
+        const response = await fetch('/api/v1/discover/smart', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            intent: searchQuery,
+            context: {
+              user_type: filters.verified ? 'business' : 'personal',
+              max_results: itemsPerPage
+            }
+          })
+        })
 
-      const response = await fetch(`/api/v1/discover?${params}`)
+        if (!response.ok) {
+          throw new Error(`AI search failed: ${response.status}`)
+        }
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const data = await response.json()
-
-      if (data.servers) {
-        setServers(data.servers)
-        setTotalItems(data.pagination?.total_count || data.servers.length)
-        setTotalPages(Math.ceil((data.pagination?.total_count || data.servers.length) / itemsPerPage))
-        setCurrentPage(page)
+        const data = await response.json()
+        setServers(data.servers || [])
+        setAiMetadata(data.metadata)
+        setTotalItems(data.servers?.length || 0)
+        setTotalPages(1) // AI search returns pre-filtered results
+        setCurrentPage(1)
 
         toast.success(
-          "Search completed",
-          `Found ${data.servers.length} servers`
+          "🧠 AI Search completed",
+          `Found ${data.servers?.length || 0} relevant servers (${Math.round(data.confidence * 100)}% confidence)`
         )
       } else {
-        setServers([])
-        setTotalItems(0)
-        setTotalPages(1)
-        setCurrentPage(1)
+        // Traditional keyword search
+        const params = new URLSearchParams({
+          q: searchQuery,
+          type: searchType,
+          page: page.toString(),
+          limit: itemsPerPage.toString(),
+          ...(filters.verified && { verified: 'true' }),
+          ...(filters.health && { health: filters.health }),
+          ...(filters.minTrustScore > 0 && { min_trust_score: filters.minTrustScore.toString() })
+        })
+
+        const response = await fetch(`/api/v1/discover?${params}`)
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+
+        const data = await response.json()
+
+        if (data.servers) {
+          setServers(data.servers)
+          setTotalItems(data.pagination?.total_count || data.servers.length)
+          setTotalPages(Math.ceil((data.pagination?.total_count || data.servers.length) / itemsPerPage))
+          setCurrentPage(page)
+
+          toast.success(
+            "Search completed",
+            `Found ${data.servers.length} servers`
+          )
+        } else {
+          setServers([])
+          setTotalItems(0)
+          setTotalPages(1)
+          setCurrentPage(1)
+        }
       }
     } catch (err) {
       console.error('Search error:', err)
@@ -169,7 +205,7 @@ export default function DiscoverPage() {
           <VStack gap={4} textAlign="center">
             <Heading size="xl">Discover MCP Servers</Heading>
             <Text fontSize="lg" color="gray.600" _dark={{ color: "gray.300" }}>
-              Find Model Context Protocol servers by domain or capability
+              Find Model Context Protocol servers by domain, capability, or natural language with AI
             </Text>
           </VStack>
 
@@ -192,14 +228,23 @@ export default function DiscoverPage() {
                   >
                     Capability
                   </Button>
+                  <Button
+                    variant={searchType === "smart" ? "solid" : "outline"}
+                    colorPalette="purple"
+                    onClick={() => setSearchType("smart")}
+                  >
+                    🧠 AI Smart
+                  </Button>
                 </HStack>
                 
                 <HStack gap={2} width="full">
                   <Input
                     placeholder={
-                      searchType === "domain" 
-                        ? "Enter domain (e.g., gmail.com)" 
-                        : "Enter capability (e.g., email)"
+                      searchType === "domain"
+                        ? "Enter domain (e.g., gmail.com)"
+                        : searchType === "capability"
+                        ? "Enter capability (e.g., email)"
+                        : "Ask in natural language (e.g., 'Find email servers like Gmail but more private')"
                     }
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -314,14 +359,35 @@ export default function DiscoverPage() {
           {/* Results */}
           {!loading && servers.length > 0 && (
             <VStack gap={6} align="stretch">
-              <HStack justify="space-between" align="center">
-                <Heading size="md">
-                  Found {totalItems} server{totalItems !== 1 ? "s" : ""}
-                </Heading>
-                <Text fontSize="sm" color="gray.600" _dark={{ color: "gray.300" }}>
-                  Page {currentPage} of {totalPages}
-                </Text>
-              </HStack>
+              <VStack gap={4} align="stretch">
+                <HStack justify="space-between" align="center">
+                  <Heading size="md">
+                    Found {totalItems} server{totalItems !== 1 ? "s" : ""}
+                  </Heading>
+                  <Text fontSize="sm" color="gray.600" _dark={{ color: "gray.300" }}>
+                    {searchType === "smart" ? "AI-curated results" : `Page ${currentPage} of ${totalPages}`}
+                  </Text>
+                </HStack>
+
+                {/* AI Metadata */}
+                {aiMetadata && searchType === "smart" && (
+                  <Card.Root size="sm">
+                    <Card.Body>
+                      <VStack gap={2} align="start">
+                        <HStack gap={2}>
+                          <Text fontSize="sm" fontWeight="semibold">🧠 AI Analysis:</Text>
+                          <Badge colorPalette="purple" variant="outline">
+                            {Math.round(aiMetadata.confidence * 100)}% confidence
+                          </Badge>
+                        </HStack>
+                        <Text fontSize="sm" color="gray.600" _dark={{ color: "gray.300" }}>
+                          Processed in {aiMetadata.processing_time_ms}ms using {aiMetadata.ai_provider}
+                        </Text>
+                      </VStack>
+                    </Card.Body>
+                  </Card.Root>
+                )}
+              </VStack>
 
               <AnimatedList staggerDelay={0.1} direction="up">
                 <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={6}>
@@ -396,7 +462,7 @@ export default function DiscoverPage() {
               </AnimatedList>
 
               {/* Pagination */}
-              {totalPages > 1 && (
+              {totalPages > 1 && searchType !== "smart" && (
                 <Pagination
                   currentPage={currentPage}
                   totalPages={totalPages}
