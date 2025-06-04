@@ -449,24 +449,42 @@ npm run test:coverage
 
 ---
 
-## 📚 **DOCUMENTATION**
+## 📚 **WORLD-CLASS DOCUMENTATION**
 
-### Full Specifications
+### 🚀 **Start Here - Essential Guides**
+
+| Guide | Description | Perfect For |
+|-------|-------------|-------------|
+| **[🤔 What is this?](WHAT_IS_THIS.md)** | Complete introduction to MCPLookup.org and MCP | Newcomers to MCP |
+| **[👤 User Guide](USER_GUIDE.md)** | Step-by-step discovery, registration, and troubleshooting | All users |
+| **[⚡ API Reference](API_SPECIFICATION.md)** | Complete REST API with examples and error codes | Developers |
+| **[🛠️ Developer Guide](DEVELOPER_GUIDE.md)** | Architecture, setup, and contribution guide | Contributors |
+| **[❓ FAQ](FAQ.md)** | Frequently asked questions and troubleshooting | Quick answers |
+
+### 📖 **Interactive Documentation**
+- **[Live Documentation Hub](https://mcplookup.org/docs)** - Interactive guides and examples
+- **[API Playground](https://mcplookup.org/api/docs)** - Live API testing interface
+
+### 🔧 **Technical Specifications**
 - [`PROJECT_SPEC.md`](./PROJECT_SPEC.md) - Complete project overview
 - [`MCP_SERVER_SPEC.md`](./MCP_SERVER_SPEC.md) - The One Ring MCP server details
 - [`API_SPEC.md`](./API_SPEC.md) - REST API documentation
 - [`DNS_VERIFICATION_SPEC.md`](./DNS_VERIFICATION_SPEC.md) - DNS verification protocol
 - [`DEPLOYMENT_GUIDE.md`](./DEPLOYMENT_GUIDE.md) - Production deployment
+- [`OAUTH_SETUP.md`](./OAUTH_SETUP.md) - OAuth authentication setup
 
-### API Documentation
-- **Swagger UI**: http://localhost:3000/docs
-- **OpenAPI Spec**: http://localhost:3000/openapi.json
-
-### Storage Documentation
+### 🏗️ **Architecture Documentation**
 - [`Storage Architecture`](./src/lib/services/storage/DESIGN.md) - Storage design principles
 - [`Storage Interfaces`](./src/lib/services/storage/interfaces.ts) - TypeScript interfaces
 - [`Implementation Guide`](./src/lib/services/storage/README.md) - Usage examples
 - [`Security Guide`](./SECURITY.md) - Environment and secrets management
+
+### 💡 **Quick Navigation**
+- **New to MCP?** → Start with [What is this?](WHAT_IS_THIS.md)
+- **Want to discover servers?** → Check the [User Guide](USER_GUIDE.md)
+- **Building an integration?** → See [API Reference](API_SPECIFICATION.md)
+- **Contributing code?** → Read [Developer Guide](DEVELOPER_GUIDE.md)
+- **Have questions?** → Browse the [FAQ](FAQ.md)
 
 ---
 
