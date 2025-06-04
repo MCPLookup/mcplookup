@@ -5,7 +5,7 @@ import dns from 'dns/promises';
 import { randomUUID } from 'crypto';
 import { getVerificationStorage, StorageConfig } from './storage/storage';
 import { IVerificationStorage, VerificationChallengeData, isSuccessResult } from './storage/interfaces';
-import { VerificationChallenge, RegistrationRequest, TransportCapabilities } from '../schemas/discovery';
+import { VerificationChallenge, RegistrationRequest, TransportCapabilities, MCPServerRecord } from '../schemas/discovery';
 
 export interface IVerificationService {
   initiateDNSVerification(request: RegistrationRequest): Promise<VerificationChallenge>;
@@ -13,6 +13,7 @@ export interface IVerificationService {
   verifyMCPEndpoint(endpoint: string): Promise<boolean>;
   generateVerificationRecord(domain: string, token: string): Promise<string>;
   getChallengeStatus(challengeId: string): Promise<VerificationChallenge | null>;
+  completeVerificationAndRegister(challengeId: string): Promise<MCPServerRecord>;
 }
 
 /**
@@ -32,13 +33,16 @@ export class VerificationService implements IVerificationService {
   
   private storageService: IVerificationStorage;
   private mcpService: IMCPValidationService;
+  private registryService?: any; // Will be injected to avoid circular dependency
 
   constructor(
     mcpService: IMCPValidationService,
-    storageConfig?: StorageConfig
+    storageConfig?: StorageConfig,
+    registryService?: any
   ) {
     this.storageService = getVerificationStorage(storageConfig);
     this.mcpService = mcpService;
+    this.registryService = registryService;
   }
 
   /**
@@ -124,6 +128,16 @@ export class VerificationService implements IVerificationService {
         if (!verifyResult.success) {
           console.error('Failed to mark challenge as verified:', verifyResult.error);
         }
+
+        // Complete verification and register the server
+        try {
+          await this.completeVerificationAndRegister(challengeId);
+          console.log(`✅ Server registration completed for ${challenge.domain}`);
+        } catch (error) {
+          console.error('Failed to complete server registration:', error);
+          // Don't fail the verification, but log the error
+        }
+
         return true;
       }
 
@@ -163,6 +177,171 @@ export class VerificationService implements IVerificationService {
     // Format: v=mcp1 domain=example.com token=abc123 timestamp=1234567890
     const timestamp = Math.floor(Date.now() / 1000);
     return `v=mcp1 domain=${domain} token=${token} timestamp=${timestamp}`;
+  }
+
+  /**
+   * Complete verification and register the server in the registry
+   */
+  async completeVerificationAndRegister(challengeId: string): Promise<MCPServerRecord> {
+    // Get the challenge data
+    const challengeResult = await this.storageService.getChallenge(challengeId);
+    if (!challengeResult.success || !challengeResult.data) {
+      throw new Error('Challenge not found');
+    }
+
+    const challenge = challengeResult.data;
+
+    // Discover server capabilities and transport metadata
+    console.log(`🔍 Discovering capabilities for ${challenge.endpoint}...`);
+
+    const [serverInfo, transportCapabilities] = await Promise.allSettled([
+      this.mcpService.getMCPServerInfo(challenge.endpoint),
+      this.mcpService.discoverTransportCapabilities(challenge.endpoint)
+    ]);
+
+    const mcpServerInfo = serverInfo.status === 'fulfilled' ? serverInfo.value : null;
+    const transportCaps = transportCapabilities.status === 'fulfilled' ? transportCapabilities.value : null;
+
+    if (!mcpServerInfo) {
+      throw new Error('Failed to get MCP server info during registration');
+    }
+
+    // Create the server record
+    const serverRecord: MCPServerRecord = {
+      // Identity
+      domain: challenge.domain,
+      endpoint: challenge.endpoint,
+      name: mcpServerInfo.name || challenge.domain,
+      description: challenge.description || `MCP server for ${challenge.domain}`,
+
+      // MCP Protocol Data
+      server_info: mcpServerInfo,
+      tools: [], // Will be populated later via tools/list
+      resources: [], // Will be populated later via resources/list
+      transport: transportCaps?.primary_transport || 'streamable_http',
+      transport_capabilities: transportCaps,
+
+      // Semantic Organization (basic defaults)
+      capabilities: {
+        category: 'other',
+        subcategories: [],
+        intent_keywords: [challenge.domain],
+        use_cases: [`Services provided by ${challenge.domain}`]
+      },
+
+      // Technical Requirements
+      auth: {
+        type: 'none' // Default, can be updated later
+      },
+      cors_enabled: transportCaps?.cors_details.cors_enabled || false,
+
+      // Operational Status
+      health: {
+        status: 'healthy',
+        uptime_percentage: 100,
+        avg_response_time_ms: transportCaps?.performance.avg_response_time_ms || 0,
+        error_rate: 0,
+        last_check: new Date().toISOString(),
+        consecutive_failures: 0
+      },
+      verification: {
+        dns_verified: true,
+        endpoint_verified: true,
+        ssl_verified: challenge.endpoint.startsWith('https://'),
+        last_verification: new Date().toISOString(),
+        verification_method: 'dns-txt-challenge',
+        verified_at: new Date().toISOString()
+      },
+
+      // Metadata
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      maintainer: {
+        email: challenge.contact_email
+      },
+
+      // Verification Tracking
+      verification_status: 'verified',
+      consecutive_verification_failures: 0,
+      trust_score: 85 // Initial trust score for verified domains
+    };
+
+    // Register the server in the registry
+    if (this.registryService) {
+      await this.registryService.registerServer(serverRecord);
+      console.log(`✅ Server ${challenge.domain} registered successfully`);
+
+      // Attempt to populate tools and resources (non-blocking)
+      this.populateServerCapabilities(serverRecord).catch(error => {
+        console.warn(`Failed to populate capabilities for ${challenge.domain}:`, error);
+      });
+    } else {
+      console.warn('Registry service not available, server record not stored');
+    }
+
+    return serverRecord;
+  }
+
+  /**
+   * Populate server tools and resources (async, non-blocking)
+   */
+  private async populateServerCapabilities(server: MCPServerRecord): Promise<void> {
+    try {
+      const { safeFetch } = await import('../security/url-validation');
+
+      // Get tools list
+      const toolsResponse = await safeFetch(server.endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 2,
+          method: 'tools/list',
+          params: {}
+        }),
+        signal: AbortSignal.timeout(5000)
+      });
+
+      if (toolsResponse.ok) {
+        const toolsData = await toolsResponse.json();
+        if (toolsData.result?.tools) {
+          server.tools = toolsData.result.tools;
+        }
+      }
+
+      // Get resources list
+      const resourcesResponse = await safeFetch(server.endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 3,
+          method: 'resources/list',
+          params: {}
+        }),
+        signal: AbortSignal.timeout(5000)
+      });
+
+      if (resourcesResponse.ok) {
+        const resourcesData = await resourcesResponse.json();
+        if (resourcesData.result?.resources) {
+          server.resources = resourcesData.result.resources;
+        }
+      }
+
+      // Update the server record with populated capabilities
+      if (this.registryService && (server.tools.length > 0 || server.resources.length > 0)) {
+        await this.registryService.updateServer(server.domain, {
+          tools: server.tools,
+          resources: server.resources,
+          updated_at: new Date().toISOString()
+        });
+        console.log(`📋 Populated ${server.tools.length} tools and ${server.resources.length} resources for ${server.domain}`);
+      }
+
+    } catch (error) {
+      console.warn(`Failed to populate capabilities for ${server.domain}:`, error);
+    }
   }
 
   /**

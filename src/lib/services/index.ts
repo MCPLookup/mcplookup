@@ -106,7 +106,8 @@ export class ServiceFactory {
   getVerificationService(): VerificationService {
     if (!this.verificationService) {
       const mcpService = new MCPValidationService();
-      this.verificationService = new VerificationService(mcpService, this.config.storage);
+      const registryService = this.getRegistryService();
+      this.verificationService = new VerificationService(mcpService, this.config.storage, registryService);
     }
     return this.verificationService;
   }
