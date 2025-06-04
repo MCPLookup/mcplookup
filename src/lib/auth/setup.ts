@@ -1,7 +1,7 @@
 // First-Time Setup System
 // Handles initial admin user creation and system configuration
 
-import { getUserStorage } from '../services/storage/storage';
+import { createUserStorage } from '../services/storage/storage';
 import { UserProfile } from '../services/storage/interfaces';
 import { randomUUID } from 'crypto';
 
@@ -31,7 +31,7 @@ export interface SetupResult {
  */
 export async function checkSetupStatus(): Promise<SetupStatus> {
   try {
-    const userStorage = getUserStorage();
+    const userStorage = createUserStorage();
     
     // Get all users to check if any exist
     const usersResult = await userStorage.getAllUsers({ limit: 1 });
@@ -76,7 +76,7 @@ export async function checkSetupStatus(): Promise<SetupStatus> {
  */
 export async function createInitialAdmin(request: SetupRequest): Promise<SetupResult> {
   try {
-    const userStorage = getUserStorage();
+    const userStorage = createUserStorage();
     
     // Check if setup is still needed
     const status = await checkSetupStatus();
@@ -161,7 +161,7 @@ export async function createInitialAdmin(request: SetupRequest): Promise<SetupRe
  */
 export async function promoteUserToAdmin(userId: string, promotedBy: string): Promise<SetupResult> {
   try {
-    const userStorage = getUserStorage();
+    const userStorage = createUserStorage();
     
     // Verify the user exists
     const userResult = await userStorage.getUser(userId);
@@ -217,7 +217,7 @@ export async function promoteUserToAdmin(userId: string, promotedBy: string): Pr
  */
 export async function isUserAdmin(userId: string): Promise<boolean> {
   try {
-    const userStorage = getUserStorage();
+    const userStorage = createUserStorage();
     const userResult = await userStorage.getUser(userId);
     return userResult.success && userResult.data?.role === 'admin';
   } catch (error) {
@@ -231,7 +231,7 @@ export async function isUserAdmin(userId: string): Promise<boolean> {
  */
 export async function getAdminUsers() {
   try {
-    const userStorage = getUserStorage();
+    const userStorage = createUserStorage();
     return await userStorage.getAllUsers({ role: 'admin' });
   } catch (error) {
     console.error('Error getting admin users:', error);

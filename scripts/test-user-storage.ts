@@ -4,7 +4,7 @@
 // Tests both LocalRedisUserStorage and UpstashUserStorage
 
 import { randomUUID } from 'crypto';
-import { getUserStorage } from '../src/lib/services/storage/storage';
+import { createUserStorage } from '../src/lib/services/storage/storage';
 import { UserProfile, UserSession, UserRegistration } from '../src/lib/services/storage/interfaces';
 
 async function testUserStorage() {
@@ -18,7 +18,7 @@ async function testUserStorage() {
     console.log('='.repeat(50));
 
     try {
-      const userStorage = getUserStorage({ provider });
+      const userStorage = createUserStorage({ provider });
       
       // Test health check
       console.log('🏥 Health Check...');

@@ -3,7 +3,7 @@
 
 import dns from 'dns/promises';
 import { randomUUID } from 'crypto';
-import { getVerificationStorage, StorageConfig } from './storage/storage';
+import { createVerificationStorage, StorageConfig } from './storage/storage';
 import { IVerificationStorage, VerificationChallengeData, isSuccessResult } from './storage/interfaces';
 import { VerificationChallenge, RegistrationRequest, TransportCapabilities, MCPServerRecord, OpenAPIDocumentation } from '../schemas/discovery';
 
@@ -40,7 +40,7 @@ export class VerificationService implements IVerificationService {
     storageConfig?: StorageConfig,
     registryService?: any
   ) {
-    this.storageService = getVerificationStorage(storageConfig);
+    this.storageService = createVerificationStorage(storageConfig);
     this.mcpService = mcpService;
     this.registryService = registryService;
   }

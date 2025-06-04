@@ -3,14 +3,14 @@
 
 import type { Adapter, AdapterUser, AdapterAccount, AdapterSession, VerificationToken } from "next-auth/adapters"
 import { randomUUID } from "crypto"
-import { getUserStorage } from "../services/storage/storage"
+import { createUserStorage } from "../services/storage/storage"
 import { UserProfile, UserSession, isSuccessResult } from "../services/storage/interfaces"
 
 /**
  * Create a NextAuth adapter that uses our storage abstraction
  */
 export function createStorageAdapter(): Adapter {
-  const userStorage = getUserStorage()
+  const userStorage = createUserStorage()
 
   return {
     async createUser(user): Promise<AdapterUser> {

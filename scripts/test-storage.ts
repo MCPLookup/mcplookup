@@ -2,7 +2,7 @@
 // Storage Abstraction Test Script
 // Tests all storage providers to ensure they work correctly
 
-import { getRegistryStorage, getVerificationStorage } from '../src/lib/services/storage/storage.js';
+import { createRegistryStorage, createVerificationStorage } from '../src/lib/services/storage/storage.js';
 import { MCPServerRecord, CapabilityCategory } from '../src/lib/schemas/discovery.js';
 import { VerificationChallengeData, isSuccessResult } from '../src/lib/services/storage/interfaces.js';
 
@@ -12,8 +12,8 @@ async function testStorageProvider(providerName: string, provider: 'memory' | 'l
 
   try {
     // Get storage instances
-    const registryStorage = getRegistryStorage({ provider });
-    const verificationStorage = getVerificationStorage({ provider });
+    const registryStorage = createRegistryStorage({ provider });
+    const verificationStorage = createVerificationStorage({ provider });
 
     // Test health checks
     console.log('📊 Health Checks:');

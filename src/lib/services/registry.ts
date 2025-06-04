@@ -4,7 +4,7 @@
 import { MCPServerRecord, CapabilityCategory } from '../schemas/discovery';
 import { IRegistryService } from './discovery';
 import { IRegistryStorage, isSuccessResult } from './storage/interfaces';
-import { getRegistryStorage, StorageConfig } from './storage/storage';
+import { createRegistryStorage, StorageConfig } from './storage/storage';
 
 /**
  * Registry Service with Storage Abstraction
@@ -14,7 +14,7 @@ export class RegistryService implements IRegistryService {
   private storage: IRegistryStorage;
 
   constructor(storageConfig?: StorageConfig) {
-    this.storage = getRegistryStorage(storageConfig);
+    this.storage = createRegistryStorage(storageConfig);
   }
 
   /**

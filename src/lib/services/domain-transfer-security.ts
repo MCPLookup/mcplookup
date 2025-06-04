@@ -4,7 +4,7 @@
 import { randomUUID } from 'crypto';
 import { VerificationService, IVerificationService } from './verification';
 import { RegistryService } from './registry';
-import { getVerificationStorage, StorageConfig } from './storage/storage';
+import { createVerificationStorage, StorageConfig } from './storage/storage';
 import { IVerificationStorage, isSuccessResult, VerificationChallengeData } from './storage/interfaces';
 import { MCPServerRecord } from '../schemas/discovery';
 
@@ -66,7 +66,7 @@ export class DomainTransferSecurityService {
   ) {
     this.verificationService = verificationService;
     this.registryService = registryService;
-    this.storageService = getVerificationStorage(storageConfig);
+    this.storageService = createVerificationStorage(storageConfig);
   }
 
   /**
