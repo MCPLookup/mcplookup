@@ -4,7 +4,7 @@ import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { SignInButton } from "@/components/auth/signin-button"
 import { AnimatedButton } from "@/components/ui/animated-button"
-import { AnimatedCardNamespace as AnimatedCard, AnimatedList } from "@/components/ui/animated-card"
+import AnimatedCard, { AnimatedList } from "@/components/ui/animated-card"
 import Link from "next/link"
 
 export default function HomePage() {
@@ -23,19 +23,6 @@ export default function HomePage() {
             </h1>
           </div>
 
-<<<<<<< HEAD
-          <h2 className="text-3xl font-semibold text-slate-700 max-w-4xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-            Professional MCP Discovery Service
-          </h2>
-
-          <p className="text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
-            Enterprise-grade Model Context Protocol server discovery and registration.
-            Secure, scalable, and built for professional AI development teams.
-          </p>
-
-          <div className="space-y-6 animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-=======
           <h2 className="text-3xl font-bold max-w-4xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
             <span className="text-red-600">The End of Hardcoded Lists</span>
           </h2>
@@ -203,7 +190,7 @@ export default function HomePage() {
                       <strong>MCPLookup.org wins when a better solution arrives.</strong><br/>
                       We're building open standards, not walled gardens.<br/>
                       Fork our code. Compete with us. Build something better.<br/>
-                      <strong>Ecosystem health > Our success.</strong>
+                      <strong>Ecosystem health {`>`} Our success.</strong>
                     </p>
                   </div>
                 </div>
@@ -232,7 +219,7 @@ export default function HomePage() {
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 max-w-3xl mx-auto animate-fade-in-up" style={{ animationDelay: '2.6s' }}>
                 <p className="text-sm text-yellow-800 font-medium">
                   💰 <strong>The Real Cost:</strong> Right now we're all paying overhead with hardcoded lists.
-                  This site costs me time and money. Major AI leaders will eventually get their shit together.
+                  This site costs me time and money. Major AI leaders will eventually get their s**t together.
                   <strong>Until then, I win when the problem goes away. So say we all.</strong>
                 </p>
               </div>
