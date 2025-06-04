@@ -1,10 +1,10 @@
 // Registry Service - Serverless MCP Server Registry
 // Uses storage abstraction layer for seamless provider switching
 
-import { MCPServerRecord, CapabilityCategory } from '../schemas/discovery.js';
-import { IRegistryService } from './discovery.js';
-import { IRegistryStorage } from './storage/interfaces.js';
-import { getRegistryStorage, StorageConfig } from './storage/storage.js';
+import { MCPServerRecord, CapabilityCategory } from '../schemas/discovery';
+import { IRegistryService } from './discovery';
+import { IRegistryStorage } from './storage/interfaces';
+import { getRegistryStorage, StorageConfig } from './storage/storage';
 
 /**
  * Registry Service with Storage Abstraction
@@ -28,7 +28,7 @@ export class RegistryService implements IRegistryService {
    * Register a new MCP server
    */
   async registerServer(server: MCPServerRecord): Promise<void> {
-    await this.storage.storeServer(server.domain, server);
+    await this.storage.addServer(server);
   }
 
   /**
@@ -41,14 +41,14 @@ export class RegistryService implements IRegistryService {
     }
 
     const updated = { ...existing, ...updates, updated_at: new Date().toISOString() };
-    await this.storage.storeServer(domain, updated);
+    await this.storage.updateServer(domain, updated);
   }
 
   /**
    * Unregister a server
    */
   async unregisterServer(domain: string): Promise<void> {
-    await this.storage.deleteServer(domain);
+    await this.storage.removeServer(domain);
   }
 
   /**
@@ -60,12 +60,12 @@ export class RegistryService implements IRegistryService {
     wellKnownServers: number;
     categories: Record<string, number> 
   }> {
-    const storageStats = await this.storage.getStats();
+    const storageStats = await this.storage.getHealthStats();
     return {
       totalServers: storageStats.totalServers,
       registeredServers: storageStats.totalServers,
       wellKnownServers: 0, // No hardcoded servers
-      categories: storageStats.categories
+      categories: {} // TODO: Implement category counting
     };
   }
 
@@ -86,7 +86,7 @@ export class RegistryService implements IRegistryService {
   /**
    * Get servers by capability
    */
-  async getServersByCapability(capability: string): Promise<MCPServerRecord[]> {
+  async getServersByCapability(capability: CapabilityCategory): Promise<MCPServerRecord[]> {
     return this.storage.getServersByCapability(capability);
   }
 
@@ -94,7 +94,7 @@ export class RegistryService implements IRegistryService {
    * Get servers by category
    */
   async getServersByCategory(category: CapabilityCategory): Promise<MCPServerRecord[]> {
-    return this.storage.getServersByCategory(category);
+    return this.storage.getServersByCapability(category);
   }
 
   /**

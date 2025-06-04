@@ -1,10 +1,10 @@
 // Storage Factory - Environment-based storage selection
 // Tests: in-memory, Dev: local Redis, Prod: Upstash Redis
 
-import { IRegistryStorage, IVerificationStorage, VerificationChallengeData } from './interfaces.js';
-import { UpstashRegistryStorage } from './registry-storage.js';
-import { UpstashVerificationStorage } from './upstash.js';
-import { MCPServerRecord, CapabilityCategory } from '../../schemas/discovery.js';
+import { IRegistryStorage, IVerificationStorage, VerificationChallengeData } from './interfaces';
+import { UpstashRegistryStorage } from './registry-storage';
+import { UpstashVerificationStorage } from './upstash';
+import { MCPServerRecord, CapabilityCategory } from '../../schemas/discovery';
 
 export interface StorageConfig {
   provider?: 'upstash' | 'local' | 'memory';
@@ -18,12 +18,29 @@ export interface StorageConfig {
 class InMemoryRegistryStorage implements IRegistryStorage {
   private servers = new Map<string, MCPServerRecord>();
 
+  async addServer(server: MCPServerRecord): Promise<void> {
+    this.servers.set(server.domain, server);
+  }
+
   async storeServer(domain: string, server: MCPServerRecord): Promise<void> {
     this.servers.set(domain, server);
   }
 
   async getServer(domain: string): Promise<MCPServerRecord | null> {
     return this.servers.get(domain) || null;
+  }
+
+  async updateServer(domain: string, updates: Partial<MCPServerRecord>): Promise<void> {
+    const existing = this.servers.get(domain);
+    if (!existing) {
+      throw new Error(`Server ${domain} not found`);
+    }
+    const updated = { ...existing, ...updates };
+    this.servers.set(domain, updated);
+  }
+
+  async removeServer(domain: string): Promise<void> {
+    this.servers.delete(domain);
   }
 
   async deleteServer(domain: string): Promise<void> {
@@ -38,18 +55,85 @@ class InMemoryRegistryStorage implements IRegistryStorage {
     return Array.from(this.servers.values()).filter(s => s.capabilities.category === category);
   }
 
-  async getServersByCapability(capability: string): Promise<MCPServerRecord[]> {
-    return Array.from(this.servers.values()).filter(s => 
-      s.capabilities.subcategories.includes(capability)
-    );
+  async getServersByDomain(domain: string): Promise<MCPServerRecord[]> {
+    const server = this.servers.get(domain);
+    return server ? [server] : [];
   }
 
-  async searchServers(query: string): Promise<MCPServerRecord[]> {
-    const terms = query.toLowerCase().split(/\s+/);
-    return Array.from(this.servers.values()).filter(server => {
-      const searchText = `${server.name} ${server.description} ${server.capabilities.subcategories.join(' ')}`.toLowerCase();
-      return terms.some(term => searchText.includes(term));
-    });
+  async getServersByCapability(capability: CapabilityCategory): Promise<MCPServerRecord[]> {
+    return Array.from(this.servers.values()).filter(s => s.capabilities.category === capability);
+  }
+
+  async searchServers(query: string, filters?: {
+    capability?: CapabilityCategory;
+    verified?: boolean;
+    health?: string;
+    minTrustScore?: number;
+  }): Promise<MCPServerRecord[]> {
+    let servers = Array.from(this.servers.values());
+
+    // Text search
+    if (query) {
+      const terms = query.toLowerCase().split(/\s+/);
+      servers = servers.filter(server => {
+        const searchText = `${server.name} ${server.description} ${server.capabilities.subcategories.join(' ')}`.toLowerCase();
+        return terms.some(term => searchText.includes(term));
+      });
+    }
+
+    // Apply filters
+    if (filters) {
+      servers = servers.filter(server => {
+        if (filters.capability && server.capabilities.category !== filters.capability) {
+          return false;
+        }
+        if (filters.verified !== undefined && server.verification.dns_verified !== filters.verified) {
+          return false;
+        }
+        if (filters.health && server.health.status !== filters.health) {
+          return false;
+        }
+        if (filters.minTrustScore && server.health.uptime_percentage < filters.minTrustScore) {
+          return false;
+        }
+        return true;
+      });
+    }
+
+    return servers;
+  }
+
+  async updateServerHealth(domain: string, health: string, responseTime: number): Promise<void> {
+    const server = this.servers.get(domain);
+    if (server) {
+      server.health.status = health as any;
+      server.health.response_time_ms = responseTime;
+      server.health.last_check = new Date().toISOString();
+      this.servers.set(domain, server);
+    }
+  }
+
+  async getHealthStats(): Promise<{
+    totalServers: number;
+    healthyServers: number;
+    averageResponseTime: number;
+  }> {
+    const servers = Array.from(this.servers.values());
+    const totalServers = servers.length;
+    const healthyServers = servers.filter(s => s.health.status === 'healthy').length;
+    const averageResponseTime = servers.length > 0
+      ? servers.reduce((sum, s) => sum + (s.health.response_time_ms || 0), 0) / servers.length
+      : 0;
+
+    return {
+      totalServers,
+      healthyServers,
+      averageResponseTime
+    };
+  }
+
+  async cleanup(): Promise<void> {
+    // No cleanup needed for in-memory storage
   }
 
   async getStats(): Promise<{ totalServers: number; categories: Record<string, number> }> {
@@ -69,27 +153,42 @@ class InMemoryRegistryStorage implements IRegistryStorage {
 class InMemoryVerificationStorage implements IVerificationStorage {
   private challenges = new Map<string, VerificationChallengeData>();
 
-  async storeChallenge(challengeId: string, challenge: VerificationChallengeData): Promise<void> {
-    this.challenges.set(challengeId, challenge);
+  async storeChallenge(data: VerificationChallengeData): Promise<void> {
+    this.challenges.set(data.id, data);
   }
 
-  async getChallenge(challengeId: string): Promise<VerificationChallengeData | null> {
-    return this.challenges.get(challengeId) || null;
+  async getChallenge(id: string): Promise<VerificationChallengeData | null> {
+    return this.challenges.get(id) || null;
   }
 
-  async deleteChallenge(challengeId: string): Promise<void> {
-    this.challenges.delete(challengeId);
-  }
-
-  async markChallengeVerified(challengeId: string): Promise<void> {
-    const challenge = this.challenges.get(challengeId);
+  async markChallengeVerified(id: string): Promise<void> {
+    const challenge = this.challenges.get(id);
     if (challenge) {
-      challenge.verified_at = new Date().toISOString();
+      challenge.verified = true;
     }
   }
 
-  async healthCheck(): Promise<boolean> {
-    return true;
+  async removeChallenge(id: string): Promise<void> {
+    this.challenges.delete(id);
+  }
+
+  async cleanupExpiredChallenges(): Promise<void> {
+    const now = new Date();
+    for (const [id, challenge] of this.challenges.entries()) {
+      if (challenge.expiresAt < now) {
+        this.challenges.delete(id);
+      }
+    }
+  }
+
+  async getStats(): Promise<{
+    totalChallenges: number;
+    memoryUsed: string;
+  }> {
+    return {
+      totalChallenges: this.challenges.size,
+      memoryUsed: 'unknown'
+    };
   }
 }
 

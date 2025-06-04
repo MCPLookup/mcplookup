@@ -2,13 +2,13 @@
 // Production-ready serverless NoSQL storage for verification challenges
 
 import { Redis } from '@upstash/redis';
-import { IVerificationStorage, VerificationChallengeData } from './interfaces.js';
+import { IVerificationStorage, VerificationChallengeData } from './interfaces';
 
 /**
  * Upstash Redis Storage Service
  * Provides persistent, serverless storage for verification challenges
  */
-export class UpstashStorage implements IVerificationStorage {
+export class UpstashVerificationStorage implements IVerificationStorage {
   private redis: Redis;
   private readonly TTL_SECONDS = 24 * 60 * 60; // 24 hours
 
@@ -26,8 +26,8 @@ export class UpstashStorage implements IVerificationStorage {
   /**
    * Store verification challenge with automatic expiration
    */
-  async storeChallenge(challengeId: string, challenge: VerificationChallengeData): Promise<void> {
-    const key = `challenge:${challengeId}`;
+  async storeChallenge(challenge: VerificationChallengeData): Promise<void> {
+    const key = `challenge:${challenge.id}`;
     await this.redis.setex(key, this.TTL_SECONDS, JSON.stringify(challenge));
   }
 
@@ -61,11 +61,36 @@ export class UpstashStorage implements IVerificationStorage {
   /**
    * Mark challenge as verified
    */
-  async markChallengeVerified(challengeId: string): Promise<void> {
-    const challenge = await this.getChallenge(challengeId);
+  async markChallengeVerified(id: string): Promise<void> {
+    const challenge = await this.getChallenge(id);
     if (challenge) {
-      challenge.verified_at = new Date().toISOString();
-      await this.storeChallenge(challengeId, challenge);
+      challenge.verified = true;
+      await this.storeChallenge(challenge);
+    }
+  }
+
+  async removeChallenge(id: string): Promise<void> {
+    await this.redis.del(`challenge:${id}`);
+  }
+
+  async cleanupExpiredChallenges(): Promise<void> {
+    // Redis TTL handles expiration automatically, but we can scan for expired challenges
+    const keys = await this.redis.keys('challenge:*');
+    const now = new Date();
+
+    for (const key of keys) {
+      const data = await this.redis.get(key);
+      if (data) {
+        try {
+          const challenge = JSON.parse(data as string) as VerificationChallengeData;
+          if (challenge.expiresAt < now) {
+            await this.redis.del(key);
+          }
+        } catch (error) {
+          // Invalid data, remove it
+          await this.redis.del(key);
+        }
+      }
     }
   }
 
@@ -92,7 +117,8 @@ export class UpstashStorage implements IVerificationStorage {
         totalChallenges: keys.length,
         memoryUsed: 'unknown' // Redis info not available in Upstash REST
       };
-    } catch (error) {      console.error('Error getting Redis stats:', error);
+    } catch (error) {
+      console.error('Error getting Redis stats:', error);
       return { totalChallenges: 0, memoryUsed: 'unknown' };
     }
   }

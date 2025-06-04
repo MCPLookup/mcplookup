@@ -2,8 +2,8 @@
 // Efficient NoSQL storage and search for MCP servers
 
 import { Redis } from '@upstash/redis';
-import { MCPServerRecord, CapabilityCategory } from '../../schemas/discovery.js';
-import { IRegistryStorage } from './interfaces.js';
+import { MCPServerRecord, CapabilityCategory } from '../../schemas/discovery';
+import { IRegistryStorage } from './interfaces';
 
 /**
  * Upstash Redis Registry Storage
@@ -21,6 +21,13 @@ export class UpstashRegistryStorage implements IRegistryStorage {
       url: process.env.UPSTASH_REDIS_REST_URL,
       token: process.env.UPSTASH_REDIS_REST_TOKEN,
     });
+  }
+
+  /**
+   * Add a new MCP server
+   */
+  async addServer(server: MCPServerRecord): Promise<void> {
+    return this.storeServer(server.domain, server);
   }
 
   /**
@@ -68,6 +75,26 @@ export class UpstashRegistryStorage implements IRegistryStorage {
       console.error('Error parsing server data:', error);
       return null;
     }
+  }
+
+  /**
+   * Update an existing server
+   */
+  async updateServer(domain: string, updates: Partial<MCPServerRecord>): Promise<void> {
+    const existing = await this.getServer(domain);
+    if (!existing) {
+      throw new Error(`Server ${domain} not found`);
+    }
+
+    const updated = { ...existing, ...updates };
+    return this.storeServer(domain, updated);
+  }
+
+  /**
+   * Remove a server
+   */
+  async removeServer(domain: string): Promise<void> {
+    return this.deleteServer(domain);
   }
 
   /**
@@ -121,28 +148,68 @@ export class UpstashRegistryStorage implements IRegistryStorage {
   /**
    * Get servers by capability
    */
-  async getServersByCapability(capability: string): Promise<MCPServerRecord[]> {
+  async getServersByCapability(capability: CapabilityCategory): Promise<MCPServerRecord[]> {
     const domains = await this.redis.smembers(`capability:${capability}`) as string[];
     return this.getServersByDomains(domains);
-  }  /**
-   * Search servers by text query
-   */
-  async searchServers(query: string): Promise<MCPServerRecord[]> {
-    const searchTerms = query.toLowerCase().split(/\s+/).filter(term => term.length > 2);
-    if (searchTerms.length === 0) return this.getAllServers();
+  }
 
-    // Get domains that match each search term
-    const domainSets = await Promise.all(
-      searchTerms.map(term => this.redis.smembers(`search:${term}`) as Promise<string[]>)
-    );
-    
-    // Union all sets to get domains that match any term
-    const allDomains = new Set<string>();
-    domainSets.forEach(domains => {
-      domains.forEach(domain => allDomains.add(domain));
-    });
-    
-    return this.getServersByDomains(Array.from(allDomains));
+  /**
+   * Get servers by domain (exact match)
+   */
+  async getServersByDomain(domain: string): Promise<MCPServerRecord[]> {
+    const server = await this.getServer(domain);
+    return server ? [server] : [];
+  }
+
+  /**
+   * Search servers by text query with filters
+   */
+  async searchServers(query: string, filters?: {
+    capability?: CapabilityCategory;
+    verified?: boolean;
+    health?: string;
+    minTrustScore?: number;
+  }): Promise<MCPServerRecord[]> {
+    const searchTerms = query.toLowerCase().split(/\s+/).filter(term => term.length > 2);
+    let servers: MCPServerRecord[];
+
+    if (searchTerms.length === 0) {
+      servers = await this.getAllServers();
+    } else {
+      // Get domains that match each search term
+      const domainSets = await Promise.all(
+        searchTerms.map(term => this.redis.smembers(`search:${term}`) as Promise<string[]>)
+      );
+
+      // Union all sets to get domains that match any term
+      const allDomains = new Set<string>();
+      domainSets.forEach(domains => {
+        domains.forEach(domain => allDomains.add(domain));
+      });
+
+      servers = await this.getServersByDomains(Array.from(allDomains));
+    }
+
+    // Apply filters
+    if (filters) {
+      servers = servers.filter(server => {
+        if (filters.capability && server.capabilities.category !== filters.capability) {
+          return false;
+        }
+        if (filters.verified !== undefined && server.verification.dns_verified !== filters.verified) {
+          return false;
+        }
+        if (filters.health && server.health.status !== filters.health) {
+          return false;
+        }
+        if (filters.minTrustScore && server.health.uptime_percentage < filters.minTrustScore) {
+          return false;
+        }
+        return true;
+      });
+    }
+
+    return servers;
   }
 
   /**
@@ -166,6 +233,49 @@ export class UpstashRegistryStorage implements IRegistryStorage {
     }
     
     return { totalServers, categories };
+  }
+
+  /**
+   * Update server health status
+   */
+  async updateServerHealth(domain: string, health: string, responseTime: number): Promise<void> {
+    const server = await this.getServer(domain);
+    if (server) {
+      server.health.status = health as any;
+      server.health.response_time_ms = responseTime;
+      server.health.last_check = new Date().toISOString();
+      await this.storeServer(domain, server);
+    }
+  }
+
+  /**
+   * Get health statistics
+   */
+  async getHealthStats(): Promise<{
+    totalServers: number;
+    healthyServers: number;
+    averageResponseTime: number;
+  }> {
+    const servers = await this.getAllServers();
+    const totalServers = servers.length;
+    const healthyServers = servers.filter(s => s.health.status === 'healthy').length;
+    const averageResponseTime = servers.length > 0
+      ? servers.reduce((sum, s) => sum + (s.health.response_time_ms || 0), 0) / servers.length
+      : 0;
+
+    return {
+      totalServers,
+      healthyServers,
+      averageResponseTime
+    };
+  }
+
+  /**
+   * Cleanup expired or invalid data
+   */
+  async cleanup(): Promise<void> {
+    // TODO: Implement cleanup logic for expired servers
+    console.log('Cleanup not yet implemented');
   }
 
   /**

@@ -36,6 +36,7 @@ export const AlertDescription = React.forwardRef<HTMLDivElement, AlertDescriptio
 export const Alert = {
   Root: AlertRoot,
   Icon: AlertIcon,
+  Indicator: AlertIcon,
   Title: AlertTitle,
   Description: AlertDescription,
 }
