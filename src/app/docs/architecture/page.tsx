@@ -10,10 +10,13 @@ export default function ArchitecturePage() {
       <div className="max-w-4xl mx-auto py-16 px-4">
         <div className="text-center space-y-4 mb-12">
           <h1 className="text-4xl font-bold text-gray-900">
-            🏗️ Architecture Overview
+            🏗️ The Zero-Hardcoding Architecture
           </h1>
+          <h2 className="text-2xl font-bold text-red-600">
+            🔥 Built to Eliminate Static Lists Forever
+          </h2>
           <p className="text-xl text-gray-600">
-            Understanding the serverless, zero-infrastructure design of MCPLookup.org
+            Understanding the serverless, dynamic discovery architecture that makes hardcoded lists obsolete
           </p>
         </div>
 
@@ -26,8 +29,8 @@ export default function ArchitecturePage() {
         </div>
 
         <div className="prose max-w-none">
-          <h2>System Architecture</h2>
-          <p>MCPLookup.org is built with a serverless-first architecture designed for global scale and zero maintenance.</p>
+          <h2>🔥 The Architecture That Kills Hardcoded Lists</h2>
+          <p>MCPLookup.org is built with a serverless-first architecture designed to eliminate static configuration forever. Every component is designed for dynamic discovery, real-time updates, and zero maintenance.</p>
           
           <h3>Core Components</h3>
           <ul>
