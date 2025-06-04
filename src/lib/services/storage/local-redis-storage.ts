@@ -481,7 +481,8 @@ export class LocalRedisRegistryStorage implements IRegistryStorage {
     if (server.server_info?.name) {
       server.server_info.name.split(/\s+/).forEach((word: string) => terms.add(word));
     }
-    
+
+    // Add main description (from MCPServerRecord, not server_info)
     if (server.description) {
       server.description.split(/\s+/).forEach((word: string) => terms.add(word));
     }
