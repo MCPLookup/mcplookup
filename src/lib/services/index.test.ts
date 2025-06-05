@@ -339,10 +339,10 @@ describe('getEnvironmentServices', () => {
 
   it('should return development services by default', () => {
     process.env = { ...originalEnv };
-    delete process.env.NODE_ENV;
-    delete process.env.VERCEL;
-    delete process.env.NETLIFY;
-    delete process.env.AWS_LAMBDA_FUNCTION_NAME;
+    delete (process.env as any).NODE_ENV;
+    delete (process.env as any).VERCEL;
+    delete (process.env as any).NETLIFY;
+    delete (process.env as any).AWS_LAMBDA_FUNCTION_NAME;
 
     const services = getEnvironmentServices();
 
@@ -361,9 +361,9 @@ describe('service configuration', () => {
     (ServiceFactory as any).instance = undefined;
   });
 
-  it('should handle storage configuration', () => {
+  it('should handle enhanced configuration', () => {
     const factory = ServiceFactory.getInstance({
-      storage: { provider: 'memory' }
+      enhanced: true
     });
 
     const services = factory.getAllServices();

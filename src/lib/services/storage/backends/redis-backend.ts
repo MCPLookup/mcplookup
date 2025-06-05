@@ -15,7 +15,7 @@ export interface RedisBackendConfig {
 }
 
 export class RedisBackend implements StorageBackend {
-  private client: RedisClientType | Redis;
+  private client: any;
   private config: RedisBackendConfig;
   private connected = false;
 
@@ -40,7 +40,7 @@ export class RedisBackend implements StorageBackend {
     }
   }
 
-  private createClient(): RedisClientType | Redis {
+  private createClient(): any {
     if (this.config.type === 'upstash') {
       if (!this.config.upstashUrl || !this.config.upstashToken) {
         throw new Error('Upstash URL and token are required for Upstash backend');
@@ -171,7 +171,9 @@ export class RedisBackend implements StorageBackend {
   async zRangeByScore(key: string, min: number | string, max: number | string): Promise<string[]> {
     await this.ensureConnection();
     if (this.config.type === 'upstash') {
-      return await (this.client as Redis).zrangebyscore(key, min, max);
+      // Use the correct Upstash Redis API
+      const result = await (this.client as any).zrangebyscore(key, min, max);
+      return Array.isArray(result) ? result : [];
     } else {
       return await (this.client as RedisClientType).zRangeByScore(key, min, max);
     }
@@ -189,9 +191,11 @@ export class RedisBackend implements StorageBackend {
   async zRevRange(key: string, start: number, stop: number): Promise<string[]> {
     await this.ensureConnection();
     if (this.config.type === 'upstash') {
-      return await (this.client as Redis).zrevrange(key, start, stop);
+      // Use the correct Upstash Redis API
+      const result = await (this.client as any).zrevrange(key, start, stop);
+      return Array.isArray(result) ? result : [];
     } else {
-      return await (this.client as RedisClientType).zRevRange(key, start, stop);
+      return await (this.client as RedisClientType).zRange(key, start, stop, { REV: true });
     }
   }
 

@@ -126,7 +126,7 @@ export class StorageFactory {
    * Generate cache key for provider instances
    */
   private getCacheKey(backend: StorageBackendType, config?: StorageConfig): string {
-    const parts = [backend];
+    const parts: string[] = [backend];
 
     if (config?.redisUrl) {
       parts.push(config.redisUrl);
@@ -197,8 +197,9 @@ export function createTestStorage(): IStorage {
  * Convenience function for development - prefers Redis, falls back to memory
  */
 export function createDevelopmentStorage(): IStorage {
+  const backend: StorageBackendType = process.env.REDIS_URL || process.env.UPSTASH_REDIS_REST_URL ? 'redis' : 'memory';
   return StorageFactory.getInstance().createStorage({
-    backend: process.env.REDIS_URL || process.env.UPSTASH_REDIS_REST_URL ? 'redis' : 'memory'
+    backend
   });
 }
 

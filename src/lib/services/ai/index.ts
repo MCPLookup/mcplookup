@@ -9,11 +9,9 @@ export { SmartProvider } from './SmartProvider';
 export type { ModelMetadata, ModelState } from './Model';
 export type { AIResponse, QueryRequest } from './Provider';
 
-// Storage exports
 // AI Service exports
 export { AIService } from '../ai-service';
 export type {
-  ModelState,
   CachedResponse,
   ProviderStats,
   AIUsageMetrics

@@ -84,10 +84,10 @@ export class UserService {
       created_at: now,
       updated_at: now,
       activity: {
-        servers_registered: 0,
+        ...userData.activity,
+        servers_registered: userData.activity?.servers_registered || 0,
         last_activity: now,
-        total_sessions: 0,
-        ...userData.activity
+        total_sessions: userData.activity?.total_sessions || 0
       }
     };
 

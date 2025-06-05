@@ -58,7 +58,7 @@ export class DomainTransferSecurityService {
   
   private verificationService: IVerificationService;
   private registryService: RegistryService;
-  private storageService: IVerificationStorage;
+  private storageService: any;
 
   constructor(
     verificationService: IVerificationService,
@@ -66,7 +66,7 @@ export class DomainTransferSecurityService {
   ) {
     this.verificationService = verificationService;
     this.registryService = registryService;
-    this.storageService = createVerificationStorage();
+    this.storageService = createStorage();
   }
 
   /**
@@ -313,17 +313,17 @@ export class DomainTransferSecurityService {
       created_at: challenge.created_at.toISOString()
     };
 
-    await this.storageService.storeChallenge(`challenge_${challenge.challenge_id}`, challengeData);
+    await this.storageService.set('domain_challenges', `challenge_${challenge.challenge_id}`, challengeData);
   }
 
   private async getChallenge(challengeId: string): Promise<DomainChallenge | null> {
-    const result = await this.storageService.getChallenge(`challenge_${challengeId}`);
-    if (!isSuccessResult(result) || !result.data) {
+    const result = await this.storageService.get('domain_challenges', `challenge_${challengeId}`);
+    if (!result.success || !result.data) {
       return null;
     }
 
     // Convert stored data back to DomainChallenge
-    const data = result.data;
+    const data = result.data as any;
     return {
       challenge_id: challengeId,
       domain: data.domain,

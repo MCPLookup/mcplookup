@@ -133,9 +133,14 @@ export function createStorageAdapter(): Adapter {
         expires: expires.toISOString(),
         created_at: new Date().toISOString(),
       }
-      
+
       await storage.set('auth_sessions', sessionToken, sessionData)
-      return sessionData
+
+      return {
+        sessionToken,
+        userId,
+        expires
+      }
     },
 
     async getSessionAndUser(sessionToken) {
@@ -199,9 +204,14 @@ export function createStorageAdapter(): Adapter {
         expires: expires.toISOString(),
         created_at: new Date().toISOString(),
       }
-      
+
       await storage.set('auth_verification_tokens', token, verificationData)
-      return verificationData
+
+      return {
+        identifier,
+        token,
+        expires
+      }
     },
 
     async useVerificationToken({ identifier, token }) {
