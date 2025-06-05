@@ -29,15 +29,15 @@ export function Header() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center">
-            <Link href="/" className="flex items-center space-x-2">
+            <Link href="/" className="flex items-center space-x-3">
               <div className="text-2xl">🔍</div>
-              <div className="flex flex-col">
+              <div>
                 <span className="text-xl font-bold text-gray-900 dark:text-white">
                   MCPLookup.org
                 </span>
-                <span className="text-xs text-red-600 dark:text-red-400 font-bold hidden sm:block animate-pulse">
-                  🚨 THE REACT MOMENT - 6 MONTHS LEFT
-                </span>
+                <div className="text-xs text-gray-500 dark:text-gray-400 hidden sm:block">
+                  AI Tool Discovery Platform
+                </div>
               </div>
             </Link>
           </div>

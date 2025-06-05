@@ -1,15 +1,15 @@
-// AI Storage - Persistent model states, success rates, and response caching
-// Integrates with existing storage architecture
+// AI Storage Service - Persistent model states, success rates, and response caching
+// Uses the unified storage architecture
 
+import { IStorage } from './unified-storage';
+import { createStorage } from './factory';
 import {
   StorageResult,
-  PaginatedResult,
   HealthCheckResult,
   createSuccessResult,
   createErrorResult,
-  createHealthCheckResult,
-  IBaseStorage
-} from './interfaces';
+  createHealthCheckResult
+} from './unified-storage';
 
 // =============================================================================
 // AI STORAGE TYPES
@@ -91,10 +91,10 @@ export interface ProviderStats {
 }
 
 // =============================================================================
-// AI STORAGE INTERFACE
+// AI STORAGE SERVICE INTERFACE
 // =============================================================================
 
-export interface IAIStorage extends IBaseStorage {
+export interface IAIStorageService {
   // Model state management
   getModelState(modelId: string): Promise<StorageResult<ModelState | null>>;
   setModelState(modelId: string, state: ModelState): Promise<StorageResult<void>>;
@@ -137,27 +137,24 @@ export interface IAIStorage extends IBaseStorage {
 }
 
 // =============================================================================
-// IN-MEMORY AI STORAGE (for development/testing)
+// AI STORAGE SERVICE IMPLEMENTATION
 // =============================================================================
 
-export class InMemoryAIStorage implements IAIStorage {
-  private modelStates = new Map<string, ModelState>();
-  private cachedResponses = new Map<string, CachedResponse>();
-  private providerStats = new Map<string, ProviderStats>();
+export class AIStorageService implements IAIStorageService {
+  private storage: IStorage;
 
-  getProviderInfo() {
-    return {
-      name: 'InMemoryAIStorage',
-      version: '1.0.0',
-      capabilities: ['model_states', 'response_caching', 'provider_stats']
-    };
+  constructor(storage?: IStorage) {
+    this.storage = storage || createStorage();
   }
 
   // Model state management
   async getModelState(modelId: string): Promise<StorageResult<ModelState | null>> {
     try {
-      const state = this.modelStates.get(modelId) || null;
-      return createSuccessResult(state);
+      const result = await this.storage.get(`ai:model:${modelId}`);
+      if (!result.success) {
+        return result;
+      }
+      return createSuccessResult(result.data ? JSON.parse(result.data) : null);
     } catch (error) {
       return createErrorResult(`Failed to get model state: ${error}`, 'GET_ERROR');
     }
@@ -165,8 +162,9 @@ export class InMemoryAIStorage implements IAIStorage {
 
   async setModelState(modelId: string, state: ModelState): Promise<StorageResult<void>> {
     try {
-      this.modelStates.set(modelId, { ...state, lastUsed: Date.now() });
-      return createSuccessResult(undefined);
+      const stateWithTimestamp = { ...state, lastUsed: Date.now() };
+      const result = await this.storage.set(`ai:model:${modelId}`, JSON.stringify(stateWithTimestamp));
+      return result;
     } catch (error) {
       return createErrorResult(`Failed to set model state: ${error}`, 'SET_ERROR');
     }
@@ -174,7 +172,11 @@ export class InMemoryAIStorage implements IAIStorage {
 
   async getAllModelStates(): Promise<StorageResult<ModelState[]>> {
     try {
-      const states = Array.from(this.modelStates.values());
+      const result = await this.storage.list({ prefix: 'ai:model:' });
+      if (!result.success) {
+        return result;
+      }
+      const states = result.data.map(item => JSON.parse(item.value) as ModelState);
       return createSuccessResult(states);
     } catch (error) {
       return createErrorResult(`Failed to get all model states: ${error}`, 'GET_ERROR');
@@ -183,10 +185,14 @@ export class InMemoryAIStorage implements IAIStorage {
 
   async resetModelState(modelId: string): Promise<StorageResult<void>> {
     try {
-      const existing = this.modelStates.get(modelId);
-      if (existing) {
-        this.modelStates.set(modelId, {
-          ...existing,
+      const existingResult = await this.getModelState(modelId);
+      if (!existingResult.success) {
+        return existingResult;
+      }
+
+      if (existingResult.data) {
+        const resetState = {
+          ...existingResult.data,
           lastSuccess: undefined,
           lastFailure: undefined,
           failureCount: 0,
@@ -194,7 +200,8 @@ export class InMemoryAIStorage implements IAIStorage {
           averageLatency: undefined,
           successCount: 0,
           totalAttempts: 0
-        });
+        };
+        return await this.setModelState(modelId, resetState);
       }
       return createSuccessResult(undefined);
     } catch (error) {
@@ -204,8 +211,13 @@ export class InMemoryAIStorage implements IAIStorage {
 
   async resetAllModelStates(): Promise<StorageResult<void>> {
     try {
-      for (const [modelId] of this.modelStates) {
-        await this.resetModelState(modelId);
+      const allStatesResult = await this.getAllModelStates();
+      if (!allStatesResult.success) {
+        return allStatesResult;
+      }
+
+      for (const state of allStatesResult.data) {
+        await this.resetModelState(state.id);
       }
       return createSuccessResult(undefined);
     } catch (error) {
@@ -216,8 +228,11 @@ export class InMemoryAIStorage implements IAIStorage {
   // Response caching
   async getCachedResponse(queryHash: string): Promise<StorageResult<CachedResponse | null>> {
     try {
-      const cached = this.cachedResponses.get(queryHash) || null;
-      return createSuccessResult(cached);
+      const result = await this.storage.get(`ai:cache:${queryHash}`);
+      if (!result.success) {
+        return result;
+      }
+      return createSuccessResult(result.data ? JSON.parse(result.data) : null);
     } catch (error) {
       return createErrorResult(`Failed to get cached response: ${error}`, 'GET_ERROR');
     }
@@ -225,8 +240,9 @@ export class InMemoryAIStorage implements IAIStorage {
 
   async setCachedResponse(queryHash: string, response: CachedResponse): Promise<StorageResult<void>> {
     try {
-      this.cachedResponses.set(queryHash, response);
-      return createSuccessResult(undefined);
+      // Set with 1 hour TTL for cache
+      const result = await this.storage.set(`ai:cache:${queryHash}`, JSON.stringify(response), { ttl: 3600 });
+      return result;
     } catch (error) {
       return createErrorResult(`Failed to set cached response: ${error}`, 'SET_ERROR');
     }
@@ -234,16 +250,22 @@ export class InMemoryAIStorage implements IAIStorage {
 
   async clearExpiredCache(maxAge: number): Promise<StorageResult<number>> {
     try {
+      const result = await this.storage.list({ prefix: 'ai:cache:' });
+      if (!result.success) {
+        return result;
+      }
+
       const now = Date.now();
       let cleared = 0;
-      
-      for (const [key, response] of this.cachedResponses) {
+
+      for (const item of result.data) {
+        const response = JSON.parse(item.value) as CachedResponse;
         if (now - response.timestamp > maxAge) {
-          this.cachedResponses.delete(key);
+          await this.storage.delete(item.key);
           cleared++;
         }
       }
-      
+
       return createSuccessResult(cleared);
     } catch (error) {
       return createErrorResult(`Failed to clear expired cache: ${error}`, 'CLEAR_ERROR');
@@ -252,7 +274,15 @@ export class InMemoryAIStorage implements IAIStorage {
 
   async clearAllCache(): Promise<StorageResult<void>> {
     try {
-      this.cachedResponses.clear();
+      const result = await this.storage.list({ prefix: 'ai:cache:' });
+      if (!result.success) {
+        return result;
+      }
+
+      for (const item of result.data) {
+        await this.storage.delete(item.key);
+      }
+
       return createSuccessResult(undefined);
     } catch (error) {
       return createErrorResult(`Failed to clear all cache: ${error}`, 'CLEAR_ERROR');
@@ -262,8 +292,11 @@ export class InMemoryAIStorage implements IAIStorage {
   // Provider statistics
   async getProviderStats(provider: string): Promise<StorageResult<ProviderStats | null>> {
     try {
-      const stats = this.providerStats.get(provider) || null;
-      return createSuccessResult(stats);
+      const result = await this.storage.get(`ai:stats:${provider}`);
+      if (!result.success) {
+        return result;
+      }
+      return createSuccessResult(result.data ? JSON.parse(result.data) : null);
     } catch (error) {
       return createErrorResult(`Failed to get provider stats: ${error}`, 'GET_ERROR');
     }
@@ -271,7 +304,12 @@ export class InMemoryAIStorage implements IAIStorage {
 
   async updateProviderStats(provider: string, updates: Partial<ProviderStats>): Promise<StorageResult<void>> {
     try {
-      const existing = this.providerStats.get(provider) || {
+      const existingResult = await this.getProviderStats(provider);
+      if (!existingResult.success) {
+        return existingResult;
+      }
+
+      const existing = existingResult.data || {
         provider,
         totalRequests: 0,
         successfulRequests: 0,
@@ -281,8 +319,8 @@ export class InMemoryAIStorage implements IAIStorage {
       };
 
       const updated = { ...existing, ...updates, lastUsed: Date.now() };
-      this.providerStats.set(provider, updated);
-      return createSuccessResult(undefined);
+      const result = await this.storage.set(`ai:stats:${provider}`, JSON.stringify(updated));
+      return result;
     } catch (error) {
       return createErrorResult(`Failed to update provider stats: ${error}`, 'UPDATE_ERROR');
     }
@@ -290,7 +328,11 @@ export class InMemoryAIStorage implements IAIStorage {
 
   async getAllProviderStats(): Promise<StorageResult<ProviderStats[]>> {
     try {
-      const stats = Array.from(this.providerStats.values());
+      const result = await this.storage.list({ prefix: 'ai:stats:' });
+      if (!result.success) {
+        return result;
+      }
+      const stats = result.data.map(item => JSON.parse(item.value) as ProviderStats);
       return createSuccessResult(stats);
     } catch (error) {
       return createErrorResult(`Failed to get all provider stats: ${error}`, 'GET_ERROR');
@@ -299,11 +341,17 @@ export class InMemoryAIStorage implements IAIStorage {
 
   // Health and maintenance
   async healthCheck(): Promise<HealthCheckResult> {
-    return createHealthCheckResult(true, 'InMemoryAIStorage is healthy', {
-      modelStates: this.modelStates.size,
-      cachedResponses: this.cachedResponses.size,
-      providerStats: this.providerStats.size
-    });
+    try {
+      const storageHealth = await this.storage.healthCheck();
+      return createHealthCheckResult(storageHealth.healthy, 'AI Storage Service', {
+        storage: storageHealth,
+        provider: this.storage.getProviderInfo?.()?.name || 'Unknown'
+      });
+    } catch (error) {
+      return createHealthCheckResult(false, 'AI Storage Service health check failed', {
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
   }
 
   async getStorageStats(): Promise<StorageResult<{
@@ -313,13 +361,29 @@ export class InMemoryAIStorage implements IAIStorage {
     totalProviders: number;
   }>> {
     try {
-      const enabledModels = Array.from(this.modelStates.values()).filter(s => s.enabled).length;
-      
+      const [modelsResult, cacheResult, statsResult] = await Promise.all([
+        this.storage.list({ prefix: 'ai:model:' }),
+        this.storage.list({ prefix: 'ai:cache:' }),
+        this.storage.list({ prefix: 'ai:stats:' })
+      ]);
+
+      if (!modelsResult.success || !cacheResult.success || !statsResult.success) {
+        return createErrorResult('Failed to get storage stats', 'STATS_ERROR');
+      }
+
+      let enabledModels = 0;
+      for (const item of modelsResult.data) {
+        const model = JSON.parse(item.value) as ModelState;
+        if (model.enabled) {
+          enabledModels++;
+        }
+      }
+
       return createSuccessResult({
-        totalModels: this.modelStates.size,
+        totalModels: modelsResult.data.length,
         enabledModels,
-        cachedResponses: this.cachedResponses.size,
-        totalProviders: this.providerStats.size
+        cachedResponses: cacheResult.data.length,
+        totalProviders: statsResult.data.length
       });
     } catch (error) {
       return createErrorResult(`Failed to get storage stats: ${error}`, 'STATS_ERROR');
@@ -327,12 +391,10 @@ export class InMemoryAIStorage implements IAIStorage {
   }
 
   // Conversation management
-  private conversations = new Map<string, AIConversation>();
-
   async storeConversation(sessionId: string, conversation: AIConversation): Promise<StorageResult<void>> {
     try {
-      this.conversations.set(sessionId, conversation);
-      return createSuccessResult(undefined);
+      const result = await this.storage.set(`ai:conversation:${sessionId}`, JSON.stringify(conversation));
+      return result;
     } catch (error) {
       return createErrorResult(`Failed to store conversation: ${error}`, 'STORE_ERROR');
     }
@@ -340,8 +402,11 @@ export class InMemoryAIStorage implements IAIStorage {
 
   async getConversation(sessionId: string): Promise<StorageResult<AIConversation | null>> {
     try {
-      const conversation = this.conversations.get(sessionId) || null;
-      return createSuccessResult(conversation);
+      const result = await this.storage.get(`ai:conversation:${sessionId}`);
+      if (!result.success) {
+        return result;
+      }
+      return createSuccessResult(result.data ? JSON.parse(result.data) : null);
     } catch (error) {
       return createErrorResult(`Failed to get conversation: ${error}`, 'GET_ERROR');
     }
@@ -349,20 +414,19 @@ export class InMemoryAIStorage implements IAIStorage {
 
   async deleteConversation(sessionId: string): Promise<StorageResult<void>> {
     try {
-      this.conversations.delete(sessionId);
-      return createSuccessResult(undefined);
+      const result = await this.storage.delete(`ai:conversation:${sessionId}`);
+      return result;
     } catch (error) {
       return createErrorResult(`Failed to delete conversation: ${error}`, 'DELETE_ERROR');
     }
   }
 
   // Query analysis
-  private analyses = new Map<string, QueryAnalysis>();
-
   async storeAnalysis(query: string, analysis: QueryAnalysis): Promise<StorageResult<void>> {
     try {
-      this.analyses.set(query, analysis);
-      return createSuccessResult(undefined);
+      const queryHash = Buffer.from(query).toString('base64');
+      const result = await this.storage.set(`ai:analysis:${queryHash}`, JSON.stringify(analysis));
+      return result;
     } catch (error) {
       return createErrorResult(`Failed to store analysis: ${error}`, 'STORE_ERROR');
     }
@@ -370,20 +434,23 @@ export class InMemoryAIStorage implements IAIStorage {
 
   async getAnalysis(query: string): Promise<StorageResult<QueryAnalysis | null>> {
     try {
-      const analysis = this.analyses.get(query) || null;
-      return createSuccessResult(analysis);
+      const queryHash = Buffer.from(query).toString('base64');
+      const result = await this.storage.get(`ai:analysis:${queryHash}`);
+      if (!result.success) {
+        return result;
+      }
+      return createSuccessResult(result.data ? JSON.parse(result.data) : null);
     } catch (error) {
       return createErrorResult(`Failed to get analysis: ${error}`, 'GET_ERROR');
     }
   }
 
   // AI Response storage
-  private responses = new Map<string, AIResponse>();
-
   async storeResponse(query: string, response: AIResponse): Promise<StorageResult<void>> {
     try {
-      this.responses.set(query, response);
-      return createSuccessResult(undefined);
+      const queryHash = Buffer.from(query).toString('base64');
+      const result = await this.storage.set(`ai:response:${queryHash}`, JSON.stringify(response));
+      return result;
     } catch (error) {
       return createErrorResult(`Failed to store response: ${error}`, 'STORE_ERROR');
     }
@@ -391,8 +458,12 @@ export class InMemoryAIStorage implements IAIStorage {
 
   async getResponse(query: string): Promise<StorageResult<AIResponse | null>> {
     try {
-      const response = this.responses.get(query) || null;
-      return createSuccessResult(response);
+      const queryHash = Buffer.from(query).toString('base64');
+      const result = await this.storage.get(`ai:response:${queryHash}`);
+      if (!result.success) {
+        return result;
+      }
+      return createSuccessResult(result.data ? JSON.parse(result.data) : null);
     } catch (error) {
       return createErrorResult(`Failed to get response: ${error}`, 'GET_ERROR');
     }
@@ -400,776 +471,9 @@ export class InMemoryAIStorage implements IAIStorage {
 }
 
 /**
- * Upstash Redis AI Storage
- * Production-ready AI storage using Upstash Redis
+ * Create AI Storage Service
+ * Factory function to create AI storage with the unified storage backend
  */
-class UpstashAIStorage implements IAIStorage {
-  private redis: any;
-
-  constructor() {
-    this.initializeRedis();
-  }
-
-  private async initializeRedis() {
-    try {
-      const { Redis } = await import('@upstash/redis');
-
-      if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
-        throw new Error('Upstash Redis environment variables not configured');
-      }
-
-      this.redis = new Redis({
-        url: process.env.UPSTASH_REDIS_REST_URL,
-        token: process.env.UPSTASH_REDIS_REST_TOKEN,
-      });
-    } catch (error) {
-      console.error('Failed to initialize Upstash Redis for AI storage:', error);
-      throw error;
-    }
-  }
-
-  private async ensureRedis() {
-    if (!this.redis) {
-      await this.initializeRedis();
-    }
-  }
-
-  getProviderInfo() {
-    return {
-      name: 'UpstashAIStorage',
-      version: '1.0.0',
-      capabilities: ['model_states', 'response_caching', 'provider_stats', 'conversations', 'analysis']
-    };
-  }
-
-  // Model state management
-  async getModelState(modelId: string): Promise<StorageResult<ModelState | null>> {
-    try {
-      await this.ensureRedis();
-      const data = await this.redis.get(`model:${modelId}`);
-      if (!data) {
-        return { success: true, data: null };
-      }
-      const state = typeof data === 'string' ? JSON.parse(data) : data;
-      return { success: true, data: state as ModelState };
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
-  }
-
-  async setModelState(modelId: string, state: ModelState): Promise<StorageResult<void>> {
-    try {
-      await this.ensureRedis();
-      await this.redis.set(`model:${modelId}`, JSON.stringify({ ...state, lastUsed: Date.now() }));
-      return { success: true, data: undefined };
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
-  }
-
-  async getAllModelStates(): Promise<StorageResult<ModelState[]>> {
-    try {
-      await this.ensureRedis();
-      const keys = await this.redis.keys('model:*');
-      const states = [];
-      for (const key of keys) {
-        const data = await this.redis.get(key);
-        if (data) {
-          const state = typeof data === 'string' ? JSON.parse(data) : data;
-          states.push(state as ModelState);
-        }
-      }
-      return { success: true, data: states };
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
-  }
-
-  async resetModelState(modelId: string): Promise<StorageResult<void>> {
-    try {
-      await this.ensureRedis();
-      const existing = await this.redis.get(`model:${modelId}`);
-      if (existing) {
-        const state = typeof existing === 'string' ? JSON.parse(existing) : existing;
-        const reset = {
-          ...state,
-          lastSuccess: undefined,
-          lastFailure: undefined,
-          failureCount: 0,
-          enabled: true,
-          averageLatency: undefined,
-          successCount: 0,
-          totalAttempts: 0
-        };
-        await this.redis.set(`model:${modelId}`, JSON.stringify(reset));
-      }
-      return { success: true, data: undefined };
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
-  }
-
-  async resetAllModelStates(): Promise<StorageResult<void>> {
-    try {
-      await this.ensureRedis();
-      const keys = await this.redis.keys('model:*');
-      for (const key of keys) {
-        const modelId = key.replace('model:', '');
-        await this.resetModelState(modelId);
-      }
-      return { success: true, data: undefined };
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
-  }
-
-  // Response caching
-  async getCachedResponse(queryHash: string): Promise<StorageResult<CachedResponse | null>> {
-    try {
-      await this.ensureRedis();
-      const data = await this.redis.get(`cache:${queryHash}`);
-      if (!data) {
-        return { success: true, data: null };
-      }
-      const response = typeof data === 'string' ? JSON.parse(data) : data;
-      return { success: true, data: response as CachedResponse };
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
-  }
-
-  async setCachedResponse(queryHash: string, response: CachedResponse): Promise<StorageResult<void>> {
-    try {
-      await this.ensureRedis();
-      await this.redis.set(`cache:${queryHash}`, JSON.stringify(response), { ex: 60 * 60 }); // 1 hour expiry
-      return { success: true, data: undefined };
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
-  }
-
-  async clearExpiredCache(maxAge: number): Promise<StorageResult<number>> {
-    try {
-      await this.ensureRedis();
-      const keys = await this.redis.keys('cache:*');
-      let cleared = 0;
-      const cutoffTime = Date.now() - maxAge;
-      
-      for (const key of keys) {
-        const data = await this.redis.get(key);
-        if (data) {
-          const response = typeof data === 'string' ? JSON.parse(data) : data;
-          if (response.timestamp < cutoffTime) {
-            await this.redis.del(key);
-            cleared++;
-          }
-        }
-      }
-      return { success: true, data: cleared };
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
-  }
-
-  async clearAllCache(): Promise<StorageResult<void>> {
-    try {
-      await this.ensureRedis();
-      const keys = await this.redis.keys('cache:*');
-      if (keys.length > 0) {
-        await this.redis.del(...keys);
-      }
-      return { success: true, data: undefined };
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
-  }
-
-  // Provider statistics
-  async getProviderStats(provider: string): Promise<StorageResult<ProviderStats | null>> {
-    try {
-      await this.ensureRedis();
-      const data = await this.redis.get(`stats:${provider}`);
-      if (!data) {
-        return { success: true, data: null };
-      }
-      const stats = typeof data === 'string' ? JSON.parse(data) : data;
-      return { success: true, data: stats as ProviderStats };
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
-  }
-
-  async updateProviderStats(provider: string, updates: Partial<ProviderStats>): Promise<StorageResult<void>> {
-    try {
-      await this.ensureRedis();
-      const existing = await this.redis.get(`stats:${provider}`);
-      const currentStats = existing ? (typeof existing === 'string' ? JSON.parse(existing) : existing) : {
-        provider,
-        totalRequests: 0,
-        successfulRequests: 0,
-        failedRequests: 0,
-        averageLatency: 0,
-        totalCost: 0
-      };
-      
-      const updated = { ...currentStats, ...updates, lastUsed: Date.now() };
-      await this.redis.set(`stats:${provider}`, JSON.stringify(updated));
-      return { success: true, data: undefined };
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
-  }
-
-  async getAllProviderStats(): Promise<StorageResult<ProviderStats[]>> {
-    try {
-      await this.ensureRedis();
-      const keys = await this.redis.keys('stats:*');
-      const stats = [];
-      for (const key of keys) {
-        const data = await this.redis.get(key);
-        if (data) {
-          const stat = typeof data === 'string' ? JSON.parse(data) : data;
-          stats.push(stat as ProviderStats);
-        }
-      }
-      return { success: true, data: stats };
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
-  }
-
-  // Health and maintenance
-  async healthCheck(): Promise<HealthCheckResult> {
-    try {
-      const start = Date.now();
-      await this.ensureRedis();
-      await this.redis.ping();
-      const latency = Date.now() - start;
-      return createHealthCheckResult(true, latency, {
-        redisConnected: true,
-        provider: 'upstash'
-      });
-    } catch (error) {
-      return createHealthCheckResult(false, undefined, {
-        redisConnected: false,
-        provider: 'upstash',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
-  }
-
-  async getStorageStats(): Promise<StorageResult<{
-    totalModels: number;
-    enabledModels: number;
-    cachedResponses: number;
-    totalProviders: number;
-  }>> {
-    try {
-      await this.ensureRedis();
-      const modelKeys = await this.redis.keys('model:*');
-      const cacheKeys = await this.redis.keys('cache:*');
-      const statsKeys = await this.redis.keys('stats:*');
-      
-      let enabledModels = 0;
-      for (const key of modelKeys) {
-        const data = await this.redis.get(key);
-        if (data) {
-          const state = typeof data === 'string' ? JSON.parse(data) : data;
-          if (state.enabled) enabledModels++;
-        }
-      }
-      
-      return { success: true, data: {
-        totalModels: modelKeys.length,
-        enabledModels,
-        cachedResponses: cacheKeys.length,
-        totalProviders: statsKeys.length
-      }};
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
-  }
-
-  // Conversation management
-  private conversations = new Map<string, AIConversation>();
-
-  async storeConversation(sessionId: string, conversation: AIConversation): Promise<StorageResult<void>> {
-    try {
-      await this.ensureRedis();
-
-      const conversationWithTimestamp = {
-        ...conversation,
-        updated_at: new Date().toISOString()
-      };
-
-      // Store conversation
-      await this.redis.set(
-        `conversation:${sessionId}`,
-        JSON.stringify(conversationWithTimestamp),
-        { ex: 24 * 60 * 60 } // 24 hour expiry
-      );
-
-      // Add to session index
-      await this.redis.sadd('conversations:sessions', sessionId);
-
-      return { success: true, data: undefined };
-    } catch (error) {
-      console.error('Failed to store conversation:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      };
-    }
-  }
-
-  async getConversation(sessionId: string): Promise<StorageResult<AIConversation | null>> {
-    try {
-      await this.ensureRedis();
-
-      const data = await this.redis.get(`conversation:${sessionId}`);
-      if (!data) {
-        return { success: true, data: null };
-      }
-
-      const conversation = typeof data === 'string' ? JSON.parse(data) : data;
-      return { success: true, data: conversation as AIConversation };
-    } catch (error) {
-      console.error('Failed to get conversation:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      };
-    }
-  }
-
-  async deleteConversation(sessionId: string): Promise<StorageResult<void>> {
-    try {
-      await this.ensureRedis();
-
-      await this.redis.del(`conversation:${sessionId}`);
-      await this.redis.srem('conversations:sessions', sessionId);
-
-      return { success: true, data: undefined };
-    } catch (error) {
-      console.error('Failed to delete conversation:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      };
-    }
-  }
-
-  // Query analysis
-  private analyses = new Map<string, QueryAnalysis>();
-
-  async storeAnalysis(query: string, analysis: QueryAnalysis): Promise<StorageResult<void>> {
-    try {
-      await this.ensureRedis();
-
-      const analysisWithTimestamp = {
-        ...analysis,
-        cached_at: new Date().toISOString()
-      };
-
-      // Create a hash of the query for the key
-      const crypto = await import('crypto');
-      const queryHash = crypto.createHash('sha256').update(query.toLowerCase().trim()).digest('hex');
-
-      // Store analysis with 1 hour expiry
-      await this.redis.set(
-        `analysis:${queryHash}`,
-        JSON.stringify(analysisWithTimestamp),
-        { ex: 60 * 60 } // 1 hour expiry
-      );
-
-      return { success: true, data: undefined };
-    } catch (error) {
-      console.error('Failed to store analysis:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      };
-    }
-  }
-
-  async getAnalysis(query: string): Promise<StorageResult<QueryAnalysis | null>> {
-    try {
-      await this.ensureRedis();
-
-      const crypto = await import('crypto');
-      const queryHash = crypto.createHash('sha256').update(query.toLowerCase().trim()).digest('hex');
-
-      const data = await this.redis.get(`analysis:${queryHash}`);
-      if (!data) {
-        return { success: true, data: null };
-      }
-
-      const analysis = typeof data === 'string' ? JSON.parse(data) : data;
-      return { success: true, data: analysis as QueryAnalysis };
-    } catch (error) {
-      console.error('Failed to get analysis:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      };
-    }
-  }
-
-  async storeResponse(query: string, response: AIResponse): Promise<StorageResult<void>> {
-    try {
-      await this.ensureRedis();
-
-      const responseWithTimestamp = {
-        ...response,
-        cached_at: new Date().toISOString()
-      };
-
-      const crypto = await import('crypto');
-      const queryHash = crypto.createHash('sha256').update(query.toLowerCase().trim()).digest('hex');
-
-      // Store response with 30 minute expiry
-      await this.redis.set(
-        `response:${queryHash}`,
-        JSON.stringify(responseWithTimestamp),
-        { ex: 30 * 60 } // 30 minute expiry
-      );
-
-      return { success: true, data: undefined };
-    } catch (error) {
-      console.error('Failed to store response:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      };
-    }
-  }
-
-  async getResponse(query: string): Promise<StorageResult<AIResponse | null>> {
-    try {
-      await this.ensureRedis();
-
-      const crypto = await import('crypto');
-      const queryHash = crypto.createHash('sha256').update(query.toLowerCase().trim()).digest('hex');
-
-      const data = await this.redis.get(`response:${queryHash}`);
-      if (!data) {
-        return { success: true, data: null };
-      }
-
-      const response = typeof data === 'string' ? JSON.parse(data) : data;
-      return { success: true, data: response as AIResponse };
-    } catch (error) {
-      console.error('Failed to get response:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      };
-    }
-  }
-
-  async cleanup(): Promise<StorageResult<{ removedCount: number }>> {
-    try {
-      await this.ensureRedis();
-
-      // Get all conversation sessions
-      const sessions = await this.redis.smembers('conversations:sessions') as string[];
-      let removedCount = 0;
-
-      // Check each conversation for expiry (older than 24 hours)
-      const cutoffTime = Date.now() - (24 * 60 * 60 * 1000);
-
-      for (const sessionId of sessions) {
-        const conversationResult = await this.getConversation(sessionId);
-        if (conversationResult.success && conversationResult.data) {
-          const conversation = conversationResult.data;
-          const lastMessageTime = conversation.messages.length > 0
-            ? new Date(conversation.messages[conversation.messages.length - 1].timestamp).getTime()
-            : 0;
-
-          if (lastMessageTime < cutoffTime) {
-            await this.deleteConversation(sessionId);
-            removedCount++;
-          }
-        }
-      }
-
-      return { success: true, data: { removedCount } };
-    } catch (error) {
-      console.error('Failed to cleanup AI storage:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      };
-    }
-  }
+export function createAIStorage(storage?: IStorage): AIStorageService {
+  return new AIStorageService(storage);
 }
-
-/**
- * Local Redis AI Storage
- * For development with local Redis instance
- */
-class LocalRedisAIStorage implements IAIStorage {
-  private redis: any;
-
-  constructor() {
-    this.initializeRedis();
-  }
-
-  private async initializeRedis() {
-    try {
-      const { Redis } = await import('ioredis');
-
-      const redisUrl = process.env.REDIS_URL || process.env.LOCAL_REDIS_URL || 'redis://localhost:6379';
-      this.redis = new Redis(redisUrl);
-    } catch (error) {
-      console.error('Failed to initialize local Redis for AI storage:', error);
-      throw error;
-    }
-  }
-
-  private async ensureRedis() {
-    if (!this.redis) {
-      await this.initializeRedis();
-    }
-  }
-
-  getProviderInfo() {
-    return {
-      name: 'LocalRedisAIStorage',
-      version: '1.0.0',
-      capabilities: ['model_states', 'response_caching', 'provider_stats', 'conversations', 'analysis']
-    };
-  }
-
-  // Model state management
-  async getModelState(modelId: string): Promise<StorageResult<ModelState | null>> {
-    try {
-      await this.ensureRedis();
-      const data = await this.redis.get(`model:${modelId}`);
-      if (!data) {
-        return { success: true, data: null };
-      }
-      const state = JSON.parse(data);
-      return { success: true, data: state as ModelState };
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
-  }
-
-  async setModelState(modelId: string, state: ModelState): Promise<StorageResult<void>> {
-    try {
-      await this.ensureRedis();
-      await this.redis.set(`model:${modelId}`, JSON.stringify({ ...state, lastUsed: Date.now() }));
-      return { success: true, data: undefined };
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
-  }
-
-  async getAllModelStates(): Promise<StorageResult<ModelState[]>> {
-    try {
-      await this.ensureRedis();
-      const keys = await this.redis.keys('model:*');
-      const states = [];
-      for (const key of keys) {
-        const data = await this.redis.get(key);
-        if (data) {
-          const state = JSON.parse(data);
-          states.push(state as ModelState);
-        }
-      }
-      return { success: true, data: states };
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
-  }
-
-  async resetModelState(modelId: string): Promise<StorageResult<void>> {
-    try {
-      await this.ensureRedis();
-      const existing = await this.redis.get(`model:${modelId}`);
-      if (existing) {
-        const state = JSON.parse(existing);
-        const reset = {
-          ...state,
-          lastSuccess: undefined,
-          lastFailure: undefined,
-          failureCount: 0,
-          enabled: true,
-          averageLatency: undefined,
-          successCount: 0,
-          totalAttempts: 0
-        };
-        await this.redis.set(`model:${modelId}`, JSON.stringify(reset));
-      }
-      return { success: true, data: undefined };
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
-  }
-
-  async resetAllModelStates(): Promise<StorageResult<void>> {
-    try {
-      await this.ensureRedis();
-      const keys = await this.redis.keys('model:*');
-      for (const key of keys) {
-        const modelId = key.replace('model:', '');
-        await this.resetModelState(modelId);
-      }
-      return { success: true, data: undefined };
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
-  }
-
-  // Response caching
-  async getCachedResponse(queryHash: string): Promise<StorageResult<CachedResponse | null>> {
-    try {
-      await this.ensureRedis();
-      const data = await this.redis.get(`cache:${queryHash}`);
-      if (!data) {
-        return { success: true, data: null };
-      }
-      const response = JSON.parse(data);
-      return { success: true, data: response as CachedResponse };
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
-  }
-
-  async setCachedResponse(queryHash: string, response: CachedResponse): Promise<StorageResult<void>> {
-    try {
-      await this.ensureRedis();
-      await this.redis.setex(`cache:${queryHash}`, 60 * 60, JSON.stringify(response)); // 1 hour expiry
-      return { success: true, data: undefined };
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
-  }
-
-  async clearExpiredCache(maxAge: number): Promise<StorageResult<number>> {
-    try {
-      await this.ensureRedis();
-      const keys = await this.redis.keys('cache:*');
-      let cleared = 0;
-      const cutoffTime = Date.now() - maxAge;
-      
-      for (const key of keys) {
-        const data = await this.redis.get(key);
-        if (data) {
-          const response = JSON.parse(data);
-          if (response.timestamp < cutoffTime) {
-            await this.redis.del(key);
-            cleared++;
-          }
-        }
-      }
-      return { success: true, data: cleared };
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
-  }
-
-  async clearAllCache(): Promise<StorageResult<void>> {
-    try {
-      await this.ensureRedis();
-      const keys = await this.redis.keys('cache:*');
-      if (keys.length > 0) {
-        await this.redis.del(...keys);
-      }
-      return { success: true, data: undefined };
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
-  }
-
-  // Provider statistics
-  async getProviderStats(provider: string): Promise<StorageResult<ProviderStats | null>> {
-    try {
-      await this.ensureRedis();
-      const data = await this.redis.get(`stats:${provider}`);
-      if (!data) {
-        return { success: true, data: null };
-      }
-      const stats = JSON.parse(data);
-      return { success: true, data: stats as ProviderStats };
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
-  }
-
-  async updateProviderStats(provider: string, updates: Partial<ProviderStats>): Promise<StorageResult<void>> {
-    try {
-      await this.ensureRedis();
-      const existing = await this.redis.get(`stats:${provider}`);
-      const currentStats = existing ? JSON.parse(existing) : {
-        provider,
-        totalRequests: 0,
-        successfulRequests: 0,
-        failedRequests: 0,
-        averageLatency: 0,
-        totalCost: 0
-      };
-      
-      const updated = { ...currentStats, ...updates, lastUsed: Date.now() };
-      await this.redis.set(`stats:${provider}`, JSON.stringify(updated));
-      return { success: true, data: undefined };
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
-  }
-
-  async getAllProviderStats(): Promise<StorageResult<ProviderStats[]>> {
-    try {
-      await this.ensureRedis();
-      const keys = await this.redis.keys('stats:*');
-      const stats = [];
-      for (const key of keys) {
-        const data = await this.redis.get(key);
-        if (data) {
-          const stat = JSON.parse(data);
-          stats.push(stat as ProviderStats);
-        }
-      }
-      return { success: true, data: stats };
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
-    }
-  }
-
-  // Health and maintenance
-  async healthCheck(): Promise<HealthCheckResult> {
-    try {
-      const start = Date.now();
-      await this.ensureRedis();
-      await this.redis.ping();
-      const latency = Date.now() - start;
-      return createHealthCheckResult(true, latency, {
-        redisConnected: true,
-        provider: 'local'
-      });
-    } catch (error) {
-      return createHealthCheckResult(false, undefined, {
-        redisConnected: false,
-        provider: 'local',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
-  }
-
-  async getStorageStats(): Promise<StorageResult<{
-    totalModels: number;
-    enabledModels: number;
-    cachedResponses: number;
-    totalProviders: number;
-  }>> {
-    try {
-      await this.ensureRedis();
-      const modelKeys = await this.redis.keys('model:*');
-      const cacheKeys = await this.redis.keys('cache:*');
-      const statsKeys = await this.redis.keys('stats:*');
-      
-      let enabledModels = 0;
-      for (const key of modelKeys) {
-        const data = await this.redis.get(key);
-        if

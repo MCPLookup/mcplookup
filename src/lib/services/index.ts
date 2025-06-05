@@ -9,6 +9,7 @@ import { HealthService, EnhancedHealthService } from './health';
 import { IntentService, EnhancedIntentService } from './intent';
 import { VerificationService, MCPValidationService } from './verification';
 import { DiscoveryService } from './discovery';
+import { createAIStorage, AIStorageService } from './storage/ai-storage';
 /**
  * Service Configuration Options
  */
@@ -32,6 +33,7 @@ export class ServiceFactory {
   private userService?: UserService;
   private auditService?: AuditService;
   private aiService?: AIService;
+  private aiStorageService?: AIStorageService;
   private healthService?: HealthService | EnhancedHealthService;
   private intentService?: IntentService | EnhancedIntentService;
   private verificationService?: VerificationService;
@@ -95,6 +97,16 @@ export class ServiceFactory {
       this.aiService = new AIService();
     }
     return this.aiService;
+  }
+
+  /**
+   * Get AI Storage Service
+   */
+  getAIStorageService(): AIStorageService {
+    if (!this.aiStorageService) {
+      this.aiStorageService = createAIStorage();
+    }
+    return this.aiStorageService;
   }
 
   /**
@@ -168,6 +180,7 @@ export class ServiceFactory {
       user: this.getUserService(),
       audit: this.getAuditService(),
       ai: this.getAIService(),
+      aiStorage: this.getAIStorageService(),
       health: this.getHealthService(),
       intent: this.getIntentService(),
       verification: this.getVerificationService(),
@@ -183,6 +196,7 @@ export class ServiceFactory {
     this.userService = undefined;
     this.auditService = undefined;
     this.aiService = undefined;
+    this.aiStorageService = undefined;
     this.healthService = undefined;
     this.intentService = undefined;
     this.verificationService = undefined;
@@ -232,6 +246,7 @@ export function getTestServices() {
     user: factory.getUserService(),
     audit: factory.getAuditService(),
     ai: factory.getAIService(),
+    aiStorage: factory.getAIStorageService(),
     health: factory.getHealthService(),
     intent: factory.getIntentService(),
     discovery: factory.getDiscoveryService(),
@@ -297,7 +312,9 @@ export {
   IntentService,
   EnhancedIntentService,
   VerificationService,
-  DiscoveryService
+  DiscoveryService,
+  AIStorageService,
+  createAIStorage
 };
 
 // Export verification dependencies

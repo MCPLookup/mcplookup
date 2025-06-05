@@ -3,6 +3,7 @@
 
 "use client"
 
+import React from "react"
 import { useSession, signIn as nextAuthSignIn, signOut as nextAuthSignOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useCallback } from "react"
@@ -156,9 +157,11 @@ export function withAuth<P extends object>(
     const router = useRouter()
 
     if (isLoading) {
-      return options?.loadingComponent ? (
-        <options.loadingComponent />
-      ) : (
+      if (options?.loadingComponent) {
+        const LoadingComponent = options.loadingComponent
+        return <LoadingComponent />
+      }
+      return (
         <div className="flex items-center justify-center min-h-screen">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
         </div>
@@ -204,9 +207,10 @@ export function withRole<P extends object>(
 
     if (!hasRole) {
       if (options?.unauthorizedComponent) {
-        return <options.unauthorizedComponent />
+        const UnauthorizedComponent = options.unauthorizedComponent
+        return <UnauthorizedComponent />
       }
-      
+
       router.push(options?.redirectTo || '/')
       return null
     }

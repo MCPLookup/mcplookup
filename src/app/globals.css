@@ -64,33 +64,42 @@
 }
 
 .hero-pattern {
-  background-image: radial-gradient(circle at 1px 1px, rgba(59, 130, 246, 0.1) 1px, transparent 0);
-  background-size: 24px 24px;
+  background-image: radial-gradient(circle at 1px 1px, rgba(59, 130, 246, 0.05) 1px, transparent 0);
+  background-size: 32px 32px;
 }
 
 .code-block {
-  @apply bg-slate-900 text-slate-100 p-4 rounded-md overflow-x-auto border border-slate-700;
+  @apply bg-slate-900 text-slate-100 p-4 rounded-lg overflow-x-auto border border-slate-700 font-mono text-sm;
 }
 
 .api-card {
-  @apply bg-white dark:bg-slate-800 rounded-md shadow-sm p-6 border border-slate-200 dark:border-slate-700;
+  @apply bg-white dark:bg-slate-800 rounded-lg shadow-sm p-6 border border-slate-200 dark:border-slate-700;
 }
 
 .feature-card {
-  @apply bg-white dark:bg-slate-800 rounded-md shadow-sm p-6 border border-slate-200 dark:border-slate-700 hover:shadow-md transition-all duration-200;
+  @apply bg-white dark:bg-slate-800 rounded-lg shadow-sm p-6 border border-slate-200 dark:border-slate-700 hover:shadow-lg transition-all duration-300;
+}
+
+/* Modern button styles */
+.btn-primary {
+  @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 hover:shadow-lg;
+}
+
+.btn-secondary {
+  @apply bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold py-3 px-6 rounded-lg transition-all duration-200 border border-gray-300;
 }
 
 /* Enhanced Animation utilities */
 .fade-in {
-  animation: fadeIn 0.5s ease-in-out;
+  animation: fadeIn 0.6s ease-in-out;
 }
 
 .fade-in-up {
-  animation: fadeInUp 0.6s ease-out;
+  animation: fadeInUp 0.8s ease-out;
 }
 
 .fade-in-down {
-  animation: fadeInDown 0.6s ease-out;
+  animation: fadeInDown 0.8s ease-out;
 }
 
 .fade-in-left {
