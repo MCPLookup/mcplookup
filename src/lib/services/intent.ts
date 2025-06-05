@@ -281,14 +281,14 @@ export class EnhancedIntentService extends IntentService {
       const smartAI = await this.getSmartAI();
       const response = await smartAI.processQuery(query);
 
-      console.log(`AI Success: ${response.provider}/${response.model} (${response.cost ? `$${response.cost}` : 'FREE'})`);
+      console.log(`AI Success: Smart AI processing completed`);
 
       return {
-        capabilities: response.capabilities,
-        similarTo: response.similarTo,
-        constraints: response.constraints,
-        intent: response.intent,
-        confidence: response.confidence
+        capabilities: response.selectedSlugs || [],
+        similarTo: undefined,
+        constraints: {},
+        intent: query,
+        confidence: response.confidence || 0.5
       };
     } catch (error) {
       console.warn('Smart AI processing failed, falling back to rule-based:', error);
@@ -302,7 +302,7 @@ export class EnhancedIntentService extends IntentService {
    * Enhanced rule-based processing for complex queries
    */
   private async ruleBasedQueryProcessing(query: string): Promise<any> {
-    const normalizedQuery = this.normalizeIntent(query);
+    const normalizedQuery = query.toLowerCase().trim();
     const capabilities = new Set<string>();
     let similarTo: string | undefined;
     const constraints: any = {};

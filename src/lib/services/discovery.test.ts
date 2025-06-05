@@ -72,9 +72,9 @@ function createMockServer(overrides: Partial<MCPServerRecord> = {}): MCPServerRe
 
 describe('DiscoveryService', () => {
   let discoveryService: DiscoveryService;
-  let mockRegistryService: vi.Mocked<RegistryService>;
-  let mockHealthService: vi.Mocked<HealthService>;
-  let mockIntentService: vi.Mocked<IntentService>;
+  let mockRegistryService: any;
+  let mockHealthService: any;
+  let mockIntentService: any;
 
   beforeEach(() => {
     // Create mocked services
@@ -114,7 +114,12 @@ describe('DiscoveryService', () => {
       const mockServer = createMockServer({ domain: 'gmail.com' });
       mockRegistryService.getServersByDomain.mockResolvedValue([mockServer]);
 
-      const request: DiscoveryRequest = { domain: 'gmail.com' };
+      const request: DiscoveryRequest = {
+        domain: { value: 'gmail.com', type: 'exact', weight: 1, required: true },
+        limit: 10,
+        offset: 0,
+        sort_by: 'relevance'
+      };
       const response = await discoveryService.discoverServers(request);
 
       expect(response.servers).toHaveLength(1);
@@ -130,7 +135,16 @@ describe('DiscoveryService', () => {
       ];
       mockRegistryService.getServersByCapability.mockResolvedValue(mockServers);
 
-      const request: DiscoveryRequest = { capability: 'email' };
+      const request: DiscoveryRequest = {
+        capabilities: {
+          operator: 'AND',
+          capabilities: [{ value: 'email', type: 'exact', weight: 1, required: true }],
+          minimum_match: 0.5
+        },
+        limit: 10,
+        offset: 0,
+        sort_by: 'relevance'
+      };
       const response = await discoveryService.discoverServers(request);
 
       expect(response.servers).toHaveLength(2);
@@ -142,7 +156,12 @@ describe('DiscoveryService', () => {
       const mockServers = [createMockServer({ capabilities: { category: 'productivity', subcategories: [], intent_keywords: [], use_cases: [] } })];
       mockRegistryService.getServersByCategory.mockResolvedValue(mockServers);
 
-      const request: DiscoveryRequest = { category: 'productivity' };
+      const request: DiscoveryRequest = {
+        categories: ['productivity'],
+        limit: 10,
+        offset: 0,
+        sort_by: 'relevance'
+      };
       const response = await discoveryService.discoverServers(request);
 
       expect(response.servers).toHaveLength(1);
@@ -155,7 +174,12 @@ describe('DiscoveryService', () => {
       mockIntentService.intentToCapabilities.mockResolvedValue(['calendar', 'scheduling']);
       mockRegistryService.getServersByCapability.mockResolvedValue(mockServers);
 
-      const request: DiscoveryRequest = { intent: 'schedule a meeting' };
+      const request: DiscoveryRequest = {
+        intent: 'schedule a meeting',
+        limit: 10,
+        offset: 0,
+        sort_by: 'relevance'
+      };
       const response = await discoveryService.discoverServers(request);
 
       expect(response.servers).toHaveLength(1);
@@ -167,7 +191,15 @@ describe('DiscoveryService', () => {
       const mockServers = [createMockServer({ name: 'Email Service' })];
       mockRegistryService.searchServers.mockResolvedValue(mockServers);
 
-      const request: DiscoveryRequest = { keywords: ['email', 'management'] };
+      const request: DiscoveryRequest = {
+        keywords: [
+          { value: 'email', type: 'contains', weight: 1, required: false },
+          { value: 'management', type: 'contains', weight: 1, required: false }
+        ],
+        limit: 10,
+        offset: 0,
+        sort_by: 'relevance'
+      };
       const response = await discoveryService.discoverServers(request);
 
       expect(response.servers).toHaveLength(1);
@@ -181,7 +213,11 @@ describe('DiscoveryService', () => {
       ];
       mockRegistryService.getAllVerifiedServers.mockResolvedValue(mockServers);
 
-      const request: DiscoveryRequest = {};
+      const request: DiscoveryRequest = {
+        limit: 10,
+        offset: 0,
+        sort_by: 'relevance'
+      };
       const response = await discoveryService.discoverServers(request);
 
       expect(response.servers).toHaveLength(2);
@@ -196,7 +232,11 @@ describe('DiscoveryService', () => {
 
       mockRegistryService.getAllVerifiedServers.mockResolvedValue([verifiedServer]);
 
-      const request: DiscoveryRequest = {};
+      const request: DiscoveryRequest = {
+        limit: 10,
+        offset: 0,
+        sort_by: 'relevance'
+      };
       const response = await discoveryService.discoverServers(request);
 
       expect(response.servers).toHaveLength(1);
@@ -209,7 +249,11 @@ describe('DiscoveryService', () => {
       );
       mockRegistryService.getAllVerifiedServers.mockResolvedValue(mockServers);
 
-      const request: DiscoveryRequest = { limit: 2, offset: 1 };
+      const request: DiscoveryRequest = {
+        limit: 2,
+        offset: 1,
+        sort_by: 'relevance'
+      };
       const response = await discoveryService.discoverServers(request);
 
       expect(response.servers).toHaveLength(2);
@@ -221,7 +265,12 @@ describe('DiscoveryService', () => {
     it('should handle empty results gracefully', async () => {
       mockRegistryService.getServersByDomain.mockResolvedValue([]);
 
-      const request: DiscoveryRequest = { domain: 'nonexistent.com' };
+      const request: DiscoveryRequest = {
+        domain: { value: 'nonexistent.com', type: 'exact', weight: 1, required: true },
+        limit: 10,
+        offset: 0,
+        sort_by: 'relevance'
+      };
       const response = await discoveryService.discoverServers(request);
 
       expect(response.servers).toHaveLength(0);
@@ -289,7 +338,11 @@ describe('DiscoveryService', () => {
     it('should handle registry service errors gracefully', async () => {
       mockRegistryService.getAllVerifiedServers.mockRejectedValue(new Error('Registry error'));
 
-      const request: DiscoveryRequest = {};
+      const request: DiscoveryRequest = {
+        limit: 10,
+        offset: 0,
+        sort_by: 'relevance'
+      };
 
       await expect(discoveryService.discoverServers(request)).rejects.toThrow('Discovery failed: Registry error');
     });
@@ -297,7 +350,12 @@ describe('DiscoveryService', () => {
     it('should handle intent service errors gracefully', async () => {
       mockIntentService.intentToCapabilities.mockRejectedValue(new Error('Intent service error'));
 
-      const request: DiscoveryRequest = { intent: 'test intent' };
+      const request: DiscoveryRequest = {
+        intent: 'test intent',
+        limit: 10,
+        offset: 0,
+        sort_by: 'relevance'
+      };
 
       await expect(discoveryService.discoverServers(request)).rejects.toThrow('Discovery failed: Intent service error');
     });

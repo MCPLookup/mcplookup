@@ -4,7 +4,7 @@ import { NextRequest } from 'next/server';
 
 // Mock the services
 vi.mock('@/lib/services', () => ({
-  createVerificationService: vi.fn()
+  getServerlessServices: vi.fn()
 }));
 
 // Mock the verification service
@@ -16,10 +16,12 @@ const mockVerificationService = {
 describe('/api/v1/register/verify/[id]', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Setup default mock implementation
-    const { createVerificationService } = require('@/lib/services');
-    createVerificationService.mockReturnValue(mockVerificationService);
+    const { getServerlessServices } = require('@/lib/services');
+    getServerlessServices.mockReturnValue({
+      verification: mockVerificationService
+    });
   });
 
   afterEach(() => {

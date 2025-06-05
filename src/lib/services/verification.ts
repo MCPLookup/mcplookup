@@ -237,8 +237,8 @@ export class VerificationService implements IVerificationService {
       tools: [], // Will be populated later via tools/list
       resources: [], // Will be populated later via resources/list
       transport: transportCaps?.primary_transport || 'streamable_http',
-      transport_capabilities: transportCaps,
-      openapi_documentation: openApiDocumentation,
+      transport_capabilities: transportCaps || undefined,
+      openapi_documentation: openApiDocumentation || undefined,
 
       // Semantic Organization (basic defaults)
       capabilities: {

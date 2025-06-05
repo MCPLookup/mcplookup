@@ -1,7 +1,7 @@
 "use client"
 
 import { Button, Icon } from "@chakra-ui/react"
-import { FaGithub, FaGoogle, FaSignInAlt } from "react-icons/fa"
+import { FaGithub, FaGoogle, FaSignInAlt, FaEnvelope } from "react-icons/fa"
 import { signIn, useSession } from "next-auth/react"
 
 interface SignInButtonProps {
@@ -47,6 +47,8 @@ export function SignInButton({
         return FaGithub
       case 'google':
         return FaGoogle
+      case 'email':
+        return FaEnvelope
       default:
         return FaSignInAlt
     }
@@ -58,6 +60,8 @@ export function SignInButton({
         return 'Continue with GitHub'
       case 'google':
         return 'Continue with Google'
+      case 'email':
+        return 'Continue with Email'
       default:
         return 'Sign In'
     }
@@ -69,6 +73,8 @@ export function SignInButton({
         return 'gray'
       case 'google':
         return 'red'
+      case 'email':
+        return 'blue'
       default:
         return colorScheme
     }
