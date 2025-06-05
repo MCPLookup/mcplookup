@@ -411,6 +411,85 @@ export default function HowToUsePage() {
           </AnimatedCard.Body>
         </AnimatedCard.Root>
 
+        {/* API Keys for Developers */}
+        <AnimatedCard.Root hoverScale={1.01} borderOnHover>
+          <AnimatedCard.Body>
+            <div className="p-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                <span className="text-3xl mr-3">🔑</span>
+                API Keys for Developers
+              </h2>
+
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-6 mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Discovery is Free, Advanced Features Need API Keys</h3>
+                <p className="text-gray-700 mb-4">
+                  The MCP bridge works immediately for discovery - no API keys needed! But if you're building MCP tools
+                  or need advanced features, you'll want to get API keys.
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="font-semibold text-green-800 mb-2">✅ Free Discovery Features</h4>
+                    <ul className="text-sm text-green-700 space-y-1">
+                      <li>• Find any MCP server</li>
+                      <li>• AI-powered search</li>
+                      <li>• Domain and capability lookup</li>
+                      <li>• Connect to discovered servers</li>
+                      <li>• Real-time health monitoring</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-blue-800 mb-2">🔑 API Key Features</h4>
+                    <ul className="text-sm text-blue-700 space-y-1">
+                      <li>• Register your MCP servers</li>
+                      <li>• Usage analytics and monitoring</li>
+                      <li>• Higher rate limits</li>
+                      <li>• Priority support</li>
+                      <li>• Advanced API endpoints</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="font-semibold text-gray-800 mb-3">🚀 Getting Started with API Keys</h3>
+
+                <div className="bg-gray-900 text-green-400 p-4 rounded-lg text-sm font-mono">
+                  <div className="text-gray-400"># 1. Get your API key from the dashboard</div>
+                  <div className="text-blue-400">export</div> <div className="text-yellow-300">MCP_API_KEY</div>=<div className="text-orange-300">"mcp_your_api_key_here"</div>
+                  <div className="mt-2 text-gray-400"># 2. Bridge automatically uses environment variables</div>
+                  <div>npx @mcplookup/bridge</div>
+                  <div className="mt-2 text-gray-400"># 3. Now you can register servers and access advanced features!</div>
+                </div>
+
+                <div className="flex flex-wrap gap-3 justify-center">
+                  <Link href="/dashboard">
+                    <AnimatedButton
+                      variant="solid"
+                      size="lg"
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                      hoverScale={1.02}
+                    >
+                      🔑 Get API Keys
+                    </AnimatedButton>
+                  </Link>
+                  <Link href="/register">
+                    <AnimatedButton
+                      variant="outline"
+                      size="lg"
+                      className="border-blue-300 text-blue-700 hover:bg-blue-100"
+                      hoverScale={1.02}
+                    >
+                      📡 Register Your Server
+                    </AnimatedButton>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </AnimatedCard.Body>
+        </AnimatedCard.Root>
+
         {/* Next Steps */}
         <div className="text-center mt-12 space-y-6">
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-4xl mx-auto">
@@ -430,14 +509,14 @@ export default function HowToUsePage() {
                   🔍 Discover Servers
                 </AnimatedButton>
               </Link>
-              <Link href="/register">
+              <Link href="/dashboard">
                 <AnimatedButton
                   variant="outline"
                   size="lg"
                   className="border-blue-300 text-blue-700 hover:bg-blue-100"
                   hoverScale={1.02}
                 >
-                  📡 Register Your Server
+                  🔑 Get API Keys
                 </AnimatedButton>
               </Link>
             </div>

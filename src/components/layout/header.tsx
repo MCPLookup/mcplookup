@@ -17,10 +17,10 @@ export function Header() {
   const navigation = [
     { name: 'Discover', href: '/discover' },
     { name: 'How to Use', href: '/how-to-use' },
+    { name: 'API Keys', href: '/dashboard' },
     { name: 'Register', href: '/register' },
-    { name: 'Dashboard', href: '/dashboard' },
     { name: 'Open Standards', href: '/open-standards' },
-    { name: 'API', href: '/api/docs' },
+    { name: 'API Docs', href: '/api/docs' },
   ]
 
   return (
