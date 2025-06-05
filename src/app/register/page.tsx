@@ -108,6 +108,36 @@ export default function RegisterPage() {
             </p>
           </div>
 
+          {/* API Key Requirement Notice */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <div className="flex items-start space-x-4">
+              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <span className="text-blue-600 text-lg">🔑</span>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-blue-900 mb-2">Free API Key Required</h3>
+                <p className="text-blue-800 mb-4">
+                  Server registration requires a free API key. Discovery is free, but registering your own MCP servers
+                  needs authentication to prevent spam and ensure quality.
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  <a
+                    href="/dashboard"
+                    className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    🔑 Get Free API Keys
+                  </a>
+                  <a
+                    href="/discover"
+                    className="inline-flex items-center px-4 py-2 border border-blue-300 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"
+                  >
+                    🔍 Discover Servers (Free)
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {!success ? (
             /* Registration Form */
             <div className="bg-white rounded-lg shadow-md p-8">

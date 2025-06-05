@@ -184,6 +184,32 @@ export default function DiscoverPage() {
           </AnimatedCard.Body>
         </AnimatedCard.Root>
 
+        {/* API Key Info Banner */}
+        <AnimatedCard.Root>
+          <AnimatedCard.Body>
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <span className="text-blue-600 text-sm">🔑</span>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-blue-900">Building MCP Applications?</h3>
+                    <p className="text-xs text-blue-700">
+                      Discovery is free! Get free API keys for server registration, analytics, and developer features.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex space-x-2">
+                  <a href="/dashboard" className="text-xs text-blue-600 hover:text-blue-800 font-medium">
+                    Get API Keys →
+                  </a>
+                </div>
+              </div>
+            </div>
+          </AnimatedCard.Body>
+        </AnimatedCard.Root>
+
         {/* Error Display */}
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">

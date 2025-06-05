@@ -6,9 +6,9 @@ export function ApiKeyDocs() {
   return (
     <div className="space-y-8">
       <div className="text-center">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">🔑 API Key Authentication</h1>
+        <h1 className="text-4xl font-bold text-gray-900 mb-4">🔑 Free API Key Authentication</h1>
         <p className="text-xl text-gray-600">
-          Secure programmatic access to MCPLookup.org API
+          Free, secure programmatic access to MCPLookup.org API
         </p>
       </div>
 
@@ -18,14 +18,14 @@ export function ApiKeyDocs() {
           <div className="p-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Overview</h2>
             <p className="text-gray-700 mb-4">
-              API keys provide secure, authenticated access to MCPLookup.org's API endpoints. 
-              While discovery endpoints are public, API keys enable:
+              Free API keys provide secure, authenticated access to MCPLookup.org's API endpoints.
+              While discovery endpoints are public, free API keys enable:
             </p>
             <ul className="list-disc list-inside space-y-2 text-gray-700">
               <li>Server registration and management</li>
               <li>Usage analytics and monitoring</li>
               <li>Higher rate limits</li>
-              <li>Priority support</li>
+              <li>Developer tools and features</li>
             </ul>
           </div>
         </AnimatedCard.Body>
@@ -39,7 +39,7 @@ export function ApiKeyDocs() {
             
             <div className="space-y-4">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">1. Create an API Key</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">1. Create a Free API Key</h3>
                 <p className="text-gray-700 mb-2">
                   Go to your <a href="/dashboard" className="text-blue-600 hover:underline">Dashboard</a> and click on the "API Keys" tab.
                 </p>
