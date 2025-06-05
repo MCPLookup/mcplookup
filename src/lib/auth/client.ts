@@ -66,7 +66,7 @@ export function useSignIn() {
       const result = await nextAuthSignIn(provider, {
         email: options?.email,
         password: options?.password,
-        redirectTo: options?.redirectTo || "/dashboard",
+        redirectTo: options?.redirectTo || "/onboarding",
         redirect: options?.redirect !== false
       })
 
