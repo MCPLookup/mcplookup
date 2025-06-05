@@ -10,7 +10,7 @@ import {
   markEmailAsVerified,
   getUserByEmail
 } from '@/lib/auth/storage-adapter'
-import { emailService } from '@/lib/services/email'
+import { emailProviderService as emailService } from '@/lib/services/email-providers'
 
 const verifyEmailSchema = z.object({
   token: z.string().min(1, 'Token is required'),

@@ -9,7 +9,7 @@ import {
   createEmailVerificationToken,
   getUserByEmail 
 } from '@/lib/auth/storage-adapter'
-import { emailService } from '@/lib/services/email'
+import { emailProviderService as emailService } from '@/lib/services/email-providers'
 import { createEmailVerificationToken as createToken } from '@/lib/auth/password'
 
 const registerSchema = z.object({

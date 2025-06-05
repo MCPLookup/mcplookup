@@ -8,7 +8,7 @@ import {
   createPasswordResetToken,
   getUserByEmail 
 } from '@/lib/auth/storage-adapter'
-import { emailService } from '@/lib/services/email'
+import { emailProviderService as emailService } from '@/lib/services/email-providers'
 
 const forgotPasswordSchema = z.object({
   email: z.string().email('Invalid email address')
