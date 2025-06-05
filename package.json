@@ -33,11 +33,13 @@
     "format": "prettier --write src/**/*.ts",
     "type-check": "tsc --project tsconfig.typecheck.json",
     "openapi": "swagger-jsdoc -d swaggerDef.js src/pages/api/**/*.ts -o public/openapi.json",
-
-    "deploy": "vercel --prod",
-    "bridge": "node scripts/mcp-bridge.mjs",
-    "bridge:test": "node scripts/test-bridge.mjs",
-    "bridge:example": "node examples/bridge-usage.mjs"
+    "openapi:validate": "node -e \"const SwaggerParser = require('@apidevtools/swagger-parser'); SwaggerParser.validate('openapi.yaml').then(() => console.log('✅ OpenAPI spec is valid')).catch(err => { console.error('❌ OpenAPI spec validation failed:', err.message); process.exit(1); })\"",
+    "openapi:generate-types": "openapi-typescript openapi.yaml -o src/lib/generated/types.ts",
+    "openapi:generate-client": "npx openapi-typescript openapi.yaml -o src/lib/generated/client.ts",
+    "openapi:generate-server": "npx openapi-zod-client openapi.yaml -o src/lib/generated/server-schemas.ts",
+    "openapi:generate-all": "npm run openapi:validate && npm run openapi:generate-types && npm run openapi:generate-client && npm run openapi:generate-server",
+    "openapi:sync-bridge": "node scripts/sync-bridge.cjs",
+    "deploy": "vercel --prod"
   },
   "keywords": [
     "mcp",
@@ -102,6 +104,9 @@
     "zod": "^3.25.50"
   },
   "devDependencies": {
+    "@apidevtools/json-schema-ref-parser": "^13.0.1",
+    "@apidevtools/swagger-parser": "^11.0.0",
+    "@openapitools/openapi-generator-cli": "^2.20.2",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@types/bcrypt": "^5.0.2",
@@ -121,6 +126,9 @@
     "@vitest/ui": "^3.2.1",
     "eslint": "^8.57.0",
     "happy-dom": "^17.6.3",
+    "openapi-fetch": "^0.14.0",
+    "openapi-typescript": "^7.8.0",
+    "openapi-zod-client": "^1.18.3",
     "prettier": "^3.5.3",
     "prismjs": "^1.30.0",
     "tsx": "^4.19.4",

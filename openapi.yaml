@@ -55,108 +55,106 @@ tags:
     description: Server health and status monitoring
   - name: Transport
     description: Transport capabilities and metadata
+  - name: User Management
+    description: User onboarding and account management
 
 paths:
   /discover:
-    post:
+    get:
       tags: [Discovery]
       summary: Discover MCP servers
       description: |
         Find MCP servers using natural language queries, intent-based search, or technical filters.
-        
+
         **Enhanced with Transport Capabilities**: Results now include detailed transport metadata
         for intelligent server selection and optimal client connections.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                query:
-                  type: string
-                  description: Natural language query
-                  example: "file management tools for cloud storage"
-                intent:
-                  type: string
-                  description: Specific intent or use case
-                  example: "data_processing"
-                technical:
-                  type: object
-                  description: Technical requirements
-                  properties:
-                    transport:
-                      type: string
-                      enum: [streamable_http, sse, stdio]
-                      description: Required transport protocol
-                    cors_required:
-                      type: boolean
-                      description: Requires CORS support
-                    ssl_required:
-                      type: boolean
-                      description: Requires SSL/TLS
-                    session_support:
-                      type: boolean
-                      description: Requires session management
-                    sse_streaming:
-                      type: boolean
-                      description: Requires SSE streaming support
-                include:
-                  type: object
-                  description: Include additional metadata
-                  properties:
-                    transport_capabilities:
-                      type: boolean
-                      description: Include detailed transport capabilities
-                      default: false
-                    openapi_documentation:
-                      type: boolean
-                      description: Include OpenAPI/Swagger documentation
-                      default: false
-                    tools:
-                      type: boolean
-                      description: Include tools list
-                      default: false
-                    resources:
-                      type: boolean
-                      description: Include resources list
-                      default: false
-                    health:
-                      type: boolean
-                      description: Include health metrics
-                      default: false
-                limit:
-                  type: integer
-                  minimum: 1
-                  maximum: 100
-                  default: 10
-                  description: Maximum number of results
-            examples:
-              natural_language:
-                summary: Natural language query
-                value:
-                  query: "file management tools for cloud storage"
-                  include:
-                    transport_capabilities: true
-                    tools: true
-              technical_filter:
-                summary: Technical requirements
-                value:
-                  technical:
-                    transport: "streamable_http"
-                    cors_required: true
-                    sse_streaming: true
-                  include:
-                    transport_capabilities: true
-              intent_based:
-                summary: Intent-based search
-                value:
-                  intent: "data_processing"
-                  technical:
-                    ssl_required: true
-                  include:
-                    transport_capabilities: true
-                    health: true
+      parameters:
+        - name: query
+          in: query
+          schema:
+            type: string
+          description: Natural language query
+          example: "file management tools for cloud storage"
+        - name: intent
+          in: query
+          schema:
+            type: string
+          description: Specific intent or use case
+          example: "data_processing"
+        - name: domain
+          in: query
+          schema:
+            type: string
+          description: Specific domain to search for
+          example: "gmail.com"
+        - name: capability
+          in: query
+          schema:
+            type: string
+          description: Specific capability to search for
+          example: "email"
+        - name: category
+          in: query
+          schema:
+            type: string
+            enum: [communication, productivity, development, finance, social, storage, other]
+          description: Server category filter
+        - name: transport
+          in: query
+          schema:
+            type: string
+            enum: [streamable_http, sse, stdio]
+          description: Required transport protocol
+        - name: cors_required
+          in: query
+          schema:
+            type: boolean
+          description: Requires CORS support
+        - name: ssl_required
+          in: query
+          schema:
+            type: boolean
+          description: Requires SSL/TLS
+        - name: verified_only
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Only return verified servers
+        - name: include_health
+          in: query
+          schema:
+            type: boolean
+            default: true
+          description: Include health metrics
+        - name: include_tools
+          in: query
+          schema:
+            type: boolean
+            default: true
+          description: Include tools list
+        - name: include_resources
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Include resources list
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          description: Maximum number of results
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          description: Number of results to skip
+
       responses:
         '200':
           description: Discovery results with transport capabilities
@@ -416,6 +414,323 @@ paths:
                     description: Required DNS TXT record
         '404':
           description: Challenge not found
+
+  /discover/smart:
+    post:
+      tags: [Discovery]
+      summary: Smart AI-powered discovery
+      description: |
+        Advanced discovery using AI to understand natural language queries and provide intelligent server recommendations.
+        Uses a three-step process: keywords extraction → search → AI narrowing.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                query:
+                  type: string
+                  description: Natural language query
+                  example: "I need tools for managing customer emails and scheduling meetings"
+                max_results:
+                  type: integer
+                  minimum: 1
+                  maximum: 50
+                  default: 10
+                  description: Maximum number of results
+                include_reasoning:
+                  type: boolean
+                  default: false
+                  description: Include AI reasoning in response
+      responses:
+        '200':
+          description: Smart discovery results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  servers:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MCPServerRecord'
+                  total:
+                    type: integer
+                  query_analysis:
+                    type: object
+                    properties:
+                      extracted_keywords:
+                        type: array
+                        items:
+                          type: string
+                      detected_capabilities:
+                        type: array
+                        items:
+                          type: string
+                      confidence_score:
+                        type: number
+                        minimum: 0
+                        maximum: 1
+                  ai_reasoning:
+                    type: string
+                    description: AI explanation of results (if requested)
+        '400':
+          description: Invalid request parameters
+        '429':
+          description: Rate limit exceeded
+
+  /verify:
+    post:
+      tags: [Registration]
+      summary: Start domain verification
+      description: Start domain ownership verification for authenticated user
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [domain]
+              properties:
+                domain:
+                  type: string
+                  description: Domain to verify
+                  example: "example.com"
+      responses:
+        '200':
+          description: Verification challenge created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  challenge:
+                    type: object
+                    properties:
+                      domain:
+                        type: string
+                      slug:
+                        type: string
+                      txtRecord:
+                        type: string
+                      instructions:
+                        type: string
+        '401':
+          description: Authentication required
+        '400':
+          description: Invalid domain format
+    get:
+      tags: [Registration]
+      summary: Get user's domain verifications
+      description: Get all domain verifications for authenticated user
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User's domain verifications
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  verifications:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        domain:
+                          type: string
+                        status:
+                          type: string
+                          enum: [pending, verified, expired, failed]
+                        created_at:
+                          type: string
+                          format: date-time
+                        verified_at:
+                          type: string
+                          format: date-time
+                        last_check_at:
+                          type: string
+                          format: date-time
+                        expires_at:
+                          type: string
+                          format: date-time
+                        failure_reason:
+                          type: string
+        '401':
+          description: Authentication required
+
+  /domain-check:
+    get:
+      tags: [Registration]
+      summary: Check domain ownership
+      description: Check if authenticated user can register MCP servers for a domain
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: domain
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Domain to check
+          example: "example.com"
+      responses:
+        '200':
+          description: Domain ownership status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  domain:
+                    type: string
+                  user_id:
+                    type: string
+                  can_register:
+                    type: boolean
+                  verified:
+                    type: boolean
+                  message:
+                    type: string
+                  action_required:
+                    type: string
+                  verification_url:
+                    type: string
+        '401':
+          description: Authentication required
+        '400':
+          description: Invalid domain format
+
+  /health/{domain}:
+    get:
+      tags: [Health]
+      summary: Get server health metrics
+      description: Get real-time or cached health metrics for a specific MCP server
+      parameters:
+        - name: domain
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Server domain
+          example: "example.com"
+        - name: realtime
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+          description: Perform real-time health check
+      responses:
+        '200':
+          description: Server health metrics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  domain:
+                    type: string
+                  endpoint:
+                    type: string
+                  health:
+                    $ref: '#/components/schemas/HealthMetrics'
+                  capabilities_working:
+                    type: boolean
+                  ssl_valid:
+                    type: boolean
+                  trust_score:
+                    type: integer
+                    minimum: 0
+                    maximum: 100
+        '404':
+          description: Server not found
+        '500':
+          description: Health check failed
+
+  /onboarding:
+    get:
+      tags: [User Management]
+      summary: Get user onboarding state
+      description: Get the current onboarding progress for authenticated user
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User onboarding state
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  onboarding:
+                    type: object
+                    properties:
+                      current_step:
+                        type: string
+                        enum: [welcome, domain_verify, server_register, dashboard_tour, training_impact, completed]
+                      progress:
+                        type: number
+                        minimum: 0
+                        maximum: 100
+                      completed_steps:
+                        type: array
+                        items:
+                          type: string
+                      needs_onboarding:
+                        type: boolean
+        '401':
+          description: Authentication required
+    post:
+      tags: [User Management]
+      summary: Update onboarding progress
+      description: Update the user's onboarding step progress
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [step]
+              properties:
+                step:
+                  type: string
+                  enum: [welcome, domain_verify, server_register, dashboard_tour, training_impact, completed]
+                completed:
+                  type: boolean
+                  default: false
+      responses:
+        '200':
+          description: Onboarding progress updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        '401':
+          description: Authentication required
+        '400':
+          description: Invalid step or request data
 
 components:
   securitySchemes:

@@ -1,8 +1,9 @@
 // Next.js API Route - Main Discovery Endpoint
 // Serverless function for MCP server discovery
+// Uses generated OpenAPI schemas for validation
 
 import { NextRequest, NextResponse } from 'next/server';
-import { DiscoveryRequestSchema, DiscoveryResponseSchema } from '@/lib/schemas/discovery';
+import { withValidation, RequestSchemas } from '@/lib/middleware/openapi-validation';
 import { discoveryRateLimit, addRateLimitHeaders } from '@/lib/security/rate-limiting';
 import { apiKeyMiddleware, recordApiUsage } from '@/lib/auth/api-key-middleware';
 
