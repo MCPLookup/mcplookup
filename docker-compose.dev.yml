@@ -1,16 +1,18 @@
-# Docker Compose for MCPLookup.org Development
-# Provides local Redis instance and the Next.js application
+# Development Docker Compose for MCPLookup.org
+# Optimized for local development with hot-reloading
+
+name: mcplookup-dev
 
 services:
   # Redis database for local development
   redis:
     image: redis:7-alpine
-    container_name: mcplookup-redis
+    container_name: mcplookup-redis-dev
     restart: unless-stopped
     ports:
       - "6379:6379"
     volumes:
-      - redis_data:/data
+      - redis_dev_data:/data
       - ./docker/redis/redis.conf:/usr/local/etc/redis/redis.conf
     command: redis-server /usr/local/etc/redis/redis.conf
     environment:
@@ -22,12 +24,12 @@ services:
       retries: 3
       start_period: 10s
 
-  # MCPLookup Next.js application
+  # MCPLookup Next.js application (Development)
   app:
     build:
       context: .
-      dockerfile: Dockerfile
-    container_name: mcplookup-app
+      dockerfile: Dockerfile.dev
+    container_name: mcplookup-app-dev
     restart: unless-stopped
     ports:
       - "3000:3000"
@@ -36,26 +38,38 @@ services:
       - REDIS_URL=redis://redis:6379
       - NEXTAUTH_URL=http://localhost:3000
       - NEXTAUTH_SECRET=dev-secret-change-in-production
+      - NEXT_TELEMETRY_DISABLED=1
     depends_on:
       redis:
         condition: service_healthy
     volumes:
-      # Mount source code for development hot-reload
-      - .:/app
-      - /app/node_modules
-      - /app/.next
+      # Mount source code for hot-reloading (optimized for Windows)
+      - ./src:/app/src:cached
+      - ./public:/app/public:cached
+      - ./package.json:/app/package.json:ro
+      - ./package-lock.json:/app/package-lock.json:ro
+      - ./next.config.js:/app/next.config.js:ro
+      - ./tsconfig.json:/app/tsconfig.json:ro
+      - ./tailwind.config.js:/app/tailwind.config.js:ro
+      - ./postcss.config.js:/app/postcss.config.js:ro
+      # Use named volumes for node_modules and .next to avoid permission issues
+      - node_modules_dev:/app/node_modules
+      - next_cache_dev:/app/.next
     develop:
       watch:
         - action: sync
           path: ./src
           target: /app/src
-        - action: rebuild
+        - action: sync
+          path: ./public
+          target: /app/public
+        - action: restart
           path: package.json
 
   # Redis Commander - Web UI for Redis
   redis-commander:
     image: rediscommander/redis-commander:latest
-    container_name: mcplookup-redis-ui
+    container_name: mcplookup-redis-ui-dev
     restart: unless-stopped
     ports:
       - "8081:8081"
@@ -67,17 +81,10 @@ services:
       redis:
         condition: service_healthy
 
-  # Redis CLI for easy database access
-  redis-cli:
-    image: redis:7-alpine
-    container_name: mcplookup-redis-cli
-    profiles: ["tools"]
-    depends_on:
-      - redis
-    command: redis-cli -h redis
-    tty: true
-    stdin_open: true
-
 volumes:
-  redis_data:
+  redis_dev_data:
+    driver: local
+  node_modules_dev:
+    driver: local
+  next_cache_dev:
     driver: local
