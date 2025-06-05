@@ -77,7 +77,7 @@ export default function HomePage() {
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">For Developers</h3>
                     <p className="text-gray-600 text-sm mb-4">
-                      Start with free discovery to find AI tools. Get API keys for advanced features like server registration and analytics.
+                      Start with free discovery to find AI tools. Get free API keys for server registration and analytics.
                     </p>
                   </div>
                   <div className="space-y-2">
@@ -115,7 +115,7 @@ export default function HomePage() {
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">For Tool Creators</h3>
                     <p className="text-gray-600 text-sm mb-4">
-                      Make your AI tools discoverable. Get API keys to register your MCP servers and reach more users.
+                      Make your AI tools discoverable. Get free API keys to register your MCP servers and reach more users.
                     </p>
                   </div>
                   <div className="space-y-2">
@@ -385,7 +385,7 @@ export default function HomePage() {
                   </div>
                   <h3 className="text-base font-semibold text-gray-900 mb-2">Developer Friendly</h3>
                   <p className="text-gray-600 text-sm">
-                    Start with free discovery, then get API keys for advanced features. Simple REST API and comprehensive docs.
+                    Start with free discovery, then get free API keys for server registration. Simple REST API and comprehensive docs.
                   </p>
                 </div>
               </AnimatedCard.Body>
