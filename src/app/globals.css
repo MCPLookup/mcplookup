@@ -81,40 +81,36 @@
   @apply text-gray-900 dark:text-gray-100;
 }
 
-/* Card content contrast fixes */
-[data-theme="light"] .chakra-card,
+/* Card content contrast fixes using CSS custom properties */
 .chakra-card {
-  @apply text-gray-900;
-}
-
-[data-theme="dark"] .chakra-card {
-  @apply text-gray-100;
+  color: hsl(var(--card-foreground));
 }
 
 /* Ensure all card content has proper contrast */
 .chakra-card h1, .chakra-card h2, .chakra-card h3, .chakra-card h4, .chakra-card h5, .chakra-card h6 {
-  @apply text-gray-900 dark:text-gray-100;
+  color: hsl(var(--card-foreground));
+  font-weight: 600;
 }
 
-.chakra-card p, .chakra-card span, .chakra-card div {
-  @apply text-gray-600 dark:text-gray-300;
+.chakra-card p, .chakra-card span:not(.text-red-400):not(.text-green-500):not(.text-blue-400):not(.text-yellow-300):not(.text-orange-300):not(.text-purple-400) {
+  color: hsl(var(--muted-foreground));
 }
 
-/* Override any conflicting Tailwind classes in cards */
+/* Override specific Tailwind classes in cards for proper contrast */
 .chakra-card .text-gray-900 {
-  @apply dark:text-gray-100;
+  color: hsl(var(--card-foreground)) !important;
 }
 
 .chakra-card .text-gray-600 {
-  @apply dark:text-gray-300;
+  color: hsl(var(--muted-foreground)) !important;
 }
 
 .chakra-card .text-gray-700 {
-  @apply dark:text-gray-200;
+  color: hsl(var(--card-foreground)) !important;
 }
 
 .chakra-card .text-gray-800 {
-  @apply dark:text-gray-100;
+  color: hsl(var(--card-foreground)) !important;
 }
 
 .code-block {
