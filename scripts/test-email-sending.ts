@@ -3,7 +3,7 @@
 // Test script for email sending functionality
 // Run with: npx tsx scripts/test-email-sending.ts
 
-import { emailService } from '../src/lib/services/email'
+import { emailProviderService as emailService } from '../src/lib/services/email-providers'
 
 async function testEmailConfiguration() {
   console.log('🔧 Testing email configuration...')
@@ -13,18 +13,32 @@ async function testEmailConfiguration() {
   
   if (!isConnected) {
     console.log('❌ Email service not configured or connection failed')
-    console.log('\n💡 To configure email service:')
-    console.log('1. Add these environment variables to your .env.local file:')
+
+    const providerInfo = emailService.getProviderInfo()
+    console.log(`\n📧 Current provider: ${providerInfo.provider || 'none'}`)
+    console.log(`🔧 Configured: ${providerInfo.configured}`)
+
+    console.log('\n💡 To configure email service, choose one option:')
+    console.log('\n🚀 Option 1: Resend (Recommended)')
+    console.log('   RESEND_API_KEY=re_your_api_key_here')
+    console.log('   EMAIL_FROM=noreply@yourdomain.com')
+
+    console.log('\n📧 Option 2: SendGrid')
+    console.log('   SENDGRID_API_KEY=SG.your_api_key_here')
+    console.log('   EMAIL_FROM=noreply@yourdomain.com')
+
+    console.log('\n📮 Option 3: Mailgun')
+    console.log('   MAILGUN_API_KEY=your_api_key_here')
+    console.log('   MAILGUN_DOMAIN=your_domain.mailgun.org')
+    console.log('   EMAIL_FROM=noreply@yourdomain.com')
+
+    console.log('\n📬 Option 4: SMTP')
     console.log('   EMAIL_HOST=smtp.gmail.com')
     console.log('   EMAIL_PORT=587')
-    console.log('   EMAIL_USER=your-email@yourdomain.com')
-    console.log('   EMAIL_PASS=your-16-character-app-password')
-    console.log('   EMAIL_FROM=noreply@yourdomain.com')
-    console.log('\n2. Get Google App Password:')
-    console.log('   - Enable 2FA on your Google account')
-    console.log('   - Go to https://myaccount.google.com/apppasswords')
-    console.log('   - Generate app password for "Mail"')
-    console.log('   - Use the 16-character password as EMAIL_PASS')
+    console.log('   EMAIL_USER=your-email@domain.com')
+    console.log('   EMAIL_PASS=your-password')
+    console.log('   EMAIL_FROM=noreply@domain.com')
+
     return false
   }
   
