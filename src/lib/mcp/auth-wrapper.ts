@@ -18,21 +18,29 @@ export interface MCPAuthContext {
 
 /**
  * Extract authentication from MCP request
- * MCP requests can include auth in headers or tool arguments
+ * MCP requests can include auth in headers, tool arguments, or environment variables
  */
 export async function extractMCPAuth(request: NextRequest): Promise<MCPAuthContext | null> {
   // Try to extract API key from headers first
   const authHeader = request.headers.get('authorization');
   const apiKeyHeader = request.headers.get('x-api-key');
-  
+
   let apiKey: string | null = null;
-  
+
   if (authHeader?.startsWith('Bearer ')) {
     apiKey = authHeader.substring(7);
   } else if (apiKeyHeader) {
     apiKey = apiKeyHeader;
   }
-  
+
+  // Fallback to environment variables if no header auth found
+  if (!apiKey) {
+    apiKey = process.env.MCP_API_KEY ||
+             process.env.MCPLOOKUP_API_KEY ||
+             process.env.API_KEY ||
+             null;
+  }
+
   if (!apiKey) {
     return null;
   }

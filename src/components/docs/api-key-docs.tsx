@@ -150,13 +150,35 @@ print(data['servers'])`}</code></pre>
                 <div className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
                   <pre><code>{`import { MCPDiscoveryBridge } from '@mcplookup/bridge';
 
+// Method 1: Explicit API key
 const bridge = new MCPDiscoveryBridge();
 const mcpServer = await bridge.createBridgeWithApiKey(
-  'gmail.com', 
+  'gmail.com',
   'mcp_your_api_key_here'
 );
 
+// Method 2: Environment variable (recommended)
+// Set: export MCP_API_KEY="mcp_your_api_key_here"
+const serverWithEnv = await bridge.createBridgeForDomainWithEnvAuth('gmail.com');
+
 await mcpServer.run();`}</code></pre>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Environment Variables</h3>
+                <div className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto">
+                  <pre><code>{`# .env file or shell export
+export MCP_API_KEY="mcp_your_api_key_here"
+export MCPLOOKUP_API_KEY="mcp_your_api_key_here"  # Alternative
+export API_KEY="mcp_your_api_key_here"            # Fallback
+
+# Custom headers (JSON format)
+export MCP_AUTH_HEADERS='{"X-Custom-Header": "value"}'
+
+# Usage in code (no hardcoded keys!)
+const bridge = new MCPDiscoveryBridge();
+const server = await bridge.createBridgeForDomainWithEnvAuth('gmail.com');`}</code></pre>
                 </div>
               </div>
             </div>
