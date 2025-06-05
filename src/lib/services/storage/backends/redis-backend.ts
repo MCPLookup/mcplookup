@@ -92,7 +92,22 @@ export class RedisBackend implements StorageBackend {
   async get(key: string): Promise<string | null> {
     await this.ensureConnection();
     const result = await this.client.get(key);
-    return typeof result === 'string' ? result : result ? String(result) : null;
+    
+    // Handle Upstash Redis automatic JSON parsing
+    if (this.config.type === 'upstash') {
+      if (result === null || result === undefined) {
+        return null;
+      }
+      // If Upstash parsed it as an object, re-stringify it
+      if (typeof result === 'object') {
+        return JSON.stringify(result);
+      }
+      // Otherwise return as string
+      return String(result);
+    } else {
+      // For local Redis, result should already be a string
+      return typeof result === 'string' ? result : result ? String(result) : null;
+    }
   }
 
   async delete(key: string): Promise<void> {
@@ -207,7 +222,17 @@ export class RedisBackend implements StorageBackend {
     await this.ensureConnection();
     if (this.config.type === 'upstash') {
       const results = await (this.client as Redis).mget(...keys);
-      return results.map(r => typeof r === 'string' ? r : r ? String(r) : null);
+      return results.map(r => {
+        if (r === null || r === undefined) {
+          return null;
+        }
+        // If Upstash parsed it as an object, re-stringify it
+        if (typeof r === 'object') {
+          return JSON.stringify(r);
+        }
+        // Otherwise return as string
+        return String(r);
+      });
     } else {
       return await (this.client as RedisClientType).mGet(keys);
     }

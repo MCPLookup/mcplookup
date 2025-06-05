@@ -5,7 +5,7 @@
  * Verifies that AI-powered natural language processing is working correctly
  */
 
-const { getServerlessServices } = require('../src/lib/services/index.js');
+import { getServerlessServices } from '../src/lib/services/index.js';
 
 async function testAISetup() {
   console.log('🧠 Testing AI-Powered Natural Language Setup\n');
@@ -130,8 +130,6 @@ async function testAISetup() {
 }
 
 // Run the test
-if (require.main === module) {
-  testAISetup().catch(console.error);
-}
+testAISetup().catch(console.error);
 
-module.exports = { testAISetup };
+export { testAISetup };

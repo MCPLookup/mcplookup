@@ -5,18 +5,6 @@ import type { Adapter } from "next-auth/adapters"
 import { createStorage } from "../services/storage/factory"
 import type { IStorage } from "../services/storage/unified-storage"
 
-export interface EmailVerificationToken {
-  identifier: string // email
-  token: string // hashed token
-  expires: Date
-}
-
-export interface PasswordResetToken {
-  identifier: string // email
-  token: string // hashed token
-  expires: Date
-}
-
 export function createStorageAdapter(): Adapter {
   const storage = createStorage()
 
@@ -142,19 +130,17 @@ export function createStorageAdapter(): Adapter {
       const sessionData = {
         sessionToken,
         userId,
-        expires,
+        expires: expires.toISOString(),
         created_at: new Date().toISOString(),
       }
-
-      await storage.set('auth_sessions', sessionToken, {
-        ...sessionData,
-        expires: expires.toISOString()
-      })
-
+      
+      await storage.set('auth_sessions', sessionToken, sessionData)
+      
+      // Return with expires as Date for AdapterSession compatibility
       return {
         sessionToken,
         userId,
-        expires
+        expires,
       }
     },
 
@@ -216,19 +202,17 @@ export function createStorageAdapter(): Adapter {
       const verificationData = {
         identifier,
         token,
-        expires,
+        expires: expires.toISOString(),
         created_at: new Date().toISOString(),
       }
-
-      await storage.set('auth_verification_tokens', token, {
-        ...verificationData,
-        expires: expires.toISOString()
-      })
-
+      
+      await storage.set('auth_verification_tokens', token, verificationData)
+      
+      // Return with expires as Date for VerificationToken compatibility
       return {
         identifier,
         token,
-        expires
+        expires,
       }
     },
 
@@ -255,139 +239,5 @@ export function createStorageAdapter(): Adapter {
         expires: new Date(verificationToken.expires)
       }
     },
-  }
-}
-
-// Additional functions for email verification and password reset
-export async function createEmailVerificationToken(
-  email: string,
-  hashedToken: string,
-  expiresAt: Date
-): Promise<void> {
-  const storage = createStorage()
-  const tokenData = {
-    identifier: email,
-    token: hashedToken,
-    expires: expiresAt.toISOString(),
-    type: 'email_verification',
-    created_at: new Date().toISOString(),
-  }
-
-  await storage.set('auth_email_verification_tokens', email, tokenData)
-}
-
-export async function getEmailVerificationToken(email: string): Promise<EmailVerificationToken | null> {
-  const storage = createStorage()
-  const result = await storage.get('auth_email_verification_tokens', email)
-
-  if (!result.success || !result.data) {
-    return null
-  }
-
-  return {
-    identifier: result.data.identifier,
-    token: result.data.token,
-    expires: new Date(result.data.expires)
-  }
-}
-
-export async function deleteEmailVerificationToken(email: string): Promise<void> {
-  const storage = createStorage()
-  await storage.delete('auth_email_verification_tokens', email)
-}
-
-export async function createPasswordResetToken(
-  email: string,
-  hashedToken: string,
-  expiresAt: Date
-): Promise<void> {
-  const storage = createStorage()
-  const tokenData = {
-    identifier: email,
-    token: hashedToken,
-    expires: expiresAt.toISOString(),
-    type: 'password_reset',
-    created_at: new Date().toISOString(),
-  }
-
-  await storage.set('auth_password_reset_tokens', email, tokenData)
-}
-
-export async function getPasswordResetToken(email: string): Promise<PasswordResetToken | null> {
-  const storage = createStorage()
-  const result = await storage.get('auth_password_reset_tokens', email)
-
-  if (!result.success || !result.data) {
-    return null
-  }
-
-  return {
-    identifier: result.data.identifier,
-    token: result.data.token,
-    expires: new Date(result.data.expires)
-  }
-}
-
-export async function deletePasswordResetToken(email: string): Promise<void> {
-  const storage = createStorage()
-  await storage.delete('auth_password_reset_tokens', email)
-}
-
-export async function createUserWithPassword(
-  email: string,
-  name: string,
-  hashedPassword: string,
-  emailVerified: boolean = false
-): Promise<any> {
-  const storage = createStorage()
-  const id = crypto.randomUUID()
-
-  const userData = {
-    id,
-    email,
-    name,
-    password: hashedPassword,
-    emailVerified: emailVerified ? new Date().toISOString() : null,
-    provider: 'credentials',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  }
-
-  await storage.set('auth_users', id, userData)
-  return userData
-}
-
-export async function updateUserPassword(userId: string, hashedPassword: string): Promise<void> {
-  const storage = createStorage()
-  const userResult = await storage.get('auth_users', userId)
-
-  if (!userResult.success || !userResult.data) {
-    throw new Error('User not found')
-  }
-
-  const updatedUser = {
-    ...userResult.data,
-    password: hashedPassword,
-    updated_at: new Date().toISOString(),
-  }
-
-  await storage.set('auth_users', userId, updatedUser)
-}
-
-export async function markEmailAsVerified(email: string): Promise<void> {
-  const storage = createStorage()
-  const userResult = await storage.query('auth_users', {
-    filters: { email }
-  })
-
-  if (userResult.success && userResult.data.items.length > 0) {
-    const user = userResult.data.items[0]
-    const updatedUser = {
-      ...user,
-      emailVerified: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    }
-
-    await storage.set('auth_users', user.id, updatedUser)
   }
 }
