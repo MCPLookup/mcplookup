@@ -3,12 +3,13 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { createPasswordResetToken as createToken } from '@/lib/auth/password'
-import { 
+import {
   createPasswordResetToken,
-  getUserByEmail 
+  getUserByEmail,
+  generateSecureToken,
+  hashToken
 } from '@/lib/auth/storage-adapter'
-import { emailProviderService as emailService } from '@/lib/services/email-providers'
+import { sendPasswordReset } from '@/lib/services/resend-email'
 
 const forgotPasswordSchema = z.object({
   email: z.string().email('Invalid email address')
@@ -38,25 +39,21 @@ export async function POST(request: NextRequest) {
     }
 
     // Create password reset token
-    const resetToken = await createToken()
+    const token = generateSecureToken()
+    const hashedToken = await hashToken(token)
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000) // 1 hour
+
     await createPasswordResetToken(
       email,
-      resetToken.hashedToken,
-      resetToken.expiresAt
+      hashedToken,
+      expiresAt
     )
 
     // Send password reset email
-    const resetUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/auth/reset-password?token=${resetToken.token}&email=${encodeURIComponent(email)}`
-    
-    const emailSent = await emailService.sendPasswordResetEmail({
-      email,
-      name: user.name,
-      resetUrl,
-      expiresIn: '1 hour'
-    })
+    const emailResult = await sendPasswordReset(email, token)
 
-    if (!emailSent) {
-      console.warn('Failed to send password reset email')
+    if (!emailResult.success) {
+      console.warn('Failed to send password reset email:', emailResult.error)
       return NextResponse.json(
         { error: 'Failed to send password reset email. Please try again.' },
         { status: 500 }

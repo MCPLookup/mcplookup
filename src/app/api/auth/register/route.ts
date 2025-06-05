@@ -3,14 +3,15 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { hashPassword, validatePassword } from '@/lib/auth/password'
-import { 
-  createUserWithPassword, 
+import {
+  createUserWithPassword,
   createEmailVerificationToken,
-  getUserByEmail 
+  getUserByEmail,
+  hashPassword,
+  generateSecureToken,
+  hashToken
 } from '@/lib/auth/storage-adapter'
-import { emailProviderService as emailService } from '@/lib/services/email-providers'
-import { createEmailVerificationToken as createToken } from '@/lib/auth/password'
+import { sendEmailVerification } from '@/lib/services/resend-email'
 
 const registerSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -21,6 +22,31 @@ const registerSchema = z.object({
   message: "Passwords don't match",
   path: ["confirmPassword"],
 })
+
+function validatePassword(password: string) {
+  const errors = []
+
+  if (password.length < 8) {
+    errors.push('Password must be at least 8 characters long')
+  }
+
+  if (!/[A-Z]/.test(password)) {
+    errors.push('Password must contain at least one uppercase letter')
+  }
+
+  if (!/[a-z]/.test(password)) {
+    errors.push('Password must contain at least one lowercase letter')
+  }
+
+  if (!/[0-9]/.test(password)) {
+    errors.push('Password must contain at least one number')
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -62,25 +88,21 @@ export async function POST(request: NextRequest) {
     )
 
     // Create email verification token
-    const verificationToken = await createToken()
+    const token = generateSecureToken()
+    const hashedToken = await hashToken(token)
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
+
     await createEmailVerificationToken(
       validatedData.email,
-      verificationToken.hashedToken,
-      verificationToken.expiresAt
+      hashedToken,
+      expiresAt
     )
 
     // Send verification email
-    const verificationUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/auth/verify-email?token=${verificationToken.token}&email=${encodeURIComponent(validatedData.email)}`
-    
-    const emailSent = await emailService.sendVerificationEmail({
-      email: validatedData.email,
-      name: validatedData.name,
-      verificationUrl,
-      expiresIn: '24 hours'
-    })
+    const emailResult = await sendEmailVerification(validatedData.email, token)
 
-    if (!emailSent) {
-      console.warn('Failed to send verification email, but user was created')
+    if (!emailResult.success) {
+      console.warn('Failed to send verification email, but user was created:', emailResult.error)
     }
 
     return NextResponse.json({
@@ -91,7 +113,7 @@ export async function POST(request: NextRequest) {
         name: user.name,
         emailVerified: false
       },
-      emailSent
+      emailSent: emailResult.success
     }, { status: 201 })
 
   } catch (error) {

@@ -3,14 +3,13 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { verifyEmailVerificationToken } from '@/lib/auth/password'
-import { 
+import {
   getEmailVerificationToken,
   deleteEmailVerificationToken,
   markEmailAsVerified,
   getUserByEmail
 } from '@/lib/auth/storage-adapter'
-import { emailProviderService as emailService } from '@/lib/services/email-providers'
+import { sendWelcomeEmail } from '@/lib/services/resend-email'
 
 const verifyEmailSchema = z.object({
   token: z.string().min(1, 'Token is required'),
@@ -24,23 +23,10 @@ export async function POST(request: NextRequest) {
     // Validate input
     const { token, email } = verifyEmailSchema.parse(body)
 
-    // Get stored verification token
-    const storedToken = await getEmailVerificationToken(email)
-    if (!storedToken) {
-      return NextResponse.json(
-        { error: 'Invalid or expired verification token' },
-        { status: 400 }
-      )
-    }
+    // Get and validate token
+    const tokenData = await getEmailVerificationToken(email, token)
 
-    // Verify the token
-    const isValidToken = await verifyEmailVerificationToken(
-      token,
-      storedToken.token,
-      storedToken.expires
-    )
-
-    if (!isValidToken) {
+    if (!tokenData) {
       return NextResponse.json(
         { error: 'Invalid or expired verification token' },
         { status: 400 }
@@ -57,13 +43,17 @@ export async function POST(request: NextRequest) {
     }
 
     // Mark email as verified
-    await markEmailAsVerified(email)
+    const updatedUser = await markEmailAsVerified(email)
 
     // Delete the verification token
-    await deleteEmailVerificationToken(email)
+    await deleteEmailVerificationToken(tokenData.id)
 
     // Send welcome email
-    await emailService.sendWelcomeEmail(email, user.name)
+    const welcomeResult = await sendWelcomeEmail(email, user.name)
+
+    if (!welcomeResult.success) {
+      console.warn('Failed to send welcome email:', welcomeResult.error)
+    }
 
     return NextResponse.json({
       message: 'Email verified successfully. You can now sign in.',
@@ -111,22 +101,10 @@ export async function GET(request: NextRequest) {
     // Validate input
     const validatedData = verifyEmailSchema.parse({ token, email })
 
-    // Get stored verification token
-    const storedToken = await getEmailVerificationToken(validatedData.email)
-    if (!storedToken) {
-      return NextResponse.redirect(
-        new URL('/auth/verify-email?error=invalid-token', request.url)
-      )
-    }
+    // Get and validate token
+    const tokenData = await getEmailVerificationToken(validatedData.email, validatedData.token)
 
-    // Verify the token
-    const isValidToken = await verifyEmailVerificationToken(
-      validatedData.token,
-      storedToken.token,
-      storedToken.expires
-    )
-
-    if (!isValidToken) {
+    if (!tokenData) {
       return NextResponse.redirect(
         new URL('/auth/verify-email?error=invalid-token', request.url)
       )
@@ -144,10 +122,14 @@ export async function GET(request: NextRequest) {
     await markEmailAsVerified(validatedData.email)
 
     // Delete the verification token
-    await deleteEmailVerificationToken(validatedData.email)
+    await deleteEmailVerificationToken(tokenData.id)
 
     // Send welcome email
-    await emailService.sendWelcomeEmail(validatedData.email, user.name)
+    const welcomeResult = await sendWelcomeEmail(validatedData.email, user.name)
+
+    if (!welcomeResult.success) {
+      console.warn('Failed to send welcome email:', welcomeResult.error)
+    }
 
     // Redirect to success page
     return NextResponse.redirect(

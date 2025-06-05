@@ -3,9 +3,7 @@ import GitHub from "next-auth/providers/github"
 import Google from "next-auth/providers/google"
 import Credentials from "next-auth/providers/credentials"
 import type { NextAuthConfig } from "next-auth"
-import { createStorageAdapter } from "./src/lib/auth/storage-adapter"
-import { verifyPassword } from "./src/lib/auth/password"
-import { createStorage } from "./src/lib/services/storage/factory"
+import { createStorageAdapter, getUserByEmail, verifyPassword } from "./src/lib/auth/storage-adapter"
 
 export const config = {
   adapter: createStorageAdapter(),
@@ -29,45 +27,44 @@ export const config = {
           return null
         }
 
-        const storage = createStorage()
+        try {
+          // Find user by email
+          const user = await getUserByEmail(credentials.email as string)
 
-        // Find user by email
-        const userResult = await storage.query('auth_users', {
-          filters: { email: credentials.email }
-        })
+          if (!user) {
+            return null
+          }
 
-        if (!userResult.success || userResult.data.items.length === 0) {
+          // Check if user has a password (credentials account)
+          if (!user.password) {
+            return null
+          }
+
+          // Check if email is verified
+          if (!user.emailVerified) {
+            throw new Error("Please verify your email before signing in")
+          }
+
+          // Verify password
+          const isValidPassword = await verifyPassword(
+            credentials.password as string,
+            user.password
+          )
+
+          if (!isValidPassword) {
+            return null
+          }
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            image: user.image,
+            emailVerified: user.emailVerified
+          }
+        } catch (error) {
+          console.error("Authentication error:", error)
           return null
-        }
-
-        const user = userResult.data.items[0]
-
-        // Check if user has a password (credentials account)
-        if (!user.password) {
-          return null
-        }
-
-        // Verify password
-        const isValidPassword = await verifyPassword(
-          credentials.password as string,
-          user.password
-        )
-
-        if (!isValidPassword) {
-          return null
-        }
-
-        // Check if email is verified
-        if (!user.emailVerified) {
-          throw new Error("Please verify your email before signing in")
-        }
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          image: user.image,
-          emailVerified: user.emailVerified
         }
       }
     }),

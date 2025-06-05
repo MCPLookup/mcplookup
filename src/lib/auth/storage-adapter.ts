@@ -4,6 +4,8 @@
 import type { Adapter } from "next-auth/adapters"
 import { createStorage } from "../services/storage/factory"
 import type { IStorage } from "../services/storage/unified-storage"
+import { isSuccessResult } from "../services/storage/unified-storage"
+import bcrypt from 'bcryptjs'
 
 export function createStorageAdapter(): Adapter {
   const storage = createStorage()
@@ -240,4 +242,261 @@ export function createStorageAdapter(): Adapter {
       }
     },
   }
+}
+
+// Additional authentication functions for email/password auth
+
+/**
+ * Get user by email (exported function)
+ */
+export async function getUserByEmail(email: string) {
+  const storage = createStorage()
+  const result = await storage.query('auth_users', {
+    filters: { email }
+  })
+
+  if (isSuccessResult(result) && result.data.items.length > 0) {
+    return result.data.items[0]
+  }
+  return null
+}
+
+/**
+ * Create user with password
+ */
+export async function createUserWithPassword(
+  email: string,
+  name: string,
+  hashedPassword: string,
+  emailVerified: boolean = false
+) {
+  const storage = createStorage()
+  const id = crypto.randomUUID()
+
+  const userData = {
+    id,
+    email,
+    name,
+    password: hashedPassword,
+    emailVerified: emailVerified ? new Date() : null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }
+
+  const result = await storage.set('auth_users', id, userData)
+  if (!isSuccessResult(result)) {
+    throw new Error('Failed to create user')
+  }
+
+  return userData
+}
+
+/**
+ * Update user password
+ */
+export async function updateUserPassword(email: string, newHashedPassword: string) {
+  const storage = createStorage()
+  const user = await getUserByEmail(email)
+
+  if (!user) {
+    throw new Error('User not found')
+  }
+
+  const updatedUser = {
+    ...user,
+    password: newHashedPassword,
+    updated_at: new Date().toISOString(),
+  }
+
+  const result = await storage.set('auth_users', user.id, updatedUser)
+  if (!isSuccessResult(result)) {
+    throw new Error('Failed to update password')
+  }
+
+  return updatedUser
+}
+
+/**
+ * Mark email as verified
+ */
+export async function markEmailAsVerified(email: string) {
+  const storage = createStorage()
+  const user = await getUserByEmail(email)
+
+  if (!user) {
+    throw new Error('User not found')
+  }
+
+  const updatedUser = {
+    ...user,
+    emailVerified: new Date(),
+    updated_at: new Date().toISOString(),
+  }
+
+  const result = await storage.set('auth_users', user.id, updatedUser)
+  if (!isSuccessResult(result)) {
+    throw new Error('Failed to verify email')
+  }
+
+  return updatedUser
+}
+
+/**
+ * Create email verification token
+ */
+export async function createEmailVerificationToken(
+  email: string,
+  hashedToken: string,
+  expiresAt: Date
+) {
+  const storage = createStorage()
+  const id = crypto.randomUUID()
+
+  const tokenData = {
+    id,
+    email,
+    token: hashedToken,
+    expires_at: expiresAt.toISOString(),
+    created_at: new Date().toISOString(),
+  }
+
+  const result = await storage.set('email_verification_tokens', id, tokenData)
+  if (!isSuccessResult(result)) {
+    throw new Error('Failed to create email verification token')
+  }
+
+  return tokenData
+}
+
+/**
+ * Get email verification token
+ */
+export async function getEmailVerificationToken(email: string, token: string) {
+  const storage = createStorage()
+
+  // Query by email first
+  const result = await storage.query('email_verification_tokens', {
+    filters: { email }
+  })
+
+  if (!isSuccessResult(result) || result.data.items.length === 0) {
+    return null
+  }
+
+  // Find matching token and check if not expired
+  for (const tokenData of result.data.items) {
+    const isValid = await bcrypt.compare(token, tokenData.token)
+    if (isValid && new Date(tokenData.expires_at) > new Date()) {
+      return tokenData
+    }
+  }
+
+  return null
+}
+
+/**
+ * Delete email verification token
+ */
+export async function deleteEmailVerificationToken(tokenId: string) {
+  const storage = createStorage()
+  const result = await storage.delete('email_verification_tokens', tokenId)
+
+  if (!isSuccessResult(result)) {
+    throw new Error('Failed to delete email verification token')
+  }
+}
+
+/**
+ * Create password reset token
+ */
+export async function createPasswordResetToken(
+  email: string,
+  hashedToken: string,
+  expiresAt: Date
+) {
+  const storage = createStorage()
+  const id = crypto.randomUUID()
+
+  const tokenData = {
+    id,
+    email,
+    token: hashedToken,
+    expires_at: expiresAt.toISOString(),
+    created_at: new Date().toISOString(),
+  }
+
+  const result = await storage.set('password_reset_tokens', id, tokenData)
+  if (!isSuccessResult(result)) {
+    throw new Error('Failed to create password reset token')
+  }
+
+  return tokenData
+}
+
+/**
+ * Get password reset token
+ */
+export async function getPasswordResetToken(email: string, token: string) {
+  const storage = createStorage()
+
+  // Query by email first
+  const result = await storage.query('password_reset_tokens', {
+    filters: { email }
+  })
+
+  if (!isSuccessResult(result) || result.data.items.length === 0) {
+    return null
+  }
+
+  // Find matching token and check if not expired
+  for (const tokenData of result.data.items) {
+    const isValid = await bcrypt.compare(token, tokenData.token)
+    if (isValid && new Date(tokenData.expires_at) > new Date()) {
+      return tokenData
+    }
+  }
+
+  return null
+}
+
+/**
+ * Delete password reset token
+ */
+export async function deletePasswordResetToken(tokenId: string) {
+  const storage = createStorage()
+  const result = await storage.delete('password_reset_tokens', tokenId)
+
+  if (!isSuccessResult(result)) {
+    throw new Error('Failed to delete password reset token')
+  }
+}
+
+/**
+ * Hash password using bcrypt
+ */
+export async function hashPassword(password: string): Promise<string> {
+  const saltRounds = 12
+  return bcrypt.hash(password, saltRounds)
+}
+
+/**
+ * Verify password against hash
+ */
+export async function verifyPassword(password: string, hash: string): Promise<boolean> {
+  return bcrypt.compare(password, hash)
+}
+
+/**
+ * Generate secure random token
+ */
+export function generateSecureToken(): string {
+  return crypto.randomUUID() + '-' + Date.now().toString(36)
+}
+
+/**
+ * Hash token for storage
+ */
+export async function hashToken(token: string): Promise<string> {
+  const saltRounds = 10
+  return bcrypt.hash(token, saltRounds)
 }

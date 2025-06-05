@@ -3,16 +3,12 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { 
-  hashPassword, 
-  validatePassword, 
-  verifyPasswordResetToken 
-} from '@/lib/auth/password'
-import { 
+import {
   getPasswordResetToken,
   deletePasswordResetToken,
   updateUserPassword,
-  getUserByEmail
+  getUserByEmail,
+  hashPassword
 } from '@/lib/auth/storage-adapter'
 
 const resetPasswordSchema = z.object({
@@ -24,6 +20,31 @@ const resetPasswordSchema = z.object({
   message: "Passwords don't match",
   path: ["confirmPassword"],
 })
+
+function validatePassword(password: string) {
+  const errors = []
+
+  if (password.length < 8) {
+    errors.push('Password must be at least 8 characters long')
+  }
+
+  if (!/[A-Z]/.test(password)) {
+    errors.push('Password must contain at least one uppercase letter')
+  }
+
+  if (!/[a-z]/.test(password)) {
+    errors.push('Password must contain at least one lowercase letter')
+  }
+
+  if (!/[0-9]/.test(password)) {
+    errors.push('Password must contain at least one number')
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -44,23 +65,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get stored reset token
-    const storedToken = await getPasswordResetToken(email)
-    if (!storedToken) {
-      return NextResponse.json(
-        { error: 'Invalid or expired reset token' },
-        { status: 400 }
-      )
-    }
+    // Get and validate token
+    const tokenData = await getPasswordResetToken(email, token)
 
-    // Verify the token
-    const isValidToken = await verifyPasswordResetToken(
-      token,
-      storedToken.token,
-      storedToken.expires
-    )
-
-    if (!isValidToken) {
+    if (!tokenData) {
       return NextResponse.json(
         { error: 'Invalid or expired reset token' },
         { status: 400 }
@@ -80,10 +88,10 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await hashPassword(password)
 
     // Update user password
-    await updateUserPassword(user.id, hashedPassword)
+    await updateUserPassword(email, hashedPassword)
 
     // Delete the reset token
-    await deletePasswordResetToken(email)
+    await deletePasswordResetToken(tokenData.id)
 
     return NextResponse.json({
       message: 'Password reset successfully. You can now sign in with your new password.'
