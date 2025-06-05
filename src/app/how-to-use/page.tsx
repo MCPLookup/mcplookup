@@ -24,7 +24,7 @@ export default function HowToUsePage() {
         </div>
 
         {/* Installation Options */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
           <AnimatedCard.Root hoverScale={1.01} borderOnHover>
             <AnimatedCard.Body>
               <div className="text-center p-6">
@@ -103,6 +103,34 @@ export default function HowToUsePage() {
                     hoverScale={1.02}
                   >
                     ⚡ Source Setup
+                  </AnimatedButton>
+                </Link>
+              </div>
+            </AnimatedCard.Body>
+          </AnimatedCard.Root>
+
+          <AnimatedCard.Root hoverScale={1.01} borderOnHover>
+            <AnimatedCard.Body>
+              <div className="text-center p-6">
+                <div className="text-3xl mb-4">☁️</div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Cloud Deployment</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Deploy on VPS or cloud for team/organizational use.
+                </p>
+                <div className="bg-slate-50 p-3 rounded text-xs text-slate-700 mb-4">
+                  ✅ Team sharing<br/>
+                  ✅ Centralized management<br/>
+                  ✅ HTTP streaming support<br/>
+                  ✅ Enterprise ready
+                </div>
+                <Link href="#cloud-setup">
+                  <AnimatedButton
+                    variant="solid"
+                    size="sm"
+                    className="bg-slate-700 hover:bg-slate-800 text-white"
+                    hoverScale={1.02}
+                  >
+                    ☁️ Cloud Setup
                   </AnimatedButton>
                 </Link>
               </div>
@@ -286,6 +314,97 @@ export default function HowToUsePage() {
                     Running from source gives you access to the latest features and makes it easy to contribute back to the project.
                     You can modify the bridge behavior and test changes immediately.
                   </p>
+                </div>
+              </div>
+            </div>
+          </AnimatedCard.Body>
+        </AnimatedCard.Root>
+
+        {/* Cloud Deployment */}
+        <AnimatedCard.Root id="cloud-setup" hoverScale={1.01} borderOnHover>
+          <AnimatedCard.Body>
+            <div className="p-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                <span className="text-3xl mr-3">☁️</span>
+                Cloud Deployment
+              </h2>
+
+              <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+                <p className="text-blue-800 font-medium">
+                  <strong>For teams & organizations:</strong> Deploy the MCP bridge on a VPS or cloud server for centralized access.
+                  Supports both HTTP streaming and SSE protocols for maximum compatibility.
+                </p>
+              </div>
+
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h3 className="font-semibold text-gray-800 mb-3">🚀 VPS Deployment</h3>
+                    <div className="bg-gray-900 text-green-400 p-4 rounded-lg text-sm font-mono">
+                      <div className="text-gray-400"># On your VPS (Ubuntu/Debian)</div>
+                      <div>git clone https://github.com/TSavo/mcplookup.org</div>
+                      <div>cd mcplookup.org</div>
+                      <div className="mt-2 text-gray-400"># Simple Docker deployment</div>
+                      <div>docker-compose -f docker-compose.cloud.yml up -d</div>
+                      <div className="mt-2 text-gray-400"># Bridge runs on port 3001</div>
+                      <div>curl http://your-server.com:3001/health</div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="font-semibold text-gray-800 mb-3">🌐 Team Access</h3>
+                    <div className="bg-gray-900 text-green-400 p-4 rounded-lg text-sm font-mono">
+                      <div className="text-gray-400">// Team members configure Claude Desktop:</div>
+                      <div className="text-yellow-400">{`{`}</div>
+                      <div className="text-yellow-400">  "mcpServers": {`{`}</div>
+                      <div className="text-green-400">    "team-bridge": {`{`}</div>
+                      <div className="text-green-400">      "command": "curl",</div>
+                      <div className="text-green-400">      "args": ["-X", "POST", "http://your-server.com:3001/mcp"]</div>
+                      <div className="text-green-400">    {`}`}</div>
+                      <div className="text-yellow-400">  {`}`}</div>
+                      <div className="text-yellow-400">{`}`}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-green-50 p-4 rounded-lg">
+                    <h4 className="font-semibold text-green-800 mb-2">✅ Benefits</h4>
+                    <ul className="text-sm text-green-700 space-y-1">
+                      <li>• Centralized management</li>
+                      <li>• Team sharing</li>
+                      <li>• Consistent configuration</li>
+                      <li>• Better monitoring</li>
+                    </ul>
+                  </div>
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <h4 className="font-semibold text-blue-800 mb-2">🔧 Use Cases</h4>
+                    <ul className="text-sm text-blue-700 space-y-1">
+                      <li>• Enterprise deployments</li>
+                      <li>• Development teams</li>
+                      <li>• Internal tools</li>
+                      <li>• Shared environments</li>
+                    </ul>
+                  </div>
+                  <div className="bg-purple-50 p-4 rounded-lg">
+                    <h4 className="font-semibold text-purple-800 mb-2">🛡️ Security</h4>
+                    <ul className="text-sm text-purple-700 space-y-1">
+                      <li>• Firewall port 3001 access</li>
+                      <li>• VPN for internal access</li>
+                      <li>• Environment variables</li>
+                      <li>• Regular updates</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <h4 className="font-semibold text-yellow-800 mb-2">💡 Pro Tips</h4>
+                  <ul className="text-yellow-700 text-sm space-y-1">
+                    <li>• Use <code>docker-compose.cloud.yml</code> for production deployment</li>
+                    <li>• Monitor with health checks on <code>http://server:3001/health</code></li>
+                    <li>• Set up log rotation for <code>./logs</code> directory</li>
+                    <li>• Consider using a VPN for secure team access</li>
+                  </ul>
                 </div>
               </div>
             </div>
