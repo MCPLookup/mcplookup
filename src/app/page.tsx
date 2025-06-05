@@ -9,11 +9,11 @@ import Link from "next/link"
 export default function HomePage() {
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-white">
       <Header />
 
       {/* Hero Section */}
-      <section className="relative bg-background py-16 px-4">
+      <section className="relative bg-white py-16 px-4">
         <div className="max-w-5xl mx-auto text-center">
           <div className="space-y-6">
             <div className="space-y-4">
@@ -54,7 +54,7 @@ export default function HomePage() {
       </section>
 
       {/* User Journey Paths */}
-      <section className="py-12 px-4 bg-background">
+      <section className="py-12 px-4 bg-white">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-10">
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
@@ -185,7 +185,7 @@ export default function HomePage() {
       </section>
 
       {/* Problem/Solution Section */}
-      <section className="py-12 px-4 bg-muted/30">
+      <section className="py-12 px-4 bg-gray-50">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-10">
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
@@ -289,7 +289,7 @@ export default function HomePage() {
       </section>
 
       {/* Features Section */}
-      <section className="py-12 px-4 bg-background">
+      <section className="py-12 px-4 bg-white">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-10">
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
