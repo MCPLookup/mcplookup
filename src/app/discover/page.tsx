@@ -196,7 +196,7 @@ export default function DiscoverPage() {
                   <div>
                     <h3 className="text-sm font-medium text-blue-900">Building MCP Applications?</h3>
                     <p className="text-xs text-blue-700">
-                      Discovery is free! Get API keys for server registration, analytics, and advanced features.
+                      Discovery is free! Get free API keys for server registration, analytics, and developer features.
                     </p>
                   </div>
                 </div>
