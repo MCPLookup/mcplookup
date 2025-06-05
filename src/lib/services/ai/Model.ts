@@ -74,21 +74,35 @@ export class Model {
 
   get priority(): number {
     let priority = 100;
-    
-    if (this.isFree) priority -= 50;
-    
+
+    // Free models get highest priority
+    if (this.isFree) priority -= 60;
+
+    // Prefer recent successful models
     if (this.state.lastSuccess) {
       const hoursSinceSuccess = (Date.now() - this.state.lastSuccess) / (1000 * 60 * 60);
-      priority -= Math.max(0, 20 - hoursSinceSuccess);
+      priority -= Math.max(0, 30 - hoursSinceSuccess);
     }
-    
+
+    // Prefer models with good success rates
     if (this.state.successRate) {
-      priority -= this.state.successRate * 20;
+      priority -= this.state.successRate * 25;
     }
-    
+
+    // Prefer larger context windows for free models
+    if (this.isFree && this.metadata.contextWindow >= 32768) {
+      priority -= 20;
+    }
+
+    // Prefer well-known good models
+    const isGoodModel = this.id.includes('llama-3.3') || this.id.includes('deepseek') ||
+                       this.id.includes('exaone') || this.id.includes('moa');
+    if (isGoodModel) priority -= 15;
+
+    // Penalize cost and failures
     priority += this.estimatedCostPerQuery * 1000;
-    priority += this.state.failureCount * 10;
-    
+    priority += this.state.failureCount * 15;
+
     return priority;
   }
 

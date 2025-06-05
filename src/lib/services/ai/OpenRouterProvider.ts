@@ -73,10 +73,7 @@ export class OpenRouterProvider extends Provider {
     // Choose appropriate prompt based on phase
     const prompts = request.useRefinement && request.candidates
       ? this.promptBuilder.buildSlugSelectionPrompt(request.query, request.candidates)
-      : {
-          systemPrompt: "You are an AI assistant that helps extract keywords from user queries.",
-          userPrompt: `Extract relevant keywords from this query: "${request.query}"`
-        };
+      : this.buildIntentExtractionPrompt(request.query);
 
     const body: any = {
       model: model.id,
@@ -166,5 +163,46 @@ export class OpenRouterProvider extends Provider {
 
     // Convert from per 1K tokens to per 1M tokens
     return price * 1000;
+  }
+
+  /**
+   * Build intent extraction prompt for basic capability analysis
+   */
+  private buildIntentExtractionPrompt(query: string): { systemPrompt: string; userPrompt: string } {
+    const systemPrompt = `You are an expert at analyzing user queries for MCP server discovery. Extract structured information about what capabilities the user needs.
+
+Respond with valid JSON only.`;
+
+    const userPrompt = `Analyze this query for MCP server discovery: "${query}"
+
+Extract:
+1. capabilities: Array of specific MCP capabilities needed (e.g., ["email_send", "calendar_create"])
+2. similar_to: Domain name if user wants something similar to an existing service
+3. constraints: Object with any performance/technical requirements
+4. intent: Clarified intent description
+5. confidence: Confidence score 0-1
+
+Common capabilities:
+- email: email_send, email_read, email_compose
+- calendar: calendar_create, calendar_read, calendar_update, scheduling
+- files: file_read, file_write, file_upload, storage
+- communication: messaging, chat, video_calls
+- development: repo_create, ci_cd, deployment, code_review
+
+Example response:
+{
+  "capabilities": ["email_send", "calendar_create"],
+  "similar_to": "gmail.com",
+  "constraints": {
+    "performance": {"max_response_time": 100},
+    "technical": {"auth_types": ["oauth2"]}
+  },
+  "intent": "Find email servers with calendar integration similar to Gmail",
+  "confidence": 0.9
+}
+
+Respond with valid JSON only:`;
+
+    return { systemPrompt, userPrompt };
   }
 }

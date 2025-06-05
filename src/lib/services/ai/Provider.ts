@@ -112,7 +112,7 @@ export abstract class Provider {
         maxTokens: 500,
         temperature: 0.1,
         candidates,
-        useRefinement: !!candidates
+        useRefinement: !!(candidates && candidates.length > 0)
       };
 
       const response = await this.callAPI(model, request);
@@ -123,7 +123,7 @@ export abstract class Provider {
       model.recordSuccess(latency);
 
       // Handle different response formats based on phase
-      if (candidates) {
+      if (candidates && candidates.length > 0) {
         // Phase 2: Refinement response
         return {
           capabilities: analysis.extractedIntent?.capabilities || [],
@@ -166,6 +166,17 @@ export abstract class Provider {
     try {
       return JSON.parse(content);
     } catch (parseError) {
+      // Try to extract JSON from markdown code blocks
+      const codeBlockMatch = content.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/);
+      if (codeBlockMatch) {
+        try {
+          return JSON.parse(codeBlockMatch[1]);
+        } catch (codeBlockError) {
+          // Continue to other parsing methods
+        }
+      }
+
+      // Try to find any JSON object in the content
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         try {
