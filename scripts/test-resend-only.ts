@@ -13,8 +13,8 @@ async function testResendDirectly() {
   console.log('🚀 Testing Resend Email Service Directly\n')
   
   const apiKey = process.env.RESEND_API_KEY
-  const fromEmail = process.env.EMAIL_FROM || 'noreply@mcplookup.org'
-  const testEmail = process.env.TEST_EMAIL || 'test@nefariousplan.com'
+  const fromEmail = process.env.EMAIL_FROM || 'noreply@mcplookup.org'  // Use your verified domain
+  const testEmail = process.env.TEST_EMAIL || 'test@nefariousplan.com'  // Can now send to any email
   
   if (!apiKey) {
     console.log('❌ RESEND_API_KEY not found in environment variables')
@@ -97,7 +97,15 @@ async function testResendDirectly() {
     })
     
     console.log('✅ Verification email sent successfully!')
-    console.log(`   Email ID: ${verificationResult.data?.id}`)
+    
+    // Check for errors in the response
+    if (verificationResult.error) {
+      console.log('❌ Error in verification email:', verificationResult.error)
+      throw new Error(`Verification email failed: ${verificationResult.error.message}`)
+    }
+    
+    console.log(`   Response:`, JSON.stringify(verificationResult, null, 2))
+    console.log(`   Email ID: ${verificationResult.data?.id || 'Not found'}`)
     
     // Wait a moment before sending next email
     await new Promise(resolve => setTimeout(resolve, 1000))
@@ -164,7 +172,15 @@ async function testResendDirectly() {
     })
     
     console.log('✅ Welcome email sent successfully!')
-    console.log(`   Email ID: ${welcomeResult.data?.id}`)
+    
+    // Check for errors in the response
+    if (welcomeResult.error) {
+      console.log('❌ Error in welcome email:', welcomeResult.error)
+      throw new Error(`Welcome email failed: ${welcomeResult.error.message}`)
+    }
+    
+    console.log(`   Response:`, JSON.stringify(welcomeResult, null, 2))
+    console.log(`   Email ID: ${welcomeResult.data?.id || 'Not found'}`)
     
     console.log('\n🎉 All tests passed! Resend email service is working correctly.')
     console.log(`📬 Check ${testEmail} for the test emails.`)
