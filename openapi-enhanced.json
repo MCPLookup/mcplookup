@@ -1,0 +1,3491 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "MCPLookup.org API",
+    "version": "1.0.0",
+    "description": "# MCPLookup.org API\n\nThe universal MCP (Model Context Protocol) server discovery service API.\n\n## Features\n\n- **🔍 Smart Discovery**: Natural language queries and intent-based search\n- **🚀 Real-time Health**: Live server status and performance metrics\n- **🔐 DNS Verification**: Cryptographic proof of domain ownership\n- **📊 Analytics**: Usage statistics and discovery patterns\n- **🌐 CORS Support**: Web-friendly with comprehensive CORS metadata\n- **⚡ High Performance**: Edge-deployed with global CDN\n\n## API Structure\n\nThis API provides both REST endpoints and MCP tools:\n\n### REST API\nStandard HTTP endpoints for web integrations and direct API access.\n\n### MCP Tools\nNative MCP protocol tools for AI agents and MCP clients.\n\n## Authentication\n\nMost endpoints are public. Optional API keys provide enhanced features:\n- Higher rate limits\n- Priority support\n- Advanced analytics\n- Beta feature access\n\n## Rate Limits\n\n- **Public**: 100 requests/hour per IP\n- **Authenticated**: 1000 requests/hour per API key\n- **Burst**: Up to 10 requests/second\n\nGenerated from actual API implementation on 2025-06-05T06:13:11.190Z",
+    "contact": {
+      "name": "MCPLookup.org Support",
+      "url": "https://github.com/TSavo/mcplookup.org",
+      "email": "support@mcplookup.org"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://mcplookup.org/api",
+      "description": "Production API"
+    },
+    {
+      "url": "http://localhost:3000/api",
+      "description": "Development API"
+    }
+  ],
+  "tags": [
+    {
+      "name": "API",
+      "description": "API operations"
+    },
+    {
+      "name": "Registration",
+      "description": "Register and verify MCP servers"
+    },
+    {
+      "name": "Verification",
+      "description": "Domain ownership verification"
+    },
+    {
+      "name": "Documentation",
+      "description": "API documentation and specs"
+    },
+    {
+      "name": "MCP Protocol",
+      "description": "Native MCP protocol endpoints"
+    },
+    {
+      "name": "Discovery",
+      "description": "Find and search MCP servers"
+    },
+    {
+      "name": "Health",
+      "description": "Server health and status monitoring"
+    },
+    {
+      "name": "User Management",
+      "description": "User-specific operations"
+    },
+    {
+      "name": "Server Management",
+      "description": "Server CRUD operations"
+    },
+    {
+      "name": "Onboarding",
+      "description": "User onboarding flow"
+    },
+    {
+      "name": "Monitoring",
+      "description": "Health and performance monitoring"
+    },
+    {
+      "name": "Exploration",
+      "description": "Browse and explore capabilities"
+    },
+    {
+      "name": "Bridge",
+      "description": "Bridge tools for connecting to remote servers"
+    }
+  ],
+  "paths": {
+    "/auth/{...nextauth}": {},
+    "/auth/forgot-password": {
+      "post": {
+        "summary": "Create forgot-password",
+        "description": "Forgot Password API Handles password reset requests",
+        "tags": [
+          "API"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Request payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Success response"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "options": {
+        "summary": "Options for forgot-password",
+        "description": "Forgot Password API Handles password reset requests",
+        "tags": [
+          "API"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Success response"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "summary": "Create register",
+        "description": "User Registration API Handles email/password user registration with email verification",
+        "tags": [
+          "Registration"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Request payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Success response"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Registration created"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "options": {
+        "summary": "Options for register",
+        "description": "User Registration API Handles email/password user registration with email verification",
+        "tags": [
+          "Registration"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Success response"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/reset-password": {
+      "post": {
+        "summary": "Create reset-password",
+        "description": "Reset Password API Handles password reset with token verification",
+        "tags": [
+          "API"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Request payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Success response"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "options": {
+        "summary": "Options for reset-password",
+        "description": "Reset Password API Handles password reset with token verification",
+        "tags": [
+          "API"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Success response"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/verify-email": {
+      "get": {
+        "summary": "Get verify-email",
+        "description": "Email Verification API Handles email verification for new user accounts",
+        "tags": [
+          "Verification"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Success response"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create verify-email",
+        "description": "Email Verification API Handles email verification for new user accounts",
+        "tags": [
+          "Verification"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Request payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Success response"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "options": {
+        "summary": "Options for verify-email",
+        "description": "Email Verification API Handles email verification for new user accounts",
+        "tags": [
+          "Verification"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Success response"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dashboard-keys": {
+      "get": {
+        "summary": "Get dashboard-keys",
+        "description": "Dashboard API Keys Management Endpoint Handles CRUD operations for user API keys",
+        "tags": [
+          "API"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Success response"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create dashboard-keys",
+        "description": "Dashboard API Keys Management Endpoint Handles CRUD operations for user API keys",
+        "tags": [
+          "API"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Request payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Success response"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete dashboard-keys",
+        "description": "Dashboard API Keys Management Endpoint Handles CRUD operations for user API keys",
+        "tags": [
+          "API"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Success response"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "options": {
+        "summary": "Options for dashboard-keys",
+        "description": "Dashboard API Keys Management Endpoint Handles CRUD operations for user API keys",
+        "tags": [
+          "API"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Success response"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/docs": {
+      "get": {
+        "summary": "Get docs",
+        "description": "API endpoint",
+        "tags": [
+          "Documentation"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Success response"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create docs",
+        "description": "API endpoint",
+        "tags": [
+          "Documentation"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Request payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Success response"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/mcp": {},
+    "/v1/discover": {
+      "get": {
+        "summary": "Get discover",
+        "description": "Serverless function for MCP server discovery",
+        "tags": [
+          "Discovery"
+        ],
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Natural language search query",
+            "example": "Find email servers like Gmail"
+          },
+          {
+            "name": "domain",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Specific domain to search for",
+            "example": "gmail.com"
+          },
+          {
+            "name": "capability",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Required capability",
+            "example": "email"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10
+            },
+            "description": "Maximum number of results"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiscoveryResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "options": {
+        "summary": "Options for discover",
+        "description": "Serverless function for MCP server discovery",
+        "tags": [
+          "Discovery"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Success response"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/discover/smart": {
+      "post": {
+        "summary": "Create smart",
+        "description": "Smart AI-powered discovery endpoint Three-step process: keywords → search → AI narrowing",
+        "tags": [
+          "Discovery"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Request payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Success response"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "options": {
+        "summary": "Options for smart",
+        "description": "Smart AI-powered discovery endpoint Three-step process: keywords → search → AI narrowing",
+        "tags": [
+          "Discovery"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Success response"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/domain-check": {
+      "get": {
+        "summary": "Get domain-check",
+        "description": "Domain Ownership Check API GET /api/v1/domain-check?domain=example.com Check if authenticated user can register MCP servers for a domain",
+        "tags": [
+          "API"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Success response"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/health/{domain}": {
+      "get": {
+        "summary": "Get {domain}",
+        "description": "Real-time health checks for MCP servers",
+        "tags": [
+          "Health"
+        ],
+        "parameters": [
+          {
+            "name": "domain",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "domain parameter"
+          },
+          {
+            "name": "realtime",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            },
+            "description": "Perform real-time health check"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "options": {
+        "summary": "Options for {domain}",
+        "description": "Real-time health checks for MCP servers",
+        "tags": [
+          "Health"
+        ],
+        "parameters": [
+          {
+            "name": "domain",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "domain parameter"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Success response"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/my/servers": {
+      "get": {
+        "summary": "Get servers",
+        "description": "User-Specific Server Management API GET /api/v1/my/servers - List only MY servers Prevents users from seeing servers they don't own",
+        "tags": [
+          "User Management",
+          "Server Management"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Success response"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/onboarding": {
+      "get": {
+        "summary": "Get onboarding",
+        "description": "Onboarding API GET /api/v1/onboarding - Get user's onboarding state POST /api/v1/onboarding - Update onboarding progress",
+        "tags": [
+          "Onboarding"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Success response"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create onboarding",
+        "description": "Onboarding API GET /api/v1/onboarding - Get user's onboarding state POST /api/v1/onboarding - Update onboarding progress",
+        "tags": [
+          "Onboarding"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Request payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Success response"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/register": {
+      "post": {
+        "summary": "Create register",
+        "description": "Handles MCP server registration with DNS verification",
+        "tags": [
+          "Registration"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegistrationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Success response"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Registration created"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "options": {
+        "summary": "Options for register",
+        "description": "Handles MCP server registration with DNS verification",
+        "tags": [
+          "Registration"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Success response"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/register/verify/{id}": {
+      "get": {
+        "summary": "Get {id}",
+        "description": "Verifies DNS challenges for domain ownership",
+        "tags": [
+          "Registration",
+          "Verification"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "id parameter"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Success response"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create {id}",
+        "description": "Verifies DNS challenges for domain ownership",
+        "tags": [
+          "Registration",
+          "Verification"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "id parameter"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Request payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Success response"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Registration created"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "options": {
+        "summary": "Options for {id}",
+        "description": "Verifies DNS challenges for domain ownership",
+        "tags": [
+          "Registration",
+          "Verification"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "id parameter"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Success response"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/servers/{domain}": {
+      "put": {
+        "summary": "Update {domain}",
+        "description": "Server Management API with Domain Ownership Validation PUT /api/v1/servers/{domain} - Update server (only if you own the domain) DELETE /api/v1/servers/{domain} - Delete server (only if you own the domain)",
+        "tags": [
+          "Server Management"
+        ],
+        "parameters": [
+          {
+            "name": "domain",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "domain parameter"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Request payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Success response"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete {domain}",
+        "description": "Server Management API with Domain Ownership Validation PUT /api/v1/servers/{domain} - Update server (only if you own the domain) DELETE /api/v1/servers/{domain} - Delete server (only if you own the domain)",
+        "tags": [
+          "Server Management"
+        ],
+        "parameters": [
+          {
+            "name": "domain",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "domain parameter"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Success response"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/verify/check": {
+      "post": {
+        "summary": "Create check",
+        "description": "Domain Verification Check API POST /api/v1/verify/check - Check specific verification",
+        "tags": [
+          "Verification"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Request payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Success response"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/verify": {
+      "get": {
+        "summary": "Get verify",
+        "description": "Domain Verification API POST /api/v1/verify - Start domain verification GET /api/v1/verify - Get user's verifications",
+        "tags": [
+          "Verification"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Success response"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create verify",
+        "description": "Domain Verification API POST /api/v1/verify - Start domain verification GET /api/v1/verify - Get user's verifications",
+        "tags": [
+          "Verification"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Request payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Success response"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "API key authentication"
+      }
+    },
+    "schemas": {
+      "MCPServerRecord": {
+        "type": "object",
+        "description": "Complete MCP server record",
+        "properties": {
+          "domain": {
+            "type": "string",
+            "description": "Server domain"
+          },
+          "endpoint": {
+            "type": "string",
+            "format": "uri",
+            "description": "MCP endpoint URL"
+          },
+          "name": {
+            "type": "string",
+            "description": "Server display name"
+          },
+          "description": {
+            "type": "string",
+            "description": "Server description"
+          },
+          "capabilities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Server capabilities"
+          },
+          "health": {
+            "type": "object",
+            "description": "Health status",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "healthy",
+                  "degraded",
+                  "unhealthy",
+                  "unknown"
+                ]
+              },
+              "last_check": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          },
+          "verified": {
+            "type": "boolean",
+            "description": "Domain verification status"
+          },
+          "trust_score": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "DiscoveryResponse": {
+        "type": "object",
+        "description": "Server discovery response",
+        "properties": {
+          "servers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MCPServerRecord"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "description": "Total matching servers"
+          },
+          "query_analysis": {
+            "type": "object",
+            "description": "Analysis of search query"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "description": "Error response",
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Error message"
+          },
+          "details": {
+            "type": "string",
+            "description": "Error details"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "DiscoveryRequest": {
+        "type": "object",
+        "description": "Server discovery request parameters",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Natural language search query",
+            "example": "Find email servers like Gmail"
+          },
+          "domain": {
+            "type": "string",
+            "description": "Specific domain to search for",
+            "example": "gmail.com"
+          },
+          "capability": {
+            "type": "string",
+            "description": "Required capability",
+            "example": "email"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 10,
+            "description": "Maximum number of results"
+          }
+        }
+      },
+      "RegistrationRequest": {
+        "type": "object",
+        "required": [
+          "domain",
+          "endpoint"
+        ],
+        "description": "MCP server registration request",
+        "properties": {
+          "domain": {
+            "type": "string",
+            "pattern": "^[a-z0-9.-]+\\.[a-z]{2,}$",
+            "description": "Domain name you control",
+            "example": "mycompany.com"
+          },
+          "endpoint": {
+            "type": "string",
+            "format": "uri",
+            "description": "Full URL to your MCP server endpoint",
+            "example": "https://api.mycompany.com/mcp"
+          },
+          "capabilities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of capabilities your server provides",
+            "example": [
+              "email",
+              "calendar"
+            ]
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "communication",
+              "productivity",
+              "development",
+              "finance",
+              "social",
+              "storage",
+              "other"
+            ],
+            "description": "Server category"
+          },
+          "auth_type": {
+            "type": "string",
+            "enum": [
+              "none",
+              "api_key",
+              "oauth2",
+              "basic"
+            ],
+            "default": "none",
+            "description": "Authentication type"
+          },
+          "contact_email": {
+            "type": "string",
+            "format": "email",
+            "description": "Contact email for verification",
+            "example": "admin@mycompany.com"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Brief description of your MCP server",
+            "example": "Email and calendar integration for our CRM"
+          }
+        }
+      },
+      "HealthResponse": {
+        "type": "object",
+        "description": "Server health check response",
+        "properties": {
+          "domain": {
+            "type": "string",
+            "description": "Server domain"
+          },
+          "endpoint": {
+            "type": "string",
+            "format": "uri",
+            "description": "MCP endpoint"
+          },
+          "health": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "healthy",
+                  "degraded",
+                  "unhealthy",
+                  "unknown"
+                ],
+                "description": "Current health status"
+              },
+              "uptime_percentage": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Uptime percentage"
+              },
+              "avg_response_time_ms": {
+                "type": "number",
+                "description": "Average response time in milliseconds"
+              },
+              "last_check": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Last health check timestamp"
+              }
+            }
+          },
+          "capabilities_working": {
+            "type": "boolean",
+            "description": "Whether server capabilities are working"
+          },
+          "ssl_valid": {
+            "type": "boolean",
+            "description": "Whether SSL certificate is valid"
+          },
+          "trust_score": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Calculated trust score"
+          }
+        }
+      },
+      "MCPTool_discover_mcp_servers": {
+        "type": "object",
+        "description": "Schema for MCP tool: discover_mcp_servers",
+        "properties": {
+          "name": {
+            "type": "string",
+            "enum": [
+              "discover_mcp_servers"
+            ]
+          },
+          "arguments": {
+            "type": "object",
+            "properties": {
+              "query": {
+                "type": "string",
+                "description": "query parameter"
+              },
+              "domain": {
+                "type": "string",
+                "description": "domain parameter"
+              },
+              "domains": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "domains parameter"
+              },
+              "capabilities": {
+                "type": "object",
+                "description": "capabilities parameter"
+              },
+              "required": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "required parameter"
+              },
+              "preferred": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "preferred parameter"
+              },
+              "exclude": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "exclude parameter"
+              },
+              "minimum_match": {
+                "type": "number",
+                "description": "minimum_match parameter"
+              }
+            },
+            "description": "MCP tool parameters",
+            "required": [
+              "query",
+              "domain",
+              "domains",
+              "capabilities",
+              "required",
+              "preferred",
+              "exclude",
+              "minimum_match"
+            ]
+          }
+        }
+      },
+      "MCPTool_register_mcp_server": {
+        "type": "object",
+        "description": "Schema for MCP tool: register_mcp_server",
+        "properties": {
+          "name": {
+            "type": "string",
+            "enum": [
+              "register_mcp_server"
+            ]
+          },
+          "arguments": {
+            "type": "object",
+            "properties": {
+              "domain": {
+                "type": "string",
+                "description": "domain parameter"
+              }
+            },
+            "description": "MCP tool parameters",
+            "required": [
+              "domain"
+            ]
+          }
+        }
+      },
+      "MCPTool_verify_domain_ownership": {
+        "type": "object",
+        "description": "Schema for MCP tool: verify_domain_ownership",
+        "properties": {
+          "name": {
+            "type": "string",
+            "enum": [
+              "verify_domain_ownership"
+            ]
+          },
+          "arguments": {
+            "type": "object",
+            "properties": {
+              "domain": {
+                "type": "string",
+                "description": "domain parameter"
+              },
+              "challenge_id": {
+                "type": "string",
+                "description": "challenge_id parameter"
+              }
+            },
+            "description": "MCP tool parameters",
+            "required": [
+              "domain",
+              "challenge_id"
+            ]
+          }
+        }
+      },
+      "MCPTool_get_server_health": {
+        "type": "object",
+        "description": "Schema for MCP tool: get_server_health",
+        "properties": {
+          "name": {
+            "type": "string",
+            "enum": [
+              "get_server_health"
+            ]
+          },
+          "arguments": {
+            "type": "object",
+            "properties": {
+              "domain": {
+                "type": "string",
+                "description": "domain parameter"
+              },
+              "domains": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "domains parameter"
+              }
+            },
+            "description": "MCP tool parameters",
+            "required": [
+              "domain",
+              "domains"
+            ]
+          }
+        }
+      },
+      "MCPTool_browse_capabilities": {
+        "type": "object",
+        "description": "Schema for MCP tool: browse_capabilities",
+        "properties": {
+          "name": {
+            "type": "string",
+            "enum": [
+              "browse_capabilities"
+            ]
+          },
+          "arguments": {
+            "type": "object",
+            "properties": {
+              "category": {
+                "type": "string",
+                "description": "category parameter"
+              },
+              "search": {
+                "type": "string",
+                "description": "search parameter"
+              },
+              "popular": {
+                "type": "boolean",
+                "description": "popular parameter"
+              }
+            },
+            "description": "MCP tool parameters",
+            "required": [
+              "category",
+              "search",
+              "popular"
+            ]
+          }
+        }
+      },
+      "MCPTool_get_discovery_stats": {
+        "type": "object",
+        "description": "Schema for MCP tool: get_discovery_stats",
+        "properties": {
+          "name": {
+            "type": "string",
+            "enum": [
+              "get_discovery_stats"
+            ]
+          },
+          "arguments": {
+            "type": "object",
+            "properties": {
+              "timeframe": {
+                "type": "string",
+                "enum": [],
+                "description": "timeframe parameter"
+              },
+              "metric": {
+                "type": "string",
+                "enum": [],
+                "description": "metric parameter"
+              }
+            },
+            "description": "MCP tool parameters",
+            "required": [
+              "timeframe",
+              "metric"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "x-mcp-tools": {
+    "description": "MCP (Model Context Protocol) tools available in this system",
+    "specification": "https://spec.modelcontextprotocol.io/",
+    "servers": {
+      "main": {
+        "endpoint": "/api/mcp",
+        "transport": "HTTP streaming (Streamable HTTP + SSE fallback)",
+        "description": "Main MCP server for discovery and registration",
+        "authentication": "Optional API key for enhanced features",
+        "tools": [
+          {
+            "name": "discover_mcp_servers",
+            "description": "Flexible MCP server discovery with natural language queries, similarity search, complex capability matching, and performance constraints. Express any search requirement naturally.",
+            "inputSchema": {
+              "type": "object",
+              "properties": {
+                "query": {
+                  "type": "string",
+                  "description": "query parameter"
+                },
+                "domain": {
+                  "type": "string",
+                  "description": "domain parameter"
+                },
+                "domains": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "domains parameter"
+                },
+                "capabilities": {
+                  "type": "object",
+                  "description": "capabilities parameter"
+                },
+                "required": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "required parameter"
+                },
+                "preferred": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "preferred parameter"
+                },
+                "exclude": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "exclude parameter"
+                },
+                "minimum_match": {
+                  "type": "number",
+                  "description": "minimum_match parameter"
+                }
+              },
+              "description": "MCP tool parameters",
+              "required": [
+                "query",
+                "domain",
+                "domains",
+                "capabilities",
+                "required",
+                "preferred",
+                "exclude",
+                "minimum_match"
+              ]
+            },
+            "category": "Discovery",
+            "examples": [
+              "Find email servers like Gmail",
+              "Show me document collaboration tools",
+              "I need CRM integrations"
+            ]
+          },
+          {
+            "name": "register_mcp_server",
+            "description": "Register a new MCP server in the global registry. Requires authentication and domain ownership verification.",
+            "inputSchema": {
+              "type": "object",
+              "properties": {
+                "domain": {
+                  "type": "string",
+                  "description": "domain parameter"
+                }
+              },
+              "description": "MCP tool parameters",
+              "required": [
+                "domain"
+              ]
+            },
+            "category": "Registration",
+            "examples": [
+              "Register company email server",
+              "Add custom CRM integration"
+            ]
+          },
+          {
+            "name": "verify_domain_ownership",
+            "description": "Check the DNS verification status for a domain registration.",
+            "inputSchema": {
+              "type": "object",
+              "properties": {
+                "domain": {
+                  "type": "string",
+                  "description": "domain parameter"
+                },
+                "challenge_id": {
+                  "type": "string",
+                  "description": "challenge_id parameter"
+                }
+              },
+              "description": "MCP tool parameters",
+              "required": [
+                "domain",
+                "challenge_id"
+              ]
+            },
+            "category": "Verification",
+            "examples": [
+              "Check if mycompany.com is verified",
+              "Verify domain ownership status"
+            ]
+          },
+          {
+            "name": "get_server_health",
+            "description": "Get real-time health, performance, and reliability metrics for MCP servers.",
+            "inputSchema": {
+              "type": "object",
+              "properties": {
+                "domain": {
+                  "type": "string",
+                  "description": "domain parameter"
+                },
+                "domains": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "domains parameter"
+                }
+              },
+              "description": "MCP tool parameters",
+              "required": [
+                "domain",
+                "domains"
+              ]
+            },
+            "category": "Monitoring",
+            "examples": []
+          },
+          {
+            "name": "browse_capabilities",
+            "description": "Browse and search the taxonomy of available MCP capabilities across all registered servers.",
+            "inputSchema": {
+              "type": "object",
+              "properties": {
+                "category": {
+                  "type": "string",
+                  "description": "category parameter"
+                },
+                "search": {
+                  "type": "string",
+                  "description": "search parameter"
+                },
+                "popular": {
+                  "type": "boolean",
+                  "description": "popular parameter"
+                }
+              },
+              "description": "MCP tool parameters",
+              "required": [
+                "category",
+                "search",
+                "popular"
+              ]
+            },
+            "category": "Exploration",
+            "examples": []
+          },
+          {
+            "name": "get_discovery_stats",
+            "description": "Get analytics about MCP server discovery patterns and usage statistics.",
+            "inputSchema": {
+              "type": "object",
+              "properties": {
+                "timeframe": {
+                  "type": "string",
+                  "enum": [],
+                  "description": "timeframe parameter"
+                },
+                "metric": {
+                  "type": "string",
+                  "enum": [],
+                  "description": "metric parameter"
+                }
+              },
+              "description": "MCP tool parameters",
+              "required": [
+                "timeframe",
+                "metric"
+              ]
+            },
+            "category": "Discovery",
+            "examples": []
+          }
+        ]
+      },
+      "bridge": {
+        "transport": "stdio",
+        "description": "Bridge tools for connecting to remote MCP servers",
+        "authentication": "Inherits from target servers",
+        "tools": [
+          {
+            "name": "discover_mcp_servers",
+            "description": "Find MCP servers using mcplookup.org",
+            "inputSchema": {
+              "type": "object",
+              "properties": {
+                "query": {
+                  "type": "string",
+                  "description": "Natural language query"
+                },
+                "domain": {
+                  "type": "string",
+                  "description": "Specific domain"
+                },
+                "capability": {
+                  "type": "string",
+                  "description": "Required capability"
+                },
+                "limit": {
+                  "type": "number",
+                  "default": 10,
+                  "description": "Max results"
+                }
+              }
+            },
+            "category": "Discovery"
+          },
+          {
+            "name": "connect_and_list_tools",
+            "description": "Connect to a server and list its tools",
+            "inputSchema": {
+              "type": "object",
+              "required": [
+                "endpoint"
+              ],
+              "properties": {
+                "endpoint": {
+                  "type": "string",
+                  "format": "uri",
+                  "description": "MCP server endpoint"
+                },
+                "auth_headers": {
+                  "type": "object",
+                  "description": "Optional auth headers"
+                }
+              }
+            },
+            "category": "Bridge"
+          },
+          {
+            "name": "call_tool_on_server",
+            "description": "Call any tool on any MCP server",
+            "inputSchema": {
+              "type": "object",
+              "required": [
+                "endpoint",
+                "tool_name"
+              ],
+              "properties": {
+                "endpoint": {
+                  "type": "string",
+                  "format": "uri",
+                  "description": "MCP server endpoint"
+                },
+                "tool_name": {
+                  "type": "string",
+                  "description": "Name of tool to call"
+                },
+                "arguments": {
+                  "type": "object",
+                  "description": "Tool arguments"
+                },
+                "auth_headers": {
+                  "type": "object",
+                  "description": "Optional auth headers"
+                }
+              }
+            },
+            "category": "Bridge"
+          }
+        ]
+      }
+    },
+    "usage": {
+      "main_server": {
+        "description": "Connect to /api/mcp using MCP protocol",
+        "example_connection": "StreamableHTTPClientTransport(\"https://mcplookup.org/api/mcp\")"
+      },
+      "bridge": {
+        "description": "Use bridge tools to connect to any discovered MCP server",
+        "example_workflow": [
+          "1. Use discover_mcp_servers to find servers",
+          "2. Use connect_and_list_tools to explore capabilities",
+          "3. Use call_tool_on_server to execute tools"
+        ]
+      }
+    }
+  },
+  "x-examples": {
+    "description": "Real-world usage examples",
+    "discovery": {
+      "natural_language": {
+        "request": {
+          "query": "Find email servers like Gmail but faster"
+        },
+        "description": "Natural language discovery query"
+      },
+      "domain_lookup": {
+        "request": {
+          "domain": "gmail.com"
+        },
+        "description": "Look up specific domain"
+      },
+      "capability_search": {
+        "request": {
+          "capability": "email"
+        },
+        "description": "Search by capability"
+      }
+    },
+    "registration": {
+      "basic_server": {
+        "request": {
+          "domain": "mycompany.com",
+          "endpoint": "https://api.mycompany.com/mcp",
+          "capabilities": [
+            "email",
+            "calendar"
+          ],
+          "category": "productivity",
+          "contact_email": "admin@mycompany.com",
+          "description": "Email and calendar integration for our CRM"
+        },
+        "description": "Register a basic MCP server"
+      }
+    },
+    "mcp_tools": {
+      "discover_servers": {
+        "tool": "discover_mcp_servers",
+        "arguments": {
+          "query": "document collaboration tools",
+          "limit": 5
+        },
+        "description": "Find document collaboration servers"
+      },
+      "call_remote_tool": {
+        "tool": "call_tool_on_server",
+        "arguments": {
+          "endpoint": "https://api.gmail.com/mcp",
+          "tool_name": "send_email",
+          "arguments": {
+            "to": "user@example.com",
+            "subject": "Hello from MCP",
+            "body": "This email was sent via MCP!"
+          }
+        },
+        "description": "Send email via discovered Gmail MCP server"
+      }
+    }
+  }
+}
