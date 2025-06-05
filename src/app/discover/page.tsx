@@ -116,7 +116,7 @@ export default function DiscoverPage() {
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                       searchType === "smart"
                         ? "bg-slate-700 text-white"
-                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                     }`}
                   >
                     🧠 AI Search
@@ -126,7 +126,7 @@ export default function DiscoverPage() {
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                       searchType === "domain"
                         ? "bg-slate-700 text-white"
-                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                     }`}
                   >
                     🌐 Domain
@@ -136,7 +136,7 @@ export default function DiscoverPage() {
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                       searchType === "capability"
                         ? "bg-slate-700 text-white"
-                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                     }`}
                   >
                     🔧 Capability
@@ -243,13 +243,13 @@ export default function DiscoverPage() {
                             {server.capabilities.slice(0, 3).map((cap) => (
                               <span
                                 key={cap}
-                                className="px-2 py-1 bg-slate-100 text-slate-700 rounded text-xs"
+                                className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs"
                               >
                                 {cap}
                               </span>
                             ))}
                             {server.capabilities.length > 3 && (
-                              <span className="px-2 py-1 bg-slate-100 text-slate-700 rounded text-xs">
+                              <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">
                                 +{server.capabilities.length - 3} more
                               </span>
                             )}

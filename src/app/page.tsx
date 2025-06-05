@@ -13,13 +13,13 @@ export default function HomePage() {
       <Header />
 
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-slate-50 via-white to-gray-50 py-16 px-4">
+      <section className="relative bg-white py-16 px-4">
         <div className="max-w-5xl mx-auto text-center">
           <div className="space-y-6">
             <div className="space-y-4">
               <h1 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
                 Discover AI Tools
-                <span className="block text-slate-700">Dynamically</span>
+                <span className="block text-blue-600">Dynamically</span>
               </h1>
               <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
                 Stop hardcoding AI tool lists. Find and connect to Model Context Protocol servers
@@ -185,7 +185,7 @@ export default function HomePage() {
       </section>
 
       {/* Problem/Solution Section */}
-      <section className="py-12 px-4 bg-slate-50">
+      <section className="py-12 px-4 bg-gray-50">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-10">
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
@@ -395,7 +395,7 @@ export default function HomePage() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-10 px-4 bg-slate-50">
+      <section className="py-10 px-4 bg-blue-50">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
@@ -408,33 +408,33 @@ export default function HomePage() {
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div className="text-center">
-              <div className="text-2xl md:text-3xl font-bold text-slate-700 mb-1">500+</div>
-              <div className="text-gray-600 text-sm">Registered Servers</div>
+              <div className="text-2xl md:text-3xl font-bold text-blue-600 mb-1">500+</div>
+              <div className="text-gray-700 text-sm">Registered Servers</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl md:text-3xl font-bold text-slate-700 mb-1">99.9%</div>
-              <div className="text-gray-600 text-sm">Uptime</div>
+              <div className="text-2xl md:text-3xl font-bold text-blue-600 mb-1">99.9%</div>
+              <div className="text-gray-700 text-sm">Uptime</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl md:text-3xl font-bold text-slate-700 mb-1">&lt;100ms</div>
-              <div className="text-gray-600 text-sm">Response Time</div>
+              <div className="text-2xl md:text-3xl font-bold text-blue-600 mb-1">&lt;100ms</div>
+              <div className="text-gray-700 text-sm">Response Time</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl md:text-3xl font-bold text-slate-700 mb-1">24/7</div>
-              <div className="text-gray-600 text-sm">Monitoring</div>
+              <div className="text-2xl md:text-3xl font-bold text-blue-600 mb-1">24/7</div>
+              <div className="text-gray-700 text-sm">Monitoring</div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Call to Action Section */}
-      <section className="py-12 px-4 bg-slate-800">
+      <section className="py-12 px-4 bg-blue-600">
         <div className="max-w-3xl mx-auto text-center">
           <div className="space-y-6">
             <h2 className="text-2xl md:text-3xl font-bold text-white">
               Ready to Get Started?
             </h2>
-            <p className="text-lg text-slate-300 max-w-xl mx-auto">
+            <p className="text-lg text-blue-100 max-w-xl mx-auto">
               Join developers building the next generation of AI applications with dynamic tool discovery.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -443,7 +443,7 @@ export default function HomePage() {
                   variant="solid"
                   size="lg"
                   hoverScale={1.02}
-                  className="bg-white text-slate-800 hover:bg-gray-100 px-6 py-3 text-base font-medium"
+                  className="bg-white text-blue-600 hover:bg-gray-100 px-6 py-3 text-base font-medium"
                 >
                   🚀 Start Building
                 </AnimatedButton>
@@ -453,7 +453,7 @@ export default function HomePage() {
                   variant="outline"
                   size="lg"
                   hoverScale={1.02}
-                  className="border-slate-400 text-slate-300 hover:bg-slate-700 px-6 py-3 text-base"
+                  className="border-blue-200 text-white hover:bg-blue-500 px-6 py-3 text-base"
                 >
                   📡 Register Your Tool
                 </AnimatedButton>
