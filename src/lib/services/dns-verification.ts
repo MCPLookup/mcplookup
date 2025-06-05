@@ -2,7 +2,7 @@
 // Allows multiple accounts to own the same domain with unique TXT records
 
 import { createStorage } from './storage'
-import { isSuccessResult } from './storage/interfaces'
+import { isSuccessResult } from './storage/unified-storage'
 import crypto from 'crypto'
 
 export interface DomainVerification {

@@ -35,6 +35,17 @@ const nextConfig = {
   },
   // Enable TypeScript path mapping
   webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+    // Handle bcrypt for client-side builds
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+        crypto: false,
+      };
+    }
+
     // Important: return the modified config
     return config;
   },

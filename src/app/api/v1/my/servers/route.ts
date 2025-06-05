@@ -3,9 +3,9 @@
 // Prevents users from seeing servers they don't own
 
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '../../../../../auth'
+import { auth } from '@/auth'
 import { createStorage } from '@/lib/services/storage'
-import { isSuccessResult } from '@/lib/services/storage/interfaces'
+import { isSuccessResult } from '@/lib/services/storage/unified-storage'
 
 /**
  * GET /api/v1/my/servers

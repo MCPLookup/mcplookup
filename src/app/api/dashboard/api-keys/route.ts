@@ -3,7 +3,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { auth } from '../../../../auth';
+import { auth } from '@/auth';
 import { apiKeyService } from '@/lib/services/api-keys/service';
 import { CreateApiKeyRequest, ApiKeyPermission } from '@/lib/services/api-keys/types';
 import { isUserAdmin } from '@/lib/auth/middleware';

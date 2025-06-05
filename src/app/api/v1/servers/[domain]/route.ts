@@ -3,9 +3,9 @@
 // DELETE /api/v1/servers/{domain} - Delete server (only if you own the domain)
 
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '../../../../../auth'
+import { auth } from '@/auth'
 import { createStorage } from '@/lib/services/storage'
-import { isSuccessResult } from '@/lib/services/storage/interfaces'
+import { isSuccessResult } from '@/lib/services/storage/unified-storage'
 import { isUserDomainVerified } from '@/lib/services/dns-verification'
 import { z } from 'zod'
 
