@@ -1,46 +1,59 @@
-// Authentication utilities
-// Simple auth placeholder for future implementation
+// Auth.js v5 Implementation - Redirect to New Auth System
+// This file now redirects to the comprehensive Auth.js v5 implementation
 
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-}
+/**
+ * ⚠️  DEPRECATED: This file contains the old placeholder implementation
+ *
+ * 🎉 NEW: Complete Auth.js v5 implementation is now available!
+ *
+ * Please use the new auth utilities from:
+ * - Server-side: import from '@/lib/auth' or '@/lib/auth/server'
+ * - Client-side: import from '@/lib/auth/client'
+ *
+ * See AUTH_V5_IMPLEMENTATION.md for complete documentation.
+ */
 
-export interface AuthState {
-  user: User | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-}
+// Re-export everything from the new auth implementation
+export * from './auth'
 
-// Placeholder auth functions
-export async function signIn(email: string, password: string): Promise<User | null> {
-  // TODO: Implement actual authentication
-  console.log('Sign in attempt:', email);
-  return null;
-}
+// Legacy compatibility exports (deprecated)
+export {
+  getCurrentUser,
+  isAuthenticated,
+  requireAuth,
+  auth
+} from './auth/server'
 
-export async function signOut(): Promise<void> {
-  // TODO: Implement sign out
-  console.log('Sign out');
-}
+export {
+  useAuth
+} from './auth/client'
 
-export async function getCurrentUser(): Promise<User | null> {
-  // TODO: Implement get current user
-  return null;
-}
+export {
+  signIn,
+  signOut
+} from '../auth'
 
-export function useAuth(): AuthState {
-  // TODO: Implement auth hook
-  return {
-    user: null,
-    isAuthenticated: false,
-    isLoading: false
-  };
-}
+// Types
+export type { User, AuthState } from './auth/server'
+export type { Session } from 'next-auth'
 
-// Middleware auth function
-export async function auth(request: any) {
-  // TODO: Implement middleware auth
-  return null;
-}
+/**
+ * Migration Guide:
+ *
+ * OLD (deprecated):
+ * ```typescript
+ * import { getCurrentUser } from '@/lib/auth'
+ * ```
+ *
+ * NEW (recommended):
+ * ```typescript
+ * // For server components/API routes
+ * import { getCurrentUser } from '@/lib/auth/server'
+ *
+ * // For client components
+ * import { useAuth } from '@/lib/auth/client'
+ *
+ * // Or use the unified export
+ * import { getCurrentUser, useAuth } from '@/lib/auth'
+ * ```
+ */
