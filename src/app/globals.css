@@ -60,11 +60,11 @@
 
 /* Professional styles for MCPLookup */
 .gradient-bg {
-  background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+  background: linear-gradient(135deg, #475569 0%, #334155 100%);
 }
 
 .hero-pattern {
-  background-image: radial-gradient(circle at 1px 1px, rgba(59, 130, 246, 0.05) 1px, transparent 0);
+  background-image: radial-gradient(circle at 1px 1px, rgba(71, 85, 105, 0.03) 1px, transparent 0);
   background-size: 32px 32px;
 }
 
@@ -82,11 +82,11 @@
 
 /* Modern button styles */
 .btn-primary {
-  @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 hover:shadow-lg;
+  @apply bg-slate-700 hover:bg-slate-800 text-white font-medium py-3 px-6 rounded-lg transition-all duration-200 hover:shadow-lg;
 }
 
 .btn-secondary {
-  @apply bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold py-3 px-6 rounded-lg transition-all duration-200 border border-gray-300;
+  @apply bg-slate-100 hover:bg-slate-200 text-slate-900 font-medium py-3 px-6 rounded-lg transition-all duration-200 border border-slate-300;
 }
 
 /* Enhanced Animation utilities */

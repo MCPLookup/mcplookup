@@ -13,27 +13,27 @@ export default function HomePage() {
       <Header />
 
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-20 px-4">
-        <div className="max-w-6xl mx-auto text-center">
-          <div className="space-y-8">
+      <section className="relative bg-gradient-to-br from-slate-50 via-white to-gray-50 py-16 px-4">
+        <div className="max-w-5xl mx-auto text-center">
+          <div className="space-y-6">
             <div className="space-y-4">
-              <h1 className="text-5xl md:text-6xl font-bold text-gray-900 leading-tight">
+              <h1 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
                 Discover AI Tools
-                <span className="block text-blue-600">Dynamically</span>
+                <span className="block text-slate-700">Dynamically</span>
               </h1>
-              <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
                 Stop hardcoding AI tool lists. Find and connect to Model Context Protocol servers
                 automatically with intelligent discovery.
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <div className="flex flex-col sm:flex-row gap-3 justify-center items-center pt-2">
               <Link href="/discover">
                 <AnimatedButton
                   variant="solid"
                   size="lg"
                   hoverScale={1.02}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold"
+                  className="bg-slate-800 hover:bg-slate-900 text-white px-6 py-3 text-base font-medium"
                 >
                   🔍 Start Discovering
                 </AnimatedButton>
@@ -43,7 +43,7 @@ export default function HomePage() {
                   variant="outline"
                   size="lg"
                   hoverScale={1.02}
-                  className="border-gray-300 text-gray-700 hover:bg-gray-50 px-8 py-4 text-lg"
+                  className="border-slate-300 text-slate-700 hover:bg-slate-50 px-6 py-3 text-base"
                 >
                   📖 How It Works
                 </AnimatedButton>
@@ -54,39 +54,39 @@ export default function HomePage() {
       </section>
 
       {/* User Journey Paths */}
-      <section className="py-20 px-4 bg-white">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+      <section className="py-12 px-4 bg-white">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
               Choose Your Path
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
               Whether you're building AI applications, creating tools, or just exploring,
               we have the right solution for you.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Developers Path */}
-            <AnimatedCard.Root hoverScale={1.02} borderOnHover>
+            <AnimatedCard.Root hoverScale={1.01} borderOnHover>
               <AnimatedCard.Body>
-                <div className="p-8 text-center space-y-6">
-                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-                    <span className="text-3xl">👨‍💻</span>
+                <div className="p-6 text-center space-y-4">
+                  <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center mx-auto">
+                    <span className="text-2xl">👨‍💻</span>
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">For Developers</h3>
-                    <p className="text-gray-600 mb-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">For Developers</h3>
+                    <p className="text-gray-600 text-sm mb-4">
                       Find AI tools and services for your applications. Replace hardcoded lists with dynamic discovery.
                     </p>
                   </div>
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     <Link href="/discover">
                       <AnimatedButton
                         variant="solid"
-                        size="md"
-                        hoverScale={1.02}
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                        size="sm"
+                        hoverScale={1.01}
+                        className="w-full bg-slate-700 hover:bg-slate-800 text-white text-sm py-2"
                       >
                         🔍 Discover Tools
                       </AnimatedButton>
@@ -95,7 +95,7 @@ export default function HomePage() {
                       <AnimatedButton
                         variant="outline"
                         size="sm"
-                        className="w-full border-gray-300 text-gray-700 hover:bg-gray-50"
+                        className="w-full border-slate-300 text-slate-600 hover:bg-slate-50 text-xs py-1.5"
                       >
                         📖 Integration Guide
                       </AnimatedButton>
@@ -106,25 +106,25 @@ export default function HomePage() {
             </AnimatedCard.Root>
 
             {/* Tool Creators Path */}
-            <AnimatedCard.Root hoverScale={1.02} borderOnHover>
+            <AnimatedCard.Root hoverScale={1.01} borderOnHover>
               <AnimatedCard.Body>
-                <div className="p-8 text-center space-y-6">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                    <span className="text-3xl">🛠️</span>
+                <div className="p-6 text-center space-y-4">
+                  <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center mx-auto">
+                    <span className="text-2xl">🛠️</span>
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">For Tool Creators</h3>
-                    <p className="text-gray-600 mb-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">For Tool Creators</h3>
+                    <p className="text-gray-600 text-sm mb-4">
                       Make your AI tools discoverable. Register your MCP servers and reach more users.
                     </p>
                   </div>
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     <Link href="/register">
                       <AnimatedButton
                         variant="solid"
-                        size="md"
-                        hoverScale={1.02}
-                        className="w-full bg-green-600 hover:bg-green-700 text-white"
+                        size="sm"
+                        hoverScale={1.01}
+                        className="w-full bg-slate-700 hover:bg-slate-800 text-white text-sm py-2"
                       >
                         📡 Register Your Tool
                       </AnimatedButton>
@@ -133,7 +133,7 @@ export default function HomePage() {
                       <AnimatedButton
                         variant="outline"
                         size="sm"
-                        className="w-full border-gray-300 text-gray-700 hover:bg-gray-50"
+                        className="w-full border-slate-300 text-slate-600 hover:bg-slate-50 text-xs py-1.5"
                       >
                         📋 API Documentation
                       </AnimatedButton>
@@ -144,25 +144,25 @@ export default function HomePage() {
             </AnimatedCard.Root>
 
             {/* Explorers Path */}
-            <AnimatedCard.Root hoverScale={1.02} borderOnHover>
+            <AnimatedCard.Root hoverScale={1.01} borderOnHover>
               <AnimatedCard.Body>
-                <div className="p-8 text-center space-y-6">
-                  <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto">
-                    <span className="text-3xl">🌟</span>
+                <div className="p-6 text-center space-y-4">
+                  <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center mx-auto">
+                    <span className="text-2xl">🌟</span>
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">For Explorers</h3>
-                    <p className="text-gray-600 mb-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">For Explorers</h3>
+                    <p className="text-gray-600 text-sm mb-4">
                       Curious about AI tools? Browse the ecosystem and learn what's possible.
                     </p>
                   </div>
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     <Link href="/discover">
                       <AnimatedButton
                         variant="solid"
-                        size="md"
-                        hoverScale={1.02}
-                        className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                        size="sm"
+                        hoverScale={1.01}
+                        className="w-full bg-slate-700 hover:bg-slate-800 text-white text-sm py-2"
                       >
                         🌍 Explore Ecosystem
                       </AnimatedButton>
@@ -171,7 +171,7 @@ export default function HomePage() {
                       <AnimatedButton
                         variant="outline"
                         size="sm"
-                        className="w-full border-gray-300 text-gray-700 hover:bg-gray-50"
+                        className="w-full border-slate-300 text-slate-600 hover:bg-slate-50 text-xs py-1.5"
                       >
                         📚 Learn More
                       </AnimatedButton>
@@ -185,27 +185,27 @@ export default function HomePage() {
       </section>
 
       {/* Problem/Solution Section */}
-      <section className="py-20 px-4 bg-gray-50">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+      <section className="py-12 px-4 bg-slate-50">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
               From Static Lists to Dynamic Discovery
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
               Stop maintaining hardcoded server lists. Discover AI tools automatically with intelligent search.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
             {/* Before: The Problem */}
             <AnimatedCard.Root hoverScale={1.01} borderOnHover>
               <AnimatedCard.Body>
-                <div className="p-8">
-                  <div className="flex items-center mb-6">
-                    <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center mr-3">
-                      <span className="text-red-600 font-bold">❌</span>
+                <div className="p-6">
+                  <div className="flex items-center mb-4">
+                    <div className="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center mr-3">
+                      <span className="text-red-600 text-sm font-bold">❌</span>
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900">Before: Manual Configuration</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">Before: Manual Configuration</h3>
                   </div>
 
                   <div className="bg-gray-900 rounded-lg p-4 mb-4">
@@ -219,21 +219,21 @@ export default function HomePage() {
                     </code>
                   </div>
 
-                  <div className="space-y-3 text-sm text-gray-600">
+                  <div className="space-y-2 text-sm text-gray-600">
                     <div className="flex items-center">
-                      <span className="text-red-500 mr-2">•</span>
+                      <span className="text-red-400 mr-2">•</span>
                       Manual updates for every new tool
                     </div>
                     <div className="flex items-center">
-                      <span className="text-red-500 mr-2">•</span>
+                      <span className="text-red-400 mr-2">•</span>
                       Broken links and outdated endpoints
                     </div>
                     <div className="flex items-center">
-                      <span className="text-red-500 mr-2">•</span>
+                      <span className="text-red-400 mr-2">•</span>
                       No discovery of new capabilities
                     </div>
                     <div className="flex items-center">
-                      <span className="text-red-500 mr-2">•</span>
+                      <span className="text-red-400 mr-2">•</span>
                       Poor developer experience
                     </div>
                   </div>
@@ -244,12 +244,12 @@ export default function HomePage() {
             {/* After: The Solution */}
             <AnimatedCard.Root hoverScale={1.01} borderOnHover>
               <AnimatedCard.Body>
-                <div className="p-8">
-                  <div className="flex items-center mb-6">
-                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-3">
-                      <span className="text-green-600 font-bold">✅</span>
+                <div className="p-6">
+                  <div className="flex items-center mb-4">
+                    <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                      <span className="text-green-600 text-sm font-bold">✅</span>
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900">After: Dynamic Discovery</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">After: Dynamic Discovery</h3>
                   </div>
 
                   <div className="bg-gray-900 rounded-lg p-4 mb-4">
@@ -263,7 +263,7 @@ export default function HomePage() {
                     </code>
                   </div>
 
-                  <div className="space-y-3 text-sm text-gray-600">
+                  <div className="space-y-2 text-sm text-gray-600">
                     <div className="flex items-center">
                       <span className="text-green-500 mr-2">•</span>
                       Automatic discovery of new tools
@@ -289,26 +289,26 @@ export default function HomePage() {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 px-4 bg-white">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Powerful Features for Modern AI Development
+      <section className="py-12 px-4 bg-white">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
+              Key Features
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Built for scale, security, and simplicity. Everything you need to build the next generation of AI applications.
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Built for scale, security, and simplicity. Everything you need to build modern AI applications.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* AI-Powered Search */}
-            <AnimatedCard.Root hoverScale={1.02} borderOnHover>
+            <AnimatedCard.Root hoverScale={1.01} borderOnHover>
               <AnimatedCard.Body>
-                <div className="p-6 text-center">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                    <span className="text-2xl">🧠</span>
+                <div className="p-5 text-center">
+                  <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                    <span className="text-lg">🧠</span>
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">AI-Powered Search</h3>
+                  <h3 className="text-base font-semibold text-gray-900 mb-2">AI-Powered Search</h3>
                   <p className="text-gray-600 text-sm">
                     Find tools using natural language. "I need email and calendar integration" returns relevant MCP servers.
                   </p>
@@ -317,13 +317,13 @@ export default function HomePage() {
             </AnimatedCard.Root>
 
             {/* DNS Verification */}
-            <AnimatedCard.Root hoverScale={1.02} borderOnHover>
+            <AnimatedCard.Root hoverScale={1.01} borderOnHover>
               <AnimatedCard.Body>
-                <div className="p-6 text-center">
-                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                    <span className="text-2xl">🛡️</span>
+                <div className="p-5 text-center">
+                  <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                    <span className="text-lg">🛡️</span>
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">DNS Verification</h3>
+                  <h3 className="text-base font-semibold text-gray-900 mb-2">DNS Verification</h3>
                   <p className="text-gray-600 text-sm">
                     Cryptographic proof of domain ownership ensures you're connecting to legitimate services.
                   </p>
@@ -332,13 +332,13 @@ export default function HomePage() {
             </AnimatedCard.Root>
 
             {/* Real-time Health */}
-            <AnimatedCard.Root hoverScale={1.02} borderOnHover>
+            <AnimatedCard.Root hoverScale={1.01} borderOnHover>
               <AnimatedCard.Body>
-                <div className="p-6 text-center">
-                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                    <span className="text-2xl">💓</span>
+                <div className="p-5 text-center">
+                  <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                    <span className="text-lg">💓</span>
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Health Monitoring</h3>
+                  <h3 className="text-base font-semibold text-gray-900 mb-2">Health Monitoring</h3>
                   <p className="text-gray-600 text-sm">
                     Continuous monitoring ensures you only connect to healthy, responsive servers.
                   </p>
@@ -347,13 +347,13 @@ export default function HomePage() {
             </AnimatedCard.Root>
 
             {/* Global Scale */}
-            <AnimatedCard.Root hoverScale={1.02} borderOnHover>
+            <AnimatedCard.Root hoverScale={1.01} borderOnHover>
               <AnimatedCard.Body>
-                <div className="p-6 text-center">
-                  <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                    <span className="text-2xl">🌍</span>
+                <div className="p-5 text-center">
+                  <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                    <span className="text-lg">🌍</span>
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Global Scale</h3>
+                  <h3 className="text-base font-semibold text-gray-900 mb-2">Global Scale</h3>
                   <p className="text-gray-600 text-sm">
                     Serverless architecture with edge distribution for sub-100ms response times worldwide.
                   </p>
@@ -362,13 +362,13 @@ export default function HomePage() {
             </AnimatedCard.Root>
 
             {/* Open Standards */}
-            <AnimatedCard.Root hoverScale={1.02} borderOnHover>
+            <AnimatedCard.Root hoverScale={1.01} borderOnHover>
               <AnimatedCard.Body>
-                <div className="p-6 text-center">
-                  <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                    <span className="text-2xl">🔓</span>
+                <div className="p-5 text-center">
+                  <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                    <span className="text-lg">🔓</span>
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Open Standards</h3>
+                  <h3 className="text-base font-semibold text-gray-900 mb-2">Open Standards</h3>
                   <p className="text-gray-600 text-sm">
                     Built on open protocols. Fork our code, compete with us, improve the ecosystem.
                   </p>
@@ -377,13 +377,13 @@ export default function HomePage() {
             </AnimatedCard.Root>
 
             {/* Developer Friendly */}
-            <AnimatedCard.Root hoverScale={1.02} borderOnHover>
+            <AnimatedCard.Root hoverScale={1.01} borderOnHover>
               <AnimatedCard.Body>
-                <div className="p-6 text-center">
-                  <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                    <span className="text-2xl">⚡</span>
+                <div className="p-5 text-center">
+                  <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                    <span className="text-lg">⚡</span>
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Developer Friendly</h3>
+                  <h3 className="text-base font-semibold text-gray-900 mb-2">Developer Friendly</h3>
                   <p className="text-gray-600 text-sm">
                     Simple REST API, comprehensive SDKs, and detailed documentation to get you started quickly.
                   </p>
@@ -395,55 +395,55 @@ export default function HomePage() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-20 px-4 bg-gray-50">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+      <section className="py-10 px-4 bg-slate-50">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
               Trusted by Developers Worldwide
             </h2>
-            <p className="text-xl text-gray-600">
+            <p className="text-lg text-gray-600">
               Join the growing ecosystem of AI tools and applications.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div className="text-center">
-              <div className="text-4xl font-bold text-blue-600 mb-2">500+</div>
-              <div className="text-gray-600">Registered Servers</div>
+              <div className="text-2xl md:text-3xl font-bold text-slate-700 mb-1">500+</div>
+              <div className="text-gray-600 text-sm">Registered Servers</div>
             </div>
             <div className="text-center">
-              <div className="text-4xl font-bold text-green-600 mb-2">99.9%</div>
-              <div className="text-gray-600">Uptime</div>
+              <div className="text-2xl md:text-3xl font-bold text-slate-700 mb-1">99.9%</div>
+              <div className="text-gray-600 text-sm">Uptime</div>
             </div>
             <div className="text-center">
-              <div className="text-4xl font-bold text-purple-600 mb-2">&lt;100ms</div>
-              <div className="text-gray-600">Response Time</div>
+              <div className="text-2xl md:text-3xl font-bold text-slate-700 mb-1">&lt;100ms</div>
+              <div className="text-gray-600 text-sm">Response Time</div>
             </div>
             <div className="text-center">
-              <div className="text-4xl font-bold text-orange-600 mb-2">24/7</div>
-              <div className="text-gray-600">Monitoring</div>
+              <div className="text-2xl md:text-3xl font-bold text-slate-700 mb-1">24/7</div>
+              <div className="text-gray-600 text-sm">Monitoring</div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Call to Action Section */}
-      <section className="py-20 px-4 bg-blue-600">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="space-y-8">
-            <h2 className="text-3xl md:text-4xl font-bold text-white">
-              Ready to Build the Future of AI?
+      <section className="py-12 px-4 bg-slate-800">
+        <div className="max-w-3xl mx-auto text-center">
+          <div className="space-y-6">
+            <h2 className="text-2xl md:text-3xl font-bold text-white">
+              Ready to Get Started?
             </h2>
-            <p className="text-xl text-blue-100 max-w-2xl mx-auto">
-              Join thousands of developers building the next generation of AI applications with dynamic tool discovery.
+            <p className="text-lg text-slate-300 max-w-xl mx-auto">
+              Join developers building the next generation of AI applications with dynamic tool discovery.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/discover">
                 <AnimatedButton
                   variant="solid"
                   size="lg"
                   hoverScale={1.02}
-                  className="bg-white text-blue-600 hover:bg-gray-50 px-8 py-4 text-lg font-semibold"
+                  className="bg-white text-slate-800 hover:bg-gray-100 px-6 py-3 text-base font-medium"
                 >
                   🚀 Start Building
                 </AnimatedButton>
@@ -453,7 +453,7 @@ export default function HomePage() {
                   variant="outline"
                   size="lg"
                   hoverScale={1.02}
-                  className="border-white text-white hover:bg-white hover:text-blue-600 px-8 py-4 text-lg"
+                  className="border-slate-400 text-slate-300 hover:bg-slate-700 px-6 py-3 text-base"
                 >
                   📡 Register Your Tool
                 </AnimatedButton>

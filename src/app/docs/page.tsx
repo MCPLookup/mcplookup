@@ -13,11 +13,11 @@ export default function DocsPage() {
     {
       id: "getting-started",
       title: "🚀 Getting Started",
-      description: "New to the revolution? Learn how we're eliminating hardcoded lists from AI forever.",
+      description: "New to MCPLookup.org? Learn the basics of dynamic MCP server discovery.",
       items: [
-        { title: "What is MCPLookup.org?", href: "/docs/introduction", icon: "🔥", description: "The MCP server that eliminates hardcoded lists forever", difficulty: "Beginner" },
-        { title: "Quick Start Guide", href: "/docs/quickstart", icon: "💀", description: "Kill your hardcoded lists in 5 minutes", difficulty: "Beginner" },
-        { title: "Architecture Overview", href: "/docs/architecture", icon: "🏗️", description: "The zero-hardcoding architecture", difficulty: "Intermediate" },
+        { title: "What is MCPLookup.org?", href: "/docs/introduction", icon: "🔍", description: "Introduction to dynamic MCP server discovery", difficulty: "Beginner" },
+        { title: "Quick Start Guide", href: "/docs/quickstart", icon: "⚡", description: "Get started with MCP discovery in minutes", difficulty: "Beginner" },
+        { title: "Architecture Overview", href: "/docs/architecture", icon: "🏗️", description: "System architecture and design principles", difficulty: "Intermediate" },
         { title: "Core Concepts", href: "/docs/concepts", icon: "💡", description: "Key concepts and terminology", difficulty: "Beginner" }
       ]
     },
@@ -107,15 +107,11 @@ export default function DocsPage() {
         <div className="max-w-6xl mx-auto">
           {/* Header */}
           <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              📚 MCPLookup.org Documentation
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Documentation
             </h1>
-            <h2 className="text-2xl font-bold text-red-600 mb-4">
-              🔥 The End of Hardcoded Lists
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Complete guide to the <strong>MCP server that discovers all other MCP servers</strong>.
-              Learn how to eliminate hardcoded lists forever with dynamic discovery, AI-powered search, and cryptographic security.
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Complete guide to dynamic MCP server discovery, from basic usage to advanced integrations and API development.
             </p>
           </div>
 
@@ -156,9 +152,9 @@ export default function DocsPage() {
               <Link href="/docs/introduction" className="group">
                 <div className="text-center space-y-4 p-6 border border-gray-200 rounded-lg hover:shadow-md hover:border-blue-300 transition-all group-hover:bg-blue-50">
                   <div className="text-4xl">🤔</div>
-                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-900">The Revolution</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-900">Introduction</h3>
                   <p className="text-gray-600 text-sm group-hover:text-blue-700">
-                    Learn how we're eliminating hardcoded lists from AI forever with dynamic MCP discovery.
+                    Learn about dynamic MCP server discovery and how it works.
                   </p>
                   <div className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md group-hover:bg-blue-700 transition-colors">
                     📖 Read Introduction
@@ -169,9 +165,9 @@ export default function DocsPage() {
               <Link href="/docs/quickstart" className="group">
                 <div className="text-center space-y-4 p-6 border border-gray-200 rounded-lg hover:shadow-md hover:border-green-300 transition-all group-hover:bg-green-50">
                   <div className="text-4xl">⚡</div>
-                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-green-900">Kill Your Lists</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-green-900">Quick Start</h3>
                   <p className="text-gray-600 text-sm group-hover:text-green-700">
-                    Get up and running in 5 minutes. Replace hardcoded lists with dynamic discovery right away.
+                    Get up and running in minutes with step-by-step installation instructions.
                   </p>
                   <div className="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md group-hover:bg-green-700 transition-colors">
                     🚀 Quick Start
@@ -182,9 +178,9 @@ export default function DocsPage() {
               <Link href="/docs/api" className="group">
                 <div className="text-center space-y-4 p-6 border border-gray-200 rounded-lg hover:shadow-md hover:border-purple-300 transition-all group-hover:bg-purple-50">
                   <div className="text-4xl">⚡</div>
-                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-purple-900">MCP Tools</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-purple-900">API Reference</h3>
                   <p className="text-gray-600 text-sm group-hover:text-purple-700">
-                    Native MCP server tools for dynamic discovery. Connect AI agents directly via MCP protocol.
+                    Complete API documentation with examples and interactive testing tools.
                   </p>
                   <div className="inline-flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-md group-hover:bg-purple-700 transition-colors">
                     🔌 API Docs
