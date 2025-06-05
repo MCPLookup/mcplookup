@@ -32,15 +32,26 @@ export class OpenRouterProvider extends Provider {
       throw new Error('Invalid response format from OpenRouter API');
     }
 
+    // Top 5 elite free models only - confirmed highest parameter counts
+    const TOP_FREE_MODELS = [
+      'qwerky/qwerky-72b:free',                         // 72B - Highest free model
+      'shisa-ai/shisa-v2-llama-3.3-70b:free',         // 70B - Llama 3.3 based
+      'qwen/qwen3-32b:free',                           // 32B - Qwen3
+      'thudm/glm-4-32b:free',                          // 32B - GLM-4
+      'nousresearch/deephermes-3-mistral-24b-preview:free' // 24B - DeepHermes
+    ];
+
     // Filter and map models
     return data.data
       .filter((model: any) => {
-        // Only include models that are available and suitable for chat
-        return !model.id.includes('vision') && 
-               !model.id.includes('whisper') &&
-               !model.id.includes('dall-e') &&
-               !model.id.includes('tts') &&
-               model.context_length > 0;
+        // Only include our curated top models
+        if (!TOP_FREE_MODELS.includes(model.id)) return false;
+
+        // Verify it's actually free
+        const isFree = (!model.pricing?.prompt || parseFloat(model.pricing.prompt) === 0) &&
+                       (!model.pricing?.completion || parseFloat(model.pricing.completion) === 0);
+
+        return isFree && model.context_length > 0;
       })
       .map((model: any) => ({
         id: model.id,

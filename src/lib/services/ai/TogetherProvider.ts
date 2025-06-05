@@ -38,25 +38,29 @@ export class TogetherProvider extends Provider {
       throw new Error('Invalid response format from Together API');
     }
 
+    // Top 5 elite free models only - confirmed highest parameter counts
+    const TOP_FREE_MODELS = [
+      'meta-llama/Llama-3.3-70B-Instruct-Turbo-Free',  // 70B - Latest Llama
+      'deepseek-ai/DeepSeek-R1-Distill-Llama-70B-free', // 70B - Reasoning model
+      'lgai/exaone-3-5-32b-instruct',                   // 32B - High quality
+      'lgai/exaone-deep-32b',                           // 32B - Deep variant
+      'togethercomputer/MoA-1'                          // 32B - Mixture of Agents
+    ];
+
     // Filter and map models
     return data
       .filter((model: any) => {
-        // Include all chat models, but prioritize good ones
+        // Only include chat models
         if (model.type !== 'chat') return false;
 
-        // Skip specialized models that aren't good for general chat
-        if (model.id.includes('vision') && !model.id.includes('free')) return false;
-        if (model.id.includes('code') && !model.id.includes('instruct')) return false;
-        if (model.id.includes('whisper') || model.id.includes('tts')) return false;
+        // Only include our curated top models
+        if (!TOP_FREE_MODELS.includes(model.id)) return false;
 
-        // Include if it's free, instruct, or a well-known good model
+        // Verify it's actually free
         const isFree = (!model.pricing?.input || parseFloat(model.pricing.input) === 0) &&
                        (!model.pricing?.output || parseFloat(model.pricing.output) === 0);
-        const isInstruct = model.id.includes('instruct');
-        const isGoodModel = model.id.includes('llama') || model.id.includes('deepseek') ||
-                           model.id.includes('exaone') || model.id.includes('moa');
 
-        return isFree || isInstruct || isGoodModel;
+        return isFree;
       })
       .map((model: any) => ({
         id: model.id,
