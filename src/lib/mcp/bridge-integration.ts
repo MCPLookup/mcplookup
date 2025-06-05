@@ -3,7 +3,7 @@
 // Generated on 2025-06-05T06:13:11.205Z
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import BridgeToolsWithAPIParity from './bridge-generated';
+import BridgeToolsWithAPIParity from './bridge-tools';
 
 /**
  * Enhanced bridge that combines the 6 main tools + invoke_tool
