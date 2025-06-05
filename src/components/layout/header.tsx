@@ -16,8 +16,10 @@ export function Header() {
 
   const navigation = [
     { name: 'Discover', href: '/discover' },
+    { name: 'How to Use', href: '/how-to-use' },
     { name: 'Register', href: '/register' },
-    { name: 'Documentation', href: '/docs' },
+    { name: 'Dashboard', href: '/dashboard' },
+    { name: 'Open Standards', href: '/open-standards' },
     { name: 'API', href: '/api/docs' },
   ]
 
@@ -33,8 +35,8 @@ export function Header() {
                 <span className="text-xl font-bold text-gray-900 dark:text-white">
                   MCPLookup.org
                 </span>
-                <span className="text-xs text-red-600 dark:text-red-400 font-medium hidden sm:block">
-                  The End of Hardcoded Lists
+                <span className="text-xs text-red-600 dark:text-red-400 font-bold hidden sm:block animate-pulse">
+                  🚨 THE REACT MOMENT - 12 MONTHS LEFT
                 </span>
               </div>
             </Link>

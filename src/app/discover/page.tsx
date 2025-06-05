@@ -278,6 +278,88 @@ export default function DiscoverPage() {
             </Text>
           </VStack>
 
+          {/* Universal Bridge Alert */}
+          <Card.Root>
+            <Card.Body>
+              <VStack gap={4} align="stretch">
+                <HStack gap={3} align="center">
+                  <Text fontSize="2xl">🌉</Text>
+                  <Heading size="md" color="orange.600">
+                    Stop Hardcoding MCP Servers!
+                  </Heading>
+                </HStack>
+
+                <Text fontSize="sm" color="gray.700" _dark={{ color: "gray.300" }}>
+                  <strong>Replace ALL your hardcoded MCP servers with ONE universal bridge.</strong>
+                  Instead of manually configuring each server in Claude Desktop, use our bridge to dynamically
+                  discover and connect to any MCP server.
+                </Text>
+
+                <HStack gap={4} flexWrap="wrap">
+                  <VStack align="start" flex="1" minW="300px">
+                    <Text fontSize="sm" fontWeight="semibold" color="red.600">❌ Before (Hardcoded Hell):</Text>
+                    <Box bg="red.50" _dark={{ bg: "red.900" }} p={3} rounded="md" fontSize="xs" fontFamily="mono">
+                      <Text>{`{`}</Text>
+                      <Text ml={2}>{`"mcpServers": {`}</Text>
+                      <Text ml={4}>{`"gmail": {"command": "node", "args": ["gmail-server"]},`}</Text>
+                      <Text ml={4}>{`"github": {"command": "node", "args": ["github-server"]},`}</Text>
+                      <Text ml={4}>{`"slack": {"command": "node", "args": ["slack-server"]}`}</Text>
+                      <Text ml={4}>{`// ... manually add 50+ more servers`}</Text>
+                      <Text ml={2}>{`}`}</Text>
+                      <Text>{`}`}</Text>
+                    </Box>
+                  </VStack>
+
+                  <VStack align="start" flex="1" minW="300px">
+                    <Text fontSize="sm" fontWeight="semibold" color="green.600">✅ After (Universal Bridge):</Text>
+                    <Box bg="green.50" _dark={{ bg: "green.900" }} p={3} rounded="md" fontSize="xs" fontFamily="mono">
+                      <Text>{`{`}</Text>
+                      <Text ml={2}>{`"mcpServers": {`}</Text>
+                      <Text ml={4}>{`"universal-bridge": {`}</Text>
+                      <Text ml={6}>{`"command": "node",`}</Text>
+                      <Text ml={6}>{`"args": ["scripts/mcp-bridge.mjs"]`}</Text>
+                      <Text ml={4}>{`}`}</Text>
+                      <Text ml={2}>{`}`}</Text>
+                      <Text>{`}`}</Text>
+                      <Text mt={2} fontSize="xs" color="green.600" fontWeight="semibold">
+                        // That's it! Claude now has access to ALL MCP servers
+                      </Text>
+                    </Box>
+                  </VStack>
+                </HStack>
+
+                <HStack gap={2} justify="center" flexWrap="wrap">
+                  <AnimatedButton
+                    size="sm"
+                    variant="solid"
+                    colorPalette="orange"
+                    hoverScale={1.05}
+                    rippleEffect
+                    onClick={() => window.open('https://github.com/TSavo/mcplookup.org/blob/main/UNIVERSAL_BRIDGE.md', '_blank')}
+                  >
+                    🌉 Get the Bridge
+                  </AnimatedButton>
+                  <AnimatedButton
+                    size="sm"
+                    variant="outline"
+                    colorPalette="blue"
+                    hoverScale={1.05}
+                    onClick={() => window.open('https://github.com/TSavo/mcplookup.org/blob/main/scripts/README.md', '_blank')}
+                  >
+                    📖 Documentation
+                  </AnimatedButton>
+                </HStack>
+
+                <Box bg="yellow.50" _dark={{ bg: "yellow.900" }} p={3} rounded="md" border="1px" borderColor="yellow.200">
+                  <Text fontSize="xs" color="yellow.800" _dark={{ color: "yellow.200" }} textAlign="center">
+                    <strong>⚠️ This bridge shouldn't exist.</strong> Someone else should be solving this.
+                    This project succeeds when the bridge dies and MCP clients have native discovery.
+                  </Text>
+                </Box>
+              </VStack>
+            </Card.Body>
+          </Card.Root>
+
           {/* Search */}
           <Card.Root>
             <Card.Body>

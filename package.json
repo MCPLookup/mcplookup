@@ -33,7 +33,10 @@
     "format": "prettier --write src/**/*.ts",
     "type-check": "tsc --project tsconfig.typecheck.json",
     "openapi": "swagger-jsdoc -d swaggerDef.js src/pages/api/**/*.ts -o public/openapi.json",
-    "deploy": "vercel --prod"
+    "deploy": "vercel --prod",
+    "bridge": "node scripts/mcp-bridge.mjs",
+    "bridge:test": "node scripts/test-bridge.mjs",
+    "bridge:example": "node examples/bridge-usage.mjs"
   },
   "keywords": [
     "mcp",

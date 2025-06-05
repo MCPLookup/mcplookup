@@ -1,331 +1,257 @@
 "use client"
 
-import React from 'react'
-import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
-import {
-  Box,
-  Container,
-  VStack,
-  HStack,
-  Heading,
-  Text,
-  Button,
-  Icon,
-
-  SimpleGrid,
-  Badge
-} from "@chakra-ui/react"
-import { FaServer, FaPlus, FaCog, FaSignOutAlt, FaUser, FaChartBar } from "react-icons/fa"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
-import AnimatedCard from "@/components/ui/animated-card"
 import { AnimatedButton } from "@/components/ui/animated-button"
-import { useColorModeValue } from "@/components/ui/color-mode"
+import AnimatedCard, { AnimatedList } from "@/components/ui/animated-card"
+import Link from "next/link"
+import { useState } from "react"
 
 export default function DashboardPage() {
-  const { data: session, status } = useSession()
-  const router = useRouter()
+  const [activeTab, setActiveTab] = useState('servers')
 
-  const bgGradient = useColorModeValue(
-    'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    'linear-gradient(135deg, #2d3748 0%, #1a202c 100%)'
-  )
+  // Mock data - in real app this would come from API
+  const userServers = [
+    {
+      id: 1,
+      domain: "mycompany.com",
+      endpoint: "https://api.mycompany.com/mcp",
+      status: "healthy",
+      verified: true,
+      lastSeen: "2 minutes ago",
+      capabilities: ["email", "calendar", "crm"],
+      trustScore: 92,
+      monthlyRequests: 15420
+    },
+    {
+      id: 2,
+      domain: "dev.mycompany.com",
+      endpoint: "https://dev-api.mycompany.com/mcp",
+      status: "warning",
+      verified: false,
+      lastSeen: "1 hour ago",
+      capabilities: ["testing", "development"],
+      trustScore: 78,
+      monthlyRequests: 3240
+    }
+  ]
 
-  if (status === "loading") {
-    return (
-      <Box minH="100vh" css={{ background: bgGradient }}>
-        <Header />
-        <Container maxW="6xl" py={16}>
-          <VStack gap={8} align="stretch">
-            <AnimatedCard.Root>
-              <AnimatedCard.Body>
-                <VStack gap={4} py={8}>
-                  <Text>Loading dashboard...</Text>
-                </VStack>
-              </AnimatedCard.Body>
-            </AnimatedCard.Root>
-          </VStack>
-        </Container>
-        <Footer />
-      </Box>
-    )
-  }
-
-  if (!session) {
-    return (
-      <Box minH="100vh" css={{ background: bgGradient }}>
-        <Header />
-        <Container maxW="md" py={16}>
-          <VStack gap={8} align="stretch">
-            <VStack gap={4} textAlign="center">
-              <Heading size="xl" color="white">
-                Access Denied
-              </Heading>
-              <Text fontSize="lg" color="whiteAlpha.800">
-                Please sign in to access your dashboard
-              </Text>
-            </VStack>
-
-            <AnimatedCard.Root
-              hoverScale={1.02}
-              hoverY={-4}
-              borderOnHover
-            >
-              <AnimatedCard.Body>
-                <VStack gap={6} textAlign="center">
-                  <Icon fontSize="4xl" color="gray.400">
-                    <FaUser />
-                  </Icon>
-                  <VStack gap={2}>
-                    <Heading size="md">Authentication Required</Heading>
-                    <Text color="gray.600" _dark={{ color: "gray.300" }}>
-                      You need to sign in to access your dashboard
-                    </Text>
-                  </VStack>
-                  <HStack gap={4}>
-                    <AnimatedButton
-                      onClick={() => router.push('/auth/signin')}
-                      variant="solid"
-                      colorPalette="blue"
-                      hoverScale={1.05}
-                      rippleEffect
-                    >
-                      Sign In
-                    </AnimatedButton>
-                    <AnimatedButton
-                      onClick={() => router.push('/')}
-                      variant="outline"
-                      hoverScale={1.05}
-                      rippleEffect
-                    >
-                      Go Home
-                    </AnimatedButton>
-                  </HStack>
-                </VStack>
-              </AnimatedCard.Body>
-            </AnimatedCard.Root>
-          </VStack>
-        </Container>
-        <Footer />
-      </Box>
-    )
+  const stats = {
+    totalServers: 2,
+    totalRequests: 18660,
+    averageTrustScore: 85,
+    verifiedServers: 1
   }
 
   return (
-    <Box minH="100vh" css={{ background: bgGradient }}>
+    <div className="min-h-screen bg-white">
       <Header />
-      
-      <Container maxW="6xl" py={8}>
-        <VStack gap={8} align="stretch">
-          {/* Header */}
-          <VStack gap={4} textAlign="center">
-            <Heading size="xl" color="white">
-              Dashboard
-            </Heading>
-            <Text fontSize="lg" color="whiteAlpha.800">
-              Manage your MCP servers and account
-            </Text>
-          </VStack>
 
-          {/* User Info Card */}
-          <AnimatedCard.Root
-            hoverScale={1.02}
-            hoverY={-4}
-            borderOnHover
-          >
+      <div className="max-w-7xl mx-auto py-20 px-4">
+        {/* EMERGENCY BANNER */}
+        <div className="bg-gradient-to-r from-orange-600 to-red-600 text-white text-center py-4 mb-12 rounded-lg animate-pulse">
+          <div className="flex items-center justify-center space-x-3">
+            <div className="text-2xl animate-bounce">📡</div>
+            <h1 className="text-xl font-bold">GET YOUR SERVERS IN THE TRAINING DATA</h1>
+            <div className="text-2xl animate-bounce">📡</div>
+          </div>
+          <p className="text-sm mt-2">
+            Register NOW. Every server not in the registry risks being forgotten by next-gen AI.
+          </p>
+        </div>
+
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            🚀 Developer Dashboard
+          </h1>
+          <p className="text-xl text-gray-600">
+            Manage your MCP servers, monitor health, and track discovery metrics
+          </p>
+        </div>
+
+        {/* Stats Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+          <AnimatedCard.Root hoverScale={1.02} borderOnHover>
             <AnimatedCard.Body>
-              <HStack gap={6} align="center">
-                <Box
-                  width="64px"
-                  height="64px"
-                  borderRadius="full"
-                  bg="blue.500"
-                  display="flex"
-                  alignItems="center"
-                  justifyContent="center"
-                  color="white"
-                  fontSize="xl"
-                  fontWeight="bold"
-                >
-                  {session.user?.name?.[0] || session.user?.email?.[0] || 'U'}
-                </Box>
-                <VStack align="start" gap={1} flex={1}>
-                  <Heading size="md">
-                    Welcome back, {session.user?.name || 'User'}!
-                  </Heading>
-                  <Text color="gray.600" _dark={{ color: "gray.300" }}>
-                    {session.user?.email}
-                  </Text>
-                  <Badge colorPalette="green" variant="outline">
-                    Verified Account
-                  </Badge>
-                </VStack>
+              <div className="text-center p-6">
+                <div className="text-3xl text-blue-600 mb-2">🖥️</div>
+                <div className="text-2xl font-bold text-gray-900">{stats.totalServers}</div>
+                <div className="text-sm text-gray-600">Registered Servers</div>
+              </div>
+            </AnimatedCard.Body>
+          </AnimatedCard.Root>
+
+          <AnimatedCard.Root hoverScale={1.02} borderOnHover>
+            <AnimatedCard.Body>
+              <div className="text-center p-6">
+                <div className="text-3xl text-green-600 mb-2">📊</div>
+                <div className="text-2xl font-bold text-gray-900">{stats.totalRequests.toLocaleString()}</div>
+                <div className="text-sm text-gray-600">Monthly Requests</div>
+              </div>
+            </AnimatedCard.Body>
+          </AnimatedCard.Root>
+
+          <AnimatedCard.Root hoverScale={1.02} borderOnHover>
+            <AnimatedCard.Body>
+              <div className="text-center p-6">
+                <div className="text-3xl text-orange-600 mb-2">⭐</div>
+                <div className="text-2xl font-bold text-gray-900">{stats.averageTrustScore}</div>
+                <div className="text-sm text-gray-600">Avg Trust Score</div>
+              </div>
+            </AnimatedCard.Body>
+          </AnimatedCard.Root>
+
+          <AnimatedCard.Root hoverScale={1.02} borderOnHover>
+            <AnimatedCard.Body>
+              <div className="text-center p-6">
+                <div className="text-3xl text-purple-600 mb-2">✅</div>
+                <div className="text-2xl font-bold text-gray-900">{stats.verifiedServers}</div>
+                <div className="text-sm text-gray-600">Verified Servers</div>
+              </div>
+            </AnimatedCard.Body>
+          </AnimatedCard.Root>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="flex flex-wrap gap-2 mb-8 border-b border-gray-200">
+          {[
+            { id: 'servers', label: '🖥️ My Servers', count: stats.totalServers },
+            { id: 'domains', label: '🌐 Domains', count: 2 },
+            { id: 'analytics', label: '📊 Analytics', count: null },
+            { id: 'profile', label: '👤 Profile', count: null }
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-4 py-2 rounded-t-lg font-medium transition-colors ${
+                activeTab === tab.id
+                  ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              {tab.label}
+              {tab.count && (
+                <span className="ml-2 bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">
+                  {tab.count}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Tab Content - Servers */}
+        {activeTab === 'servers' && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-900">My MCP Servers</h2>
+              <Link href="/register">
                 <AnimatedButton
-                  onClick={() => router.push('/auth/signout')}
-                  variant="outline"
-                  colorPalette="red"
+                  variant="solid"
+                  size="sm"
+                  className="bg-blue-600 hover:bg-blue-700"
                   hoverScale={1.05}
-                  rippleEffect
                 >
-                  <HStack gap={2}>
-                    <Icon>
-                      <FaSignOutAlt />
-                    </Icon>
-                    <Text>Sign Out</Text>
-                  </HStack>
+                  ➕ Add New Server
                 </AnimatedButton>
-              </HStack>
-            </AnimatedCard.Body>
-          </AnimatedCard.Root>
+              </Link>
+            </div>
 
-          {/* Quick Actions */}
-          <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} gap={6}>
-            <AnimatedCard.Root
-              hoverScale={1.05}
-              hoverY={-8}
-              borderOnHover
-              glowOnHover
-            >
-              <AnimatedCard.Body>
-                <VStack gap={4} textAlign="center">
-                  <Icon fontSize="3xl" color="blue.500">
-                    <FaPlus />
-                  </Icon>
-                  <VStack gap={2}>
-                    <Heading size="sm">Register Server</Heading>
-                    <Text fontSize="sm" color="gray.600" _dark={{ color: "gray.300" }}>
-                      Add a new MCP server to the registry
-                    </Text>
-                  </VStack>
-                  <AnimatedButton
-                    onClick={() => router.push('/register')}
-                    variant="solid"
-                    colorPalette="blue"
-                    size="sm"
-                    hoverScale={1.05}
-                    rippleEffect
-                  >
-                    Register
-                  </AnimatedButton>
-                </VStack>
-              </AnimatedCard.Body>
-            </AnimatedCard.Root>
+            <div className="space-y-4">
+              {userServers.map((server) => (
+                <AnimatedCard.Root key={server.id} hoverScale={1.01} borderOnHover>
+                  <AnimatedCard.Body>
+                    <div className="p-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <div>
+                          <h3 className="text-lg font-bold text-gray-900 flex items-center">
+                            {server.domain}
+                            {server.verified && (
+                              <span className="ml-2 text-green-600 text-sm">✅ Verified</span>
+                            )}
+                          </h3>
+                          <p className="text-sm text-gray-600">{server.endpoint}</p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            server.status === 'healthy'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {server.status === 'healthy' ? '🟢 Healthy' : '🟡 Warning'}
+                          </span>
+                          <button className="text-gray-400 hover:text-gray-600">
+                            ⚙️
+                          </button>
+                        </div>
+                      </div>
 
-            <AnimatedCard.Root
-              hoverScale={1.05}
-              hoverY={-8}
-              borderOnHover
-              glowOnHover
-            >
-              <AnimatedCard.Body>
-                <VStack gap={4} textAlign="center">
-                  <Icon fontSize="3xl" color="green.500">
-                    <FaServer />
-                  </Icon>
-                  <VStack gap={2}>
-                    <Heading size="sm">My Servers</Heading>
-                    <Text fontSize="sm" color="gray.600" _dark={{ color: "gray.300" }}>
-                      View and manage your registered servers
-                    </Text>
-                  </VStack>
-                  <AnimatedButton
-                    onClick={() => router.push('/dashboard/servers')}
-                    variant="solid"
-                    colorPalette="green"
-                    size="sm"
-                    hoverScale={1.05}
-                    rippleEffect
-                  >
-                    View Servers
-                  </AnimatedButton>
-                </VStack>
-              </AnimatedCard.Body>
-            </AnimatedCard.Root>
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+                        <div>
+                          <span className="text-gray-500">Last Seen:</span>
+                          <div className="font-medium">{server.lastSeen}</div>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Trust Score:</span>
+                          <div className="font-medium">{server.trustScore}/100</div>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Monthly Requests:</span>
+                          <div className="font-medium">{server.monthlyRequests.toLocaleString()}</div>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Capabilities:</span>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {server.capabilities.map((cap) => (
+                              <span key={cap} className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
+                                {cap}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </AnimatedCard.Body>
+                </AnimatedCard.Root>
+              ))}
+            </div>
+          </div>
+        )}
 
-            <AnimatedCard.Root
-              hoverScale={1.05}
-              hoverY={-8}
-              borderOnHover
-              glowOnHover
-            >
-              <AnimatedCard.Body>
-                <VStack gap={4} textAlign="center">
-                  <Icon fontSize="3xl" color="purple.500">
-                    <FaChartBar />
-                  </Icon>
-                  <VStack gap={2}>
-                    <Heading size="sm">Analytics</Heading>
-                    <Text fontSize="sm" color="gray.600" _dark={{ color: "gray.300" }}>
-                      View server performance and usage stats
-                    </Text>
-                  </VStack>
-                  <AnimatedButton
-                    onClick={() => router.push('/dashboard/analytics')}
-                    variant="solid"
-                    colorPalette="purple"
-                    size="sm"
-                    hoverScale={1.05}
-                    rippleEffect
-                  >
-                    View Stats
-                  </AnimatedButton>
-                </VStack>
-              </AnimatedCard.Body>
-            </AnimatedCard.Root>
-
-            <AnimatedCard.Root
-              hoverScale={1.05}
-              hoverY={-8}
-              borderOnHover
-              glowOnHover
-            >
-              <AnimatedCard.Body>
-                <VStack gap={4} textAlign="center">
-                  <Icon fontSize="3xl" color="orange.500">
-                    <FaCog />
-                  </Icon>
-                  <VStack gap={2}>
-                    <Heading size="sm">Settings</Heading>
-                    <Text fontSize="sm" color="gray.600" _dark={{ color: "gray.300" }}>
-                      Manage your account and preferences
-                    </Text>
-                  </VStack>
-                  <AnimatedButton
-                    onClick={() => router.push('/dashboard/settings')}
-                    variant="solid"
-                    colorPalette="orange"
-                    size="sm"
-                    hoverScale={1.05}
-                    rippleEffect
-                  >
-                    Settings
-                  </AnimatedButton>
-                </VStack>
-              </AnimatedCard.Body>
-            </AnimatedCard.Root>
-          </SimpleGrid>
-
-          {/* Recent Activity */}
-          <AnimatedCard.Root>
-            <AnimatedCard.Header>
-              <Heading size="md">Recent Activity</Heading>
-            </AnimatedCard.Header>
-            <AnimatedCard.Body>
-              <VStack gap={4} align="stretch">
-                <Text color="gray.600" _dark={{ color: "gray.300" }} textAlign="center" py={8}>
-                  No recent activity to display
-                </Text>
-                <Text fontSize="sm" color="gray.500" textAlign="center">
-                  Register your first MCP server to see activity here
-                </Text>
-              </VStack>
-            </AnimatedCard.Body>
-          </AnimatedCard.Root>
-        </VStack>
-      </Container>
+        {/* Emergency Call to Action */}
+        <div className="mt-16 text-center">
+          <div className="bg-red-50 border-2 border-red-300 rounded-lg p-6 max-w-4xl mx-auto">
+            <h3 className="text-xl font-bold text-red-800 mb-3">⚠️ Training Data Deadline Approaching</h3>
+            <p className="text-red-700 mb-4">
+              <strong>Every server you register increases the chances of open discovery patterns in next-gen AI training data.</strong><br/>
+              Don't let your tools be forgotten by the next generation of AI models.
+            </p>
+            <div className="flex flex-wrap gap-4 justify-center">
+              <Link href="/register">
+                <AnimatedButton
+                  variant="solid"
+                  size="lg"
+                  className="bg-red-600 hover:bg-red-700"
+                  hoverScale={1.05}
+                >
+                  📡 Register More Servers
+                </AnimatedButton>
+              </Link>
+              <Link href="/open-standards">
+                <AnimatedButton
+                  variant="outline"
+                  size="lg"
+                  hoverScale={1.05}
+                >
+                  🌍 Spread the Word
+                </AnimatedButton>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <Footer />
-    </Box>
+    </div>
   )
 }

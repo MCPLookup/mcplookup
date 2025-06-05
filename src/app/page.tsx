@@ -14,29 +14,71 @@ export default function HomePage() {
       <Header />
 
       <div className="max-w-6xl mx-auto py-20 px-4">
+        {/* EMERGENCY ALERT */}
+        <div className="bg-gradient-to-r from-red-600 to-red-700 text-white text-center py-4 mb-8 rounded-lg animate-pulse">
+          <div className="flex items-center justify-center space-x-3">
+            <div className="text-2xl animate-bounce">🚨</div>
+            <h2 className="text-xl font-bold">CODE RED: AI TRAINING WINDOW CLOSING</h2>
+            <div className="text-2xl animate-bounce">🚨</div>
+          </div>
+          <p className="text-sm mt-2 font-medium">
+            Next-gen AI models training NOW. Whatever discovery patterns exist in 12-18 months become permanent.
+          </p>
+        </div>
+
         {/* Hero Section */}
         <div className="text-center mb-20 space-y-8">
           <div className="flex items-center justify-center space-x-4 animate-fade-in-down">
-            <div className="w-10 h-10 text-blue-600 animate-float">🔍</div>
+            <div className="w-12 h-12 text-red-600 animate-float">⚠️</div>
             <h1 className="text-5xl font-bold text-slate-900">
-              MCPLookup.org
+              THE REACT MOMENT
             </h1>
           </div>
 
-          <h2 className="text-3xl font-bold max-w-4xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-            <span className="text-red-600">The End of Hardcoded Lists</span>
+          <h2 className="text-3xl font-bold max-w-5xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+            <span className="text-red-600">We Have 12-18 Months to Save the Open Web</span>
           </h2>
 
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
-            <strong className="text-gray-900">The MCP server that discovers all other MCP servers.</strong><br/>
-            Native MCP protocol for dynamic discovery - no hardcoded lists required.
-          </p>
-
-          <div className="space-y-4 animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
-            <p className="text-lg font-semibold text-gray-800">
-              Three calls to action: Fix your tools. Register your servers. Make this site obsolete.
+          <div className="bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-400 rounded-lg p-6 max-w-5xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+            <h3 className="text-xl font-bold text-red-800 mb-4">🔥 Just Like React Defined UI Development for a Decade</h3>
+            <p className="text-lg text-red-700 mb-4">
+              <strong>The discovery patterns we establish RIGHT NOW will be baked into the next generation of AI models.</strong>
             </p>
-            <div className="flex flex-wrap gap-4 justify-center">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div className="bg-white p-4 rounded border border-red-200">
+                <h4 className="font-bold text-red-800 mb-2">⏰ The Window:</h4>
+                <ul className="text-red-700 space-y-1">
+                  <li>• GPT-5, Claude 4, Gemini 2.0 training NOW</li>
+                  <li>• Training data cutoff: 12-18 months</li>
+                  <li>• Whatever patterns exist then = permanent</li>
+                  <li>• No do-overs for 5-10 years</li>
+                </ul>
+              </div>
+              <div className="bg-white p-4 rounded border border-red-200">
+                <h4 className="font-bold text-red-800 mb-2">💀 The Stakes:</h4>
+                <ul className="text-red-700 space-y-1">
+                  <li>• Open discovery = open web survives</li>
+                  <li>• Proprietary discovery = corporate capture</li>
+                  <li>• Billions of users affected</li>
+                  <li>• Generational lock-in</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-r from-yellow-50 to-red-50 border-2 border-yellow-400 rounded-lg p-6 max-w-4xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+            <h3 className="text-lg font-bold text-yellow-800 mb-3">🚨 ALL HANDS ON DECK</h3>
+            <p className="text-yellow-700 font-medium">
+              <strong>This is not a drill.</strong> Every developer, every company, every user needs to act NOW.
+              Use open discovery. Build open tools. Demand open standards.
+            </p>
+          </div>
+
+          <div className="space-y-4 animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
+            <p className="text-xl font-bold text-gray-900">
+              🎯 THREE EMERGENCY ACTIONS:
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-5xl mx-auto">
               <Link href="/discover">
                 <AnimatedButton
                   variant="solid"
@@ -44,33 +86,36 @@ export default function HomePage() {
                   hoverScale={1.02}
                   clickScale={0.98}
                   rippleEffect
-                  className="min-w-[180px]"
+                  className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4"
                 >
-                  1️⃣ Fix Your MCP Tools
+                  🔍 USE OPEN DISCOVERY<br/>
+                  <span className="text-sm font-normal">Stop hardcoded lists NOW</span>
                 </AnimatedButton>
               </Link>
               <Link href="/register">
                 <AnimatedButton
-                  variant="outline"
+                  variant="solid"
                   size="lg"
                   hoverScale={1.02}
                   clickScale={0.98}
                   rippleEffect
-                  className="min-w-[180px]"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4"
                 >
-                  2️⃣ Register Your Servers
+                  📡 REGISTER YOUR TOOLS<br/>
+                  <span className="text-sm font-normal">Get in the training data</span>
                 </AnimatedButton>
               </Link>
-              <Link href="https://github.com/TSavo/mcplookup.org">
+              <Link href="/open-standards">
                 <AnimatedButton
-                  variant="outline"
+                  variant="solid"
                   size="lg"
                   hoverScale={1.02}
                   clickScale={0.98}
                   rippleEffect
-                  className="min-w-[180px]"
+                  className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-4"
                 >
-                  3️⃣ Make This Obsolete
+                  🌍 SPREAD THE WORD<br/>
+                  <span className="text-sm font-normal">Rally the troops</span>
                 </AnimatedButton>
               </Link>
             </div>
@@ -158,7 +203,7 @@ export default function HomePage() {
           </AnimatedCard.Body>
         </AnimatedCard.Root>
 
-        {/* Open Standards Mission */}
+        {/* Bridge Solution - The Temporary Fix */}
         <AnimatedCard.Root
           hoverScale={1.02}
           hoverY={-4}
@@ -167,62 +212,107 @@ export default function HomePage() {
         >
           <AnimatedCard.Body>
             <div className="text-center space-y-6 py-8">
-              <h3 className="text-2xl font-bold text-blue-900 animate-fade-in-up" style={{ animationDelay: '1.6s' }}>
-                🌍 Open Standards, Not Monopolies
+              <h3 className="text-2xl font-bold text-orange-900 animate-fade-in-up" style={{ animationDelay: '1.6s' }}>
+                🌉 The Bridge: A Temporary Fix for a Fundamental Flaw
               </h3>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-                <div className="text-left space-y-4 animate-fade-in-left" style={{ animationDelay: '1.8s' }}>
-                  <h4 className="text-lg font-semibold text-red-600">🚨 The Critical Moment</h4>
-                  <div className="bg-red-50 p-4 rounded-lg border border-red-200">
-                    <p className="text-sm text-red-800">
-                      <strong>We are at the React moment for AI tool discovery.</strong><br/>
-                      The first generation will set the standard for all future generations.<br/>
-                      <strong>This is why open standards matter more than ever.</strong>
+              <div className="bg-orange-50 border-l-4 border-orange-400 p-6 max-w-4xl mx-auto text-left">
+                <div className="flex items-start space-x-3">
+                  <div className="text-2xl">⚠️</div>
+                  <div>
+                    <h4 className="text-lg font-bold text-orange-800 mb-2">This Bridge Should NOT Exist</h4>
+                    <p className="text-orange-700 mb-4">
+                      <strong>Someone else should be figuring this out.</strong> The fact that we need a "Universal MCP Bridge"
+                      to eliminate hardcoded server lists is a symptom of a broken ecosystem.
                     </p>
-                  </div>
-                </div>
-
-                <div className="text-left space-y-4 animate-fade-in-right" style={{ animationDelay: '2.0s' }}>
-                  <h4 className="text-lg font-semibold text-green-600">✅ Our Open Philosophy</h4>
-                  <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                    <p className="text-sm text-green-800">
-                      <strong>MCPLookup.org wins when a better solution arrives.</strong><br/>
-                      We're building open standards, not walled gardens.<br/>
-                      Fork our code. Compete with us. Build something better.<br/>
-                      <strong>Ecosystem health {`>`} Our success.</strong>
-                    </p>
+                    <div className="space-y-3 text-sm">
+                      <div className="bg-white p-3 rounded border border-orange-200">
+                        <strong className="text-orange-800">What the bridge does:</strong> Replaces ALL hardcoded MCP servers with ONE dynamic bridge
+                        <code className="block mt-1 text-xs bg-gray-100 p-2 rounded">
+                          {`// Instead of hardcoding 50+ servers:`}<br/>
+                          {`// Just use one bridge that discovers everything`}<br/>
+                          {`"universal-bridge": {"command": "node", "args": ["scripts/mcp-bridge.mjs"]}`}
+                        </code>
+                      </div>
+                      <div className="bg-white p-3 rounded border border-orange-200">
+                        <strong className="text-orange-800">Why it's a stopgap:</strong> This project succeeds when the bridge dies.
+                        The future should be registries, not tools, in that JSON configuration.
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div className="flex flex-wrap justify-center gap-4 text-sm animate-fade-in-up" style={{ animationDelay: '2.2s' }}>
-                <div className="bg-blue-100 px-3 py-1 rounded-full text-blue-800">
-                  🔓 Open Source
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+                <div className="bg-red-50 p-4 rounded-lg border border-red-200 text-left">
+                  <h4 className="font-bold text-red-800 mb-2">🚨 Current Broken State</h4>
+                  <div className="text-sm text-red-700 space-y-2">
+                    <p>• Claude Desktop requires hardcoded server lists</p>
+                    <p>• Every new MCP server = manual config update</p>
+                    <p>• No dynamic discovery built into MCP clients</p>
+                    <p>• Ecosystem fragmentation and poor UX</p>
+                  </div>
                 </div>
-                <div className="bg-purple-100 px-3 py-1 rounded-full text-purple-800">
-                  🌐 Open Standards
-                </div>
-                <div className="bg-orange-100 px-3 py-1 rounded-full text-orange-800">
-                  🤝 Open Collaboration
-                </div>
-                <div className="bg-green-100 px-3 py-1 rounded-full text-green-800">
-                  📡 Open Distribution
+                <div className="bg-green-50 p-4 rounded-lg border border-green-200 text-left">
+                  <h4 className="font-bold text-green-800 mb-2">✅ Future Proper State</h4>
+                  <div className="text-sm text-green-700 space-y-2">
+                    <p>• MCP clients have built-in discovery</p>
+                    <p>• JSON config lists registries, not individual tools</p>
+                    <p>• Dynamic server discovery is native</p>
+                    <p>• This bridge becomes obsolete</p>
+                  </div>
                 </div>
               </div>
 
-              <p className="text-base text-gray-600 max-w-3xl mx-auto animate-fade-in-up" style={{ animationDelay: '2.4s' }}>
-                <strong>Information wants to be free.</strong> We encourage alternative implementations,
-                private deployments, and competing solutions. All we ask: use open standards so the ecosystem stays interoperable.
-              </p>
-
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 max-w-3xl mx-auto animate-fade-in-up" style={{ animationDelay: '2.6s' }}>
+              <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-4 max-w-3xl mx-auto">
                 <p className="text-sm text-yellow-800 font-medium">
-                  💰 <strong>The Real Cost:</strong> Right now we're all paying overhead with hardcoded lists.
-                  This site costs me time and money. Major AI leaders will eventually get their s**t together.
-                  <strong>Until then, I win when the problem goes away. So say we all.</strong>
+                  🎯 <strong>Success Metric:</strong> This project succeeds when major MCP client developers
+                  (Claude, Cursor, etc.) implement native discovery and this bridge becomes unnecessary.
+                  <strong> We're building the solution they should have built.</strong>
                 </p>
               </div>
+            </div>
+          </AnimatedCard.Body>
+        </AnimatedCard.Root>
+
+        {/* Open Standards Call to Action */}
+        <AnimatedCard.Root
+          hoverScale={1.02}
+          hoverY={-4}
+          borderOnHover
+          staggerDelay={0.4}
+        >
+          <AnimatedCard.Body>
+            <div className="text-center space-y-6 py-8">
+              <h3 className="text-2xl font-bold text-red-900 animate-fade-in-up" style={{ animationDelay: '1.8s' }}>
+                ⚠️ This Is Our React Moment
+              </h3>
+
+              <p className="text-lg text-gray-700 max-w-3xl mx-auto">
+                <strong>The next generation of AI models will be trained on whatever standards we create now.</strong><br/>
+                Either we work together for open standards, or face corporate lock-in forever.
+              </p>
+
+              <div className="bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-300 rounded-lg p-6 max-w-4xl mx-auto">
+                <h4 className="text-lg font-bold text-red-800 mb-2">🚨 Time Is Running Out</h4>
+                <p className="text-sm text-red-700">
+                  Just like MCP solved tool use with open standards, we must solve discovery the same way.
+                  <strong> If we don't act now, Big Tech will create proprietary discovery and we'll lose the open web.</strong>
+                </p>
+              </div>
+
+              <Link href="/open-standards">
+                <AnimatedButton
+                  variant="solid"
+                  size="lg"
+                  hoverScale={1.05}
+                  clickScale={0.95}
+                  rippleEffect
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  🌍 Why Open Standards Matter
+                </AnimatedButton>
+              </Link>
             </div>
           </AnimatedCard.Body>
         </AnimatedCard.Root>
@@ -236,19 +326,28 @@ export default function HomePage() {
         >
           <AnimatedCard.Body>
             <div className="text-center space-y-8 py-8">
-              <h3 className="text-2xl font-bold text-gray-900 animate-fade-in-up" style={{ animationDelay: '2.8s' }}>
+              <h3 className="text-2xl font-bold text-gray-900 animate-fade-in-up" style={{ animationDelay: '3.0s' }}>
                 🎯 Three Calls to Action
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-                <div className="text-center space-y-4 animate-fade-in-up" style={{ animationDelay: '3.0s' }}>
+                <div className="text-center space-y-4 animate-fade-in-up" style={{ animationDelay: '3.2s' }}>
                   <div className="text-6xl text-red-600 mb-4">1</div>
-                  <h4 className="text-xl font-bold text-red-600">Fix Your MCP Tool Use</h4>
+                  <h4 className="text-xl font-bold text-red-600">Fix Your MCP Tools NOW</h4>
                   <div className="bg-red-50 p-4 rounded-lg border border-red-200">
                     <p className="text-sm text-red-800 font-medium">
-                      <strong>NOW.</strong> End hardcoded lists in your AI projects.
-                      Use dynamic discovery. Connect to MCPLookup.org and never maintain static server lists again.
+                      <strong>Use the Universal Bridge.</strong> Replace ALL hardcoded MCP servers with ONE bridge.
+                      End static configuration hell. Get dynamic discovery today.
                     </p>
+                    <div className="mt-2 text-xs bg-white p-2 rounded border">
+                      <code className="text-red-700">
+                        {`// Replace 50+ hardcoded servers with:`}<br/>
+                        {`"universal-bridge": {`}<br/>
+                        {`  "command": "node",`}<br/>
+                        {`  "args": ["scripts/mcp-bridge.mjs"]`}<br/>
+                        {`}`}
+                      </code>
+                    </div>
                   </div>
                   <Link href="/discover">
                     <AnimatedButton
@@ -259,7 +358,7 @@ export default function HomePage() {
                       rippleEffect
                       className="bg-red-600 hover:bg-red-700"
                     >
-                      🚀 Start Dynamic Discovery
+                      🌉 Get the Bridge
                     </AnimatedButton>
                   </Link>
                 </div>
@@ -287,14 +386,24 @@ export default function HomePage() {
                   </Link>
                 </div>
 
-                <div className="text-center space-y-4 animate-fade-in-up" style={{ animationDelay: '3.4s' }}>
+                <div className="text-center space-y-4 animate-fade-in-up" style={{ animationDelay: '3.6s' }}>
                   <div className="text-6xl text-green-600 mb-4">3</div>
-                  <h4 className="text-xl font-bold text-green-600">Make This Site Obsolete</h4>
+                  <h4 className="text-xl font-bold text-green-600">Kill the Bridge</h4>
                   <div className="bg-green-50 p-4 rounded-lg border border-green-200">
                     <p className="text-sm text-green-800 font-medium">
-                      <strong>Everyone:</strong> Help make this site obsolete. Join GitHub discussions,
-                      submit PRs, adopt open standards. Industry leaders: wake up and pay attention.
+                      <strong>Industry Leaders:</strong> Build native discovery into MCP clients.
+                      Make our bridge obsolete. The future should be registries in JSON, not individual tools.
+                      <strong>Someone else should be solving this.</strong>
                     </p>
+                    <div className="mt-2 text-xs bg-white p-2 rounded border">
+                      <code className="text-green-700">
+                        {`// Future JSON should be:`}<br/>
+                        {`"registries": [`}<br/>
+                        {`  "https://mcplookup.org"`}<br/>
+                        {`]`}<br/>
+                        {`// Not 50+ hardcoded servers`}
+                      </code>
+                    </div>
                   </div>
                   <Link href="https://github.com/TSavo/mcplookup.org">
                     <AnimatedButton
@@ -305,7 +414,7 @@ export default function HomePage() {
                       rippleEffect
                       className="bg-green-600 hover:bg-green-700"
                     >
-                      🌍 Join the Revolution
+                      💀 Kill the Bridge
                     </AnimatedButton>
                   </Link>
                 </div>

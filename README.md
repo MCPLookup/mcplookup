@@ -291,11 +291,54 @@ vercel deploy --prod
 
 ---
 
-<<<<<<< HEAD
-## 🎪 **THE ONE RING MCP SERVER** ✅ LIVE
-=======
+## 🌉 **UNIVERSAL MCP BRIDGE - ELIMINATE HARDCODED LISTS**
+
+**🎯 The Problem**: Claude Desktop requires hardcoded server configurations for every MCP server you want to use.
+
+**🚀 Our Solution**: Replace ALL hardcoded servers with ONE universal bridge that dynamically discovers and connects to any MCP server.
+
+### **Before (Hardcoded Hell)**
+```json
+{
+  "mcpServers": {
+    "gmail": {"command": "node", "args": ["gmail-server"]},
+    "github": {"command": "node", "args": ["github-server"]},
+    "slack": {"command": "node", "args": ["slack-server"]}
+    // Must manually add every server...
+  }
+}
+```
+
+### **After (Universal Bridge)**
+```json
+{
+  "mcpServers": {
+    "universal-bridge": {
+      "command": "node",
+      "args": ["scripts/mcp-bridge.mjs"]
+    }
+  }
+}
+```
+
+**That's it!** Claude now has dynamic access to EVERY MCP server in existence.
+
+### **How Claude Uses It**
+- **"Find email servers"** → Bridge discovers Gmail, Outlook, etc.
+- **"Send an email via Gmail"** → Bridge finds Gmail and sends email
+- **"What document tools are available?"** → Bridge discovers and lists all document servers
+
+### **Bridge Tools for Claude**
+- `discover_mcp_servers` - Find servers by domain/capability/query
+- `connect_and_list_tools` - Explore any server's capabilities
+- `call_tool_on_server` - Call any tool on any server
+- `discover_and_call_tool` - One-step discovery + execution
+
+**📖 Full Documentation**: [UNIVERSAL_BRIDGE.md](UNIVERSAL_BRIDGE.md)
+
+---
+
 ## 🔧 **MCP DISCOVERY SERVER**
->>>>>>> c4afad7 (feat: redesign UI with professional styling and remove 'one ring' references)
 
 **Endpoint**: `https://mcplookup.org/api/mcp`
 **Implementation**: `@vercel/mcp-adapter` with direct service integration
