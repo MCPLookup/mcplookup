@@ -75,8 +75,8 @@ export default function HomePage() {
                     <span className="text-2xl">👨‍💻</span>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">For Developers</h3>
-                    <p className="text-gray-600 text-sm mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">For Developers</h3>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
                       Start with free discovery to find AI tools. Get free API keys for server registration and analytics.
                     </p>
                   </div>
@@ -113,8 +113,8 @@ export default function HomePage() {
                     <span className="text-2xl">🛠️</span>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">For Tool Creators</h3>
-                    <p className="text-gray-600 text-sm mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">For Tool Creators</h3>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
                       Make your AI tools discoverable. Get free API keys to register your MCP servers and reach more users.
                     </p>
                   </div>
@@ -151,8 +151,8 @@ export default function HomePage() {
                     <span className="text-2xl">🌟</span>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">For Explorers</h3>
-                    <p className="text-gray-600 text-sm mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">For Explorers</h3>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
                       Curious about AI tools? Browse the ecosystem and learn what's possible.
                     </p>
                   </div>

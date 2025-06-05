@@ -17,14 +17,17 @@ const mockHealthService = {
 };
 
 describe('/api/v1/health/[domain]', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
-    
+
     // Setup default mock implementation
-    const { getServerlessServices } = require('@/lib/services');
-    getServerlessServices.mockReturnValue({
+    const services = await import('@/lib/services');
+    vi.mocked(services.getServerlessServices).mockReturnValue({
       registry: mockRegistryService,
-      health: mockHealthService
+      health: mockHealthService,
+      intent: {} as any,
+      discovery: {} as any,
+      verification: {} as any
     });
   });
 

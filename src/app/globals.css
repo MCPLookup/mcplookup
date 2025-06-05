@@ -81,37 +81,7 @@
   @apply text-gray-900 dark:text-gray-100;
 }
 
-/* Card content contrast fixes using CSS custom properties */
-.chakra-card {
-  color: hsl(var(--card-foreground));
-}
 
-/* Ensure all card content has proper contrast */
-.chakra-card h1, .chakra-card h2, .chakra-card h3, .chakra-card h4, .chakra-card h5, .chakra-card h6 {
-  color: hsl(var(--card-foreground));
-  font-weight: 600;
-}
-
-.chakra-card p, .chakra-card span:not(.text-red-400):not(.text-green-500):not(.text-blue-400):not(.text-yellow-300):not(.text-orange-300):not(.text-purple-400) {
-  color: hsl(var(--muted-foreground));
-}
-
-/* Override specific Tailwind classes in cards for proper contrast */
-.chakra-card .text-gray-900 {
-  color: hsl(var(--card-foreground)) !important;
-}
-
-.chakra-card .text-gray-600 {
-  color: hsl(var(--muted-foreground)) !important;
-}
-
-.chakra-card .text-gray-700 {
-  color: hsl(var(--card-foreground)) !important;
-}
-
-.chakra-card .text-gray-800 {
-  color: hsl(var(--card-foreground)) !important;
-}
 
 .code-block {
   @apply bg-slate-900 text-slate-100 p-4 rounded-lg overflow-x-auto border border-slate-700 font-mono text-sm;

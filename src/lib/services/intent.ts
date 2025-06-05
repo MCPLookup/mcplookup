@@ -80,23 +80,27 @@ export class IntentService implements IIntentService {
     const capabilities: string[] = [];
 
     const keywordMap: Record<string, string[]> = {
-      'email': ['email_send', 'email_read'],
-      'mail': ['email_send', 'email_read'],
-      'message': ['email_send', 'messaging'],
-      'calendar': ['calendar_create', 'calendar_read'],
-      'schedule': ['calendar_create', 'scheduling'],
-      'file': ['file_read', 'file_write'],
-      'document': ['file_read', 'file_write'],
-      'database': ['db_query', 'db_write'],
-      'data': ['db_query', 'data_analysis'],
+      'email': ['email', 'email_send', 'email_read'],
+      'mail': ['email', 'email_send', 'email_read'],
+      'message': ['email', 'email_send', 'messaging'],
+      'calendar': ['calendar', 'calendar_create', 'calendar_read'],
+      'schedule': ['calendar', 'calendar_create', 'scheduling'],
+      'file': ['file_storage', 'file_read', 'file_write'],
+      'document': ['file_storage', 'file_read', 'file_write'],
+      'database': ['database', 'db_query', 'db_write'],
+      'data': ['database', 'db_query', 'data_analysis'],
       'api': ['rest_api', 'http_request'],
       'github': ['repo_create', 'issue_create'],
       'git': ['repo_create', 'version_control'],
       'payment': ['payment_processing', 'billing'],
       'analytics': ['analytics', 'tracking'],
       'social': ['social_media', 'posting'],
-      'ai': ['llm', 'completion'],
-      'chat': ['chat', 'messaging']
+      'ai': ['ai', 'llm', 'completion'],
+      'chat': ['chat', 'messaging'],
+      'productivity': ['productivity', 'task_management', 'project_management'],
+      'organize': ['productivity', 'task_management'],
+      'manage': ['productivity', 'task_management'],
+      'workflow': ['productivity', 'workflow_automation']
     };
 
     keywords.forEach(keyword => {
@@ -134,6 +138,45 @@ export class IntentService implements IIntentService {
   }
 
   private initializeIntentPatterns(): void {
+    // Broad category patterns
+    this.intentPatterns.set('email', [
+      'email', 'mail', 'send email', 'read email', 'check email',
+      'compose email', 'write email', 'email someone', 'send message',
+      'mail to', 'compose mail', 'inbox', 'read messages', 'check messages',
+      'view emails', 'email management', 'email automation'
+    ]);
+
+    this.intentPatterns.set('calendar', [
+      'calendar', 'schedule', 'meeting', 'appointment', 'event',
+      'create event', 'schedule meeting', 'add calendar', 'book appointment',
+      'create appointment', 'schedule event', 'add meeting', 'calendar entry',
+      'manage calendar', 'calendar management', 'organize calendar',
+      'check calendar', 'view calendar', 'see schedule', 'check schedule',
+      'calendar events', 'upcoming meetings', 'my schedule'
+    ]);
+
+    this.intentPatterns.set('file_storage', [
+      'file', 'document', 'storage', 'upload', 'download', 'share',
+      'read file', 'open file', 'view file', 'get file',
+      'download file', 'access file', 'file content',
+      'write file', 'save file', 'create file', 'upload file',
+      'store file', 'edit file', 'modify file', 'file management'
+    ]);
+
+    this.intentPatterns.set('database', [
+      'database', 'data', 'query', 'search', 'find data', 'get data',
+      'query database', 'search database', 'database search', 'sql query',
+      'data lookup', 'insert data', 'update database', 'save data',
+      'store data', 'database insert', 'database update', 'write database'
+    ]);
+
+    this.intentPatterns.set('ai', [
+      'ai', 'artificial intelligence', 'machine learning', 'llm',
+      'ai completion', 'generate text', 'ai chat', 'openai',
+      'gpt', 'language model', 'ai response', 'completion'
+    ]);
+
+    // Specific capability patterns
     this.intentPatterns.set('email_send', [
       'send email', 'send mail', 'compose email', 'write email',
       'email someone', 'send message', 'mail to', 'compose mail'
@@ -146,14 +189,12 @@ export class IntentService implements IIntentService {
 
     this.intentPatterns.set('calendar_create', [
       'create event', 'schedule meeting', 'add calendar', 'book appointment',
-      'create appointment', 'schedule event', 'add meeting', 'calendar entry',
-      'manage calendar', 'calendar management', 'organize calendar'
+      'create appointment', 'schedule event', 'add meeting', 'calendar entry'
     ]);
 
     this.intentPatterns.set('calendar_read', [
       'check calendar', 'view calendar', 'see schedule', 'check schedule',
-      'calendar events', 'upcoming meetings', 'my schedule',
-      'manage calendar', 'calendar management'
+      'calendar events', 'upcoming meetings', 'my schedule'
     ]);
 
     this.intentPatterns.set('file_read', [
@@ -174,6 +215,12 @@ export class IntentService implements IIntentService {
     this.intentPatterns.set('db_write', [
       'insert data', 'update database', 'save data', 'store data',
       'database insert', 'database update', 'write database'
+    ]);
+
+    this.intentPatterns.set('productivity', [
+      'productivity', 'organize', 'manage', 'workflow', 'task',
+      'project management', 'task management', 'organize work',
+      'manage tasks', 'workflow automation', 'productivity tools'
     ]);
 
     this.intentPatterns.set('rest_api', [
@@ -213,6 +260,15 @@ export class IntentService implements IIntentService {
   }
 
   private initializeCapabilityAliases(): void {
+    // Broad category aliases
+    this.capabilityAliases.set('email', ['email_send', 'email_read', 'email_compose', 'messaging']);
+    this.capabilityAliases.set('calendar', ['calendar_create', 'calendar_read', 'scheduling', 'event_create']);
+    this.capabilityAliases.set('file_storage', ['file_read', 'file_write', 'file_upload', 'file_download']);
+    this.capabilityAliases.set('database', ['db_query', 'db_write', 'data_read', 'data_write']);
+    this.capabilityAliases.set('ai', ['llm', 'completion', 'ai_completion', 'text_generation']);
+    this.capabilityAliases.set('productivity', ['task_management', 'project_management', 'workflow_automation']);
+
+    // Specific capability aliases
     this.capabilityAliases.set('email_send', ['email_compose', 'messaging']);
     this.capabilityAliases.set('email_read', ['email_search', 'inbox_read']);
     this.capabilityAliases.set('calendar_create', ['scheduling', 'event_create']);

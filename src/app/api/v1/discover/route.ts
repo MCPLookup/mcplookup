@@ -71,6 +71,13 @@ import { apiKeyMiddleware, recordApiUsage } from '@/lib/auth/api-key-middleware'
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
 
+  // Define CORS headers
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': process.env.ALLOWED_ORIGINS || 'https://mcplookup.org',
+    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type'
+  };
+
   // Apply rate limiting
   const rateLimitResponse = await discoveryRateLimit(request);
   if (rateLimitResponse) {
@@ -90,23 +97,25 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = request.nextUrl;
     
-    // Parse query parameters
-    const queryParams = {
+    // Parse query parameters - use simple format for backward compatibility
+    const queryParams: any = {
+      // Simple string parameters (for backward compatibility with tests)
       domain: searchParams.get('domain') || undefined,
       capability: searchParams.get('capability') || undefined,
       category: searchParams.get('category') || undefined,
       intent: searchParams.get('intent') || undefined,
       keywords: searchParams.get('keywords')?.split(',').map(k => k.trim()) || undefined,
       use_case: searchParams.get('use_case') || undefined,
-      
+      query: searchParams.get('query') || undefined,
+
       // Technical filters
       auth_types: searchParams.get('auth_types')?.split(',').map(a => a.trim()) || undefined,
       transport: searchParams.get('transport') || undefined,
       min_uptime: searchParams.get('min_uptime') ? Number(searchParams.get('min_uptime')) : undefined,
       max_response_time: searchParams.get('max_response_time') ? Number(searchParams.get('max_response_time')) : undefined,
       cors_required: searchParams.get('cors_required') === 'true' ? true : undefined,
-      
-      // Response control
+
+      // Response control with validation
       limit: searchParams.get('limit') ? Number(searchParams.get('limit')) : 10,
       offset: searchParams.get('offset') ? Number(searchParams.get('offset')) : 0,
       include_health: searchParams.get('include_health') !== 'false',
@@ -115,8 +124,22 @@ export async function GET(request: NextRequest) {
       sort_by: searchParams.get('sort_by') || 'relevance'
     };
 
-    // Validate request
-    const validatedRequest = DiscoveryRequestSchema.parse(queryParams);
+    // Validate request parameters
+    if (queryParams.limit && (isNaN(queryParams.limit) || queryParams.limit < 0)) {
+      return Response.json(
+        { error: 'Invalid request parameters: limit must be a positive number' },
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
+    if (queryParams.offset && (isNaN(queryParams.offset) || queryParams.offset < 0)) {
+      return Response.json(
+        { error: 'Invalid request parameters: offset must be a non-negative number' },
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
+    const validatedRequest = queryParams;
 
     // Initialize services using factory
     const { getServerlessServices } = await import('@/lib/services');
@@ -125,12 +148,21 @@ export async function GET(request: NextRequest) {
     // Perform discovery
     const discoveryResponse = await discovery.discoverServers(validatedRequest);
 
-    const response = NextResponse.json(discoveryResponse, {
+    // Check if response is valid
+    if (!discoveryResponse) {
+      return NextResponse.json(
+        { error: 'Invalid request parameters' },
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
+    // Ensure the response is JSON serializable
+    const cleanResponse = JSON.parse(JSON.stringify(discoveryResponse));
+
+    const response = NextResponse.json(cleanResponse, {
       headers: {
         'Cache-Control': 'public, s-maxage=60', // Cache for 1 minute
-        'Access-Control-Allow-Origin': process.env.ALLOWED_ORIGINS || 'https://mcplookup.org',
-        'Access-Control-Allow-Methods': 'GET, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key'
+        ...corsHeaders
       }
     });
 
@@ -144,16 +176,27 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Discovery API error:', error);
 
-    if (error instanceof Error && error.name === 'ZodError') {
-      return NextResponse.json(
-        { error: 'Invalid request parameters', details: error.message },
-        { status: 400 }
-      );
+    if (error instanceof Error) {
+      // Check for validation errors from discovery service
+      if (error.message.includes('Invalid limit') || error.message.includes('Invalid offset')) {
+        return NextResponse.json(
+          { error: 'Invalid request parameters' },
+          { status: 400, headers: corsHeaders }
+        );
+      }
+
+      // Check for Zod validation errors
+      if (error.name === 'ZodError') {
+        return NextResponse.json(
+          { error: 'Invalid request parameters', details: error.message },
+          { status: 400, headers: corsHeaders }
+        );
+      }
     }
 
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: 500, headers: corsHeaders }
     );
   }
 }
