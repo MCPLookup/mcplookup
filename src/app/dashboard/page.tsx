@@ -4,11 +4,54 @@ import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { AnimatedButton } from "@/components/ui/animated-button"
 import AnimatedCard, { AnimatedList } from "@/components/ui/animated-card"
+import { DashboardWalkthrough } from "@/components/onboarding/dashboard-walkthrough"
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState('servers')
+  const [showOnboarding, setShowOnboarding] = useState(false)
+  const [needsOnboarding, setNeedsOnboarding] = useState(false)
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    checkOnboardingStatus()
+  }, [])
+
+  const checkOnboardingStatus = async () => {
+    try {
+      // Check if onboarding is forced via URL parameter
+      const forceOnboarding = searchParams.get('onboarding') === 'true'
+
+      if (forceOnboarding) {
+        setShowOnboarding(true)
+        setNeedsOnboarding(true)
+        return
+      }
+
+      // Check if user needs onboarding
+      const response = await fetch('/api/v1/onboarding')
+      const data = await response.json()
+
+      if (data.success && data.needsOnboarding) {
+        setShowOnboarding(true)
+        setNeedsOnboarding(true)
+      }
+    } catch (error) {
+      console.error('Error checking onboarding status:', error)
+    }
+  }
+
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false)
+    setNeedsOnboarding(false)
+  }
+
+  const handleOnboardingSkip = () => {
+    setShowOnboarding(false)
+    setNeedsOnboarding(false)
+  }
 
   // Mock data - in real app this would come from API
   const userServers = [
@@ -46,6 +89,14 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-white">
       <Header />
+
+      {/* Onboarding Walkthrough */}
+      {showOnboarding && (
+        <DashboardWalkthrough
+          onComplete={handleOnboardingComplete}
+          onSkip={handleOnboardingSkip}
+        />
+      )}
 
       <div className="max-w-7xl mx-auto py-20 px-4">
         {/* EMERGENCY BANNER */}
