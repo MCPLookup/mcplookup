@@ -59,51 +59,20 @@ export async function checkSetupStatus(): Promise<SetupStatus> {
 
 /**
  * Create the first admin user during setup
+ * @deprecated Use bootstrapFirstAdmin from roles.ts instead
  */
 export async function createAdminUser(userId: string): Promise<void> {
-  const storage = createStorage()
-  
-  try {
-    // Get user details
-    const userResult = await storage.get('auth_users', userId)
-    
-    if (!userResult.success || !userResult.data) {
-      throw new Error('User not found')
-    }
-
-    const user = userResult.data
-    
-    // Create admin record
-    const adminUser: AdminUser = {
-      id: userId,
-      email: user.email,
-      name: user.name,
-      isAdmin: true,
-      created_at: new Date().toISOString()
-    }
-    
-    await storage.set('auth_admin_users', userId, adminUser)
-    
-    console.log(`Admin user created: ${user.email}`)
-  } catch (error) {
-    console.error('Failed to create admin user:', error)
-    throw error
-  }
+  const { bootstrapFirstAdmin } = await import('./roles')
+  return bootstrapFirstAdmin(userId)
 }
 
 /**
  * Check if a user is an admin
+ * @deprecated Use isUserAdmin from roles.ts instead
  */
 export async function isUserAdmin(userId: string): Promise<boolean> {
-  const storage = createStorage()
-  
-  try {
-    const result = await storage.get('auth_admin_users', userId)
-    return result.success && result.data?.isAdmin === true
-  } catch (error) {
-    console.error('Admin check failed:', error)
-    return false
-  }
+  const { isUserAdmin: checkAdmin } = await import('./roles')
+  return checkAdmin(userId)
 }
 
 /**

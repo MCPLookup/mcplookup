@@ -3,14 +3,15 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '../../../auth';
-import { checkSetupStatus, isUserAdmin } from './setup';
+import { checkSetupStatus } from './setup';
+import { isUserAdmin } from './roles';
 
 export interface AuthContext {
   user: {
     id: string;
     email: string;
     name?: string;
-    role: 'user' | 'admin' | 'moderator';
+    role: 'admin' | null; // 99.9999% of users have null role
   } | null;
   isAuthenticated: boolean;
   isAdmin: boolean;
@@ -41,7 +42,7 @@ export async function getAuthContext(): Promise<AuthContext> {
         id: session.user.id!,
         email: session.user.email!,
         name: session.user.name || undefined,
-        role: isAdmin ? 'admin' : 'user'
+        role: isAdmin ? 'admin' : null // 99.9999% get null
       },
       isAuthenticated: true,
       isAdmin,

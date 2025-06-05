@@ -168,7 +168,7 @@ const handler = createMcpHandler(
     // Tool 2: register_mcp_server - Register a new MCP server with DNS verification
     server.tool(
       'register_mcp_server',
-      'Register a new MCP server in the global registry. Requires DNS verification to prove domain ownership.',
+      'Register a new MCP server in the global registry. Requires authentication and domain ownership verification.',
       {
         domain: z.string().regex(/^[a-z0-9.-]+\.[a-z]{2,}$/).describe('Domain name you control (e.g., "mycompany.com")'),
         endpoint: z.string().url().describe('Full URL to your MCP server endpoint'),
@@ -176,10 +176,30 @@ const handler = createMcpHandler(
         category: z.enum(['communication', 'productivity', 'development', 'finance', 'social', 'storage', 'other']).optional(),
         auth_type: z.enum(['none', 'api_key', 'oauth2', 'basic']).default('none'),
         contact_email: z.string().email().optional().describe('Contact email for verification and issues'),
-        description: z.string().max(500).optional().describe('Brief description of your MCP server\'s purpose')
+        description: z.string().max(500).optional().describe('Brief description of your MCP server\'s purpose'),
+        user_id: z.string().describe('Your authenticated user ID - required for domain ownership verification')
       },
       async (args) => {
         try {
+          // 🔒 SECURITY: Verify domain ownership before allowing registration
+          const { isUserDomainVerified } = await import('@/lib/services/dns-verification');
+          const domainVerified = await isUserDomainVerified(args.user_id, args.domain);
+
+          if (!domainVerified) {
+            return {
+              content: [{
+                type: 'text',
+                text: JSON.stringify({
+                  error: 'Domain ownership verification required',
+                  message: `You must verify ownership of ${args.domain} before registering MCP servers for it.`,
+                  action_required: 'verify_domain_ownership',
+                  domain: args.domain,
+                  instructions: 'Go to https://mcplookup.org/dashboard and verify domain ownership first.',
+                  timestamp: new Date().toISOString()
+                }, null, 2)
+              }]
+            };
+          }
           const registrationRequest = {
             domain: args.domain,
             endpoint: args.endpoint,

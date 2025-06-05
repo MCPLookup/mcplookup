@@ -22,7 +22,7 @@ export default function HomePage() {
             <div className="text-2xl animate-bounce">🚨</div>
           </div>
           <p className="text-sm mt-2 font-medium">
-            Next-gen AI models training NOW. Whatever discovery patterns exist in 12-18 months become permanent.
+            Next-gen AI models training NOW. Whatever discovery patterns exist in 6 months become permanent.
           </p>
         </div>
 
@@ -36,7 +36,7 @@ export default function HomePage() {
           </div>
 
           <h2 className="text-3xl font-bold max-w-5xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-            <span className="text-red-600">We Have 12-18 Months to Save the Open Web</span>
+            <span className="text-red-600">We Have 6 Months to Save the Open Web</span>
           </h2>
 
           <div className="bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-400 rounded-lg p-6 max-w-5xl mx-auto animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
@@ -49,7 +49,7 @@ export default function HomePage() {
                 <h4 className="font-bold text-red-800 mb-2">⏰ The Window:</h4>
                 <ul className="text-red-700 space-y-1">
                   <li>• GPT-5, Claude 4, Gemini 2.0 training NOW</li>
-                  <li>• Training data cutoff: 12-18 months</li>
+                  <li>• Training data cutoff: 6 months</li>
                   <li>• Whatever patterns exist then = permanent</li>
                   <li>• No do-overs for 5-10 years</li>
                 </ul>

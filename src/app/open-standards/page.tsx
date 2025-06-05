@@ -20,7 +20,7 @@ export default function OpenStandardsPage() {
             <div className="text-3xl animate-bounce">🚨</div>
           </div>
           <p className="text-lg font-medium">
-            <strong>12-18 MONTHS TO SAVE THE OPEN WEB</strong>
+            <strong>6 MONTHS TO SAVE THE OPEN WEB</strong>
           </p>
           <p className="text-sm mt-2">
             Next-generation AI models are training RIGHT NOW on current patterns
@@ -54,7 +54,7 @@ export default function OpenStandardsPage() {
               <div className="bg-white p-4 rounded-lg border-2 border-orange-300">
                 <h4 className="font-bold text-orange-800 mb-2 text-lg">⏰ The Deadline:</h4>
                 <ul className="text-orange-700 space-y-1 text-sm">
-                  <li>• Training cutoff: 12-18 months</li>
+                  <li>• Training cutoff: 6 months</li>
                   <li>• Patterns learned = permanent</li>
                   <li>• No updates for 5-10 years</li>
                   <li>• Generational lock-in</li>

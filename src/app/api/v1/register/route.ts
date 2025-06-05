@@ -6,6 +6,8 @@ import { RegistrationRequestSchema, VerificationChallengeSchema } from '@/lib/sc
 import { registerRateLimit, addRateLimitHeaders } from '@/lib/security/rate-limiting';
 import { SecureURLSchema, SecureDomainSchema } from '@/lib/security/url-validation';
 import { createVerificationService } from '@/lib/services';
+import { auth } from '../../../../auth';
+import { isUserDomainVerified } from '@/lib/services/dns-verification';
 
 export async function POST(request: NextRequest) {
   // Apply rate limiting
@@ -15,14 +17,40 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    // 🔒 SECURITY: Require authentication for MCP server registration
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        {
+          error: 'Authentication required',
+          details: 'You must be logged in to register MCP servers'
+        },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
-    
+
     // Validate request with enhanced security validation
     const validatedRequest = RegistrationRequestSchema.parse(body);
 
     // Additional security validation
     SecureURLSchema.parse(validatedRequest.endpoint);
     SecureDomainSchema.parse(validatedRequest.domain);
+
+    // 🔒 SECURITY: Check if user has verified ownership of this domain
+    const domainVerified = await isUserDomainVerified(session.user.id, validatedRequest.domain);
+    if (!domainVerified) {
+      return NextResponse.json(
+        {
+          error: 'Domain ownership verification required',
+          details: `You must verify ownership of ${validatedRequest.domain} before registering MCP servers for it. Go to your dashboard to verify domain ownership.`,
+          action_required: 'verify_domain_ownership',
+          domain: validatedRequest.domain
+        },
+        { status: 403 }
+      );
+    }
     
     // Initialize verification service
     const verificationService = createVerificationService();

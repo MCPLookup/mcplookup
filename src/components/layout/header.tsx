@@ -36,7 +36,7 @@ export function Header() {
                   MCPLookup.org
                 </span>
                 <span className="text-xs text-red-600 dark:text-red-400 font-bold hidden sm:block animate-pulse">
-                  🚨 THE REACT MOMENT - 12 MONTHS LEFT
+                  🚨 THE REACT MOMENT - 6 MONTHS LEFT
                 </span>
               </div>
             </Link>
