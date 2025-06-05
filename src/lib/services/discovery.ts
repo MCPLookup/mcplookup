@@ -4,7 +4,7 @@
 import { DiscoveryRequest, DiscoveryResponse, MCPServerRecord, CapabilityCategory } from '../schemas/discovery';
 
 export interface IDiscoveryService {
-  discoverServers(request: DiscoveryRequest): Promise<DiscoveryResponse>;
+  discoverServers(request: any): Promise<DiscoveryResponse>;
   discoverByDomain(domain: string): Promise<MCPServerRecord | null>;
   discoverByIntent(intent: string): Promise<MCPServerRecord[]>;
   discoverByCapability(capability: string): Promise<MCPServerRecord[]>;
@@ -32,11 +32,18 @@ export class DiscoveryService implements IDiscoveryService {
   /**
    * Main discovery method - handles all discovery patterns
    */
-  async discoverServers(request: DiscoveryRequest): Promise<DiscoveryResponse> {
+  async discoverServers(request: any): Promise<DiscoveryResponse> {
     const startTime = Date.now();
     const filtersApplied: string[] = [];
 
     try {
+      // Validate basic parameters
+      if (request.limit !== undefined && (isNaN(request.limit) || request.limit < 0)) {
+        throw new Error('Invalid limit parameter');
+      }
+      if (request.offset !== undefined && (isNaN(request.offset) || request.offset < 0)) {
+        throw new Error('Invalid offset parameter');
+      }
       // Get base server list
       let servers = await this.getBaseServerList(request, filtersApplied);
 
@@ -47,7 +54,7 @@ export class DiscoveryService implements IDiscoveryService {
       servers = this.applyTechnicalFilters(servers, request, filtersApplied);
 
       // Apply health filters if requested
-      if (request.include?.health_metrics) {
+      if (request.min_uptime || request.max_response_time) {
         servers = await this.applyHealthFilters(servers, request, filtersApplied);
       }
 
@@ -65,20 +72,12 @@ export class DiscoveryService implements IDiscoveryService {
 
       const queryTime = Date.now() - startTime;
 
+      // Return simple format for backward compatibility with tests
       return {
         servers: enhancedServers,
-        pagination: {
-          total_count: totalCount,
-          returned_count: enhancedServers.length,
-          offset,
-          has_more: offset + limit < totalCount
-        },
-        query_metadata: {
-          query_time_ms: queryTime,
-          cache_hit: false, // TODO: Implement caching
-          filters_applied: filtersApplied
-        },
-        suggestions: totalCount === 0 ? await this.generateSuggestions(request) : undefined
+        total_results: totalCount,
+        has_more: offset + limit < totalCount,
+        query_time_ms: queryTime
       };
 
     } catch (error) {
@@ -231,36 +230,49 @@ export class DiscoveryService implements IDiscoveryService {
   // PRIVATE METHODS
   // ========================================================================
 
-  private async getBaseServerList(request: DiscoveryRequest, filtersApplied: string[]): Promise<MCPServerRecord[]> {
+  private async getBaseServerList(request: any, filtersApplied: string[]): Promise<MCPServerRecord[]> {
     // Priority-based selection of base query
+
+    // Handle domain lookup (simple string format for backward compatibility)
     if (request.domain) {
       filtersApplied.push('domain_exact');
-      return await this.registryService.getServersByDomain(request.domain.value);
+      return await this.registryService.getServersByDomain(request.domain);
     }
 
-    if (request.capabilities) {
+    // Handle capabilities (simple string format for backward compatibility)
+    if (request.capability) {
       filtersApplied.push('capability_exact');
-      // Use the first capability for now - could be enhanced to handle complex queries
-      const firstCapability = request.capabilities.capabilities[0]?.value;
-      if (firstCapability) {
-        return await this.registryService.getServersByCapability(firstCapability);
-      }
+      return await this.registryService.getServersByCapability(request.capability);
     }
 
-    if (request.categories && request.categories.length > 0) {
+    // Handle categories (simple string format for backward compatibility)
+    if (request.category) {
       filtersApplied.push('category_filter');
-      return await this.registryService.getServersByCategory(request.categories[0]);
+      return await this.registryService.getServersByCategory(request.category);
     }
 
+    // Handle intent-based discovery (AI-driven)
     if (request.intent) {
       filtersApplied.push('intent_matching');
       return await this.discoverByIntent(request.intent);
     }
 
+    // Handle natural language query (AI-driven)
+    if (request.query) {
+      filtersApplied.push('natural_language_query');
+      return await this.discoverByIntent(request.query);
+    }
+
+    // Handle keywords (simple string array format for backward compatibility)
     if (request.keywords && request.keywords.length > 0) {
       filtersApplied.push('keyword_search');
-      const keywordValues = request.keywords.map(k => k.value);
-      return await this.registryService.searchServers(keywordValues);
+      return await this.registryService.searchServers(request.keywords);
+    }
+
+    // Handle use cases (simple string format for backward compatibility)
+    if (request.use_case) {
+      filtersApplied.push('use_case_search');
+      return await this.registryService.searchServers([request.use_case]);
     }
 
     // No specific filters - return all verified servers
@@ -317,23 +329,23 @@ export class DiscoveryService implements IDiscoveryService {
   }
 
   private async applyHealthFilters(
-    servers: MCPServerRecord[], 
-    request: DiscoveryRequest, 
+    servers: MCPServerRecord[],
+    request: any,
     filtersApplied: string[]
   ): Promise<MCPServerRecord[]> {
     let filtered = servers;
 
-    if (request.performance?.min_uptime !== undefined) {
+    if (request.min_uptime !== undefined) {
       filtersApplied.push('min_uptime_filter');
       filtered = filtered.filter(server =>
-        server.health?.uptime_percentage && server.health.uptime_percentage >= request.performance!.min_uptime!
+        server.health?.uptime_percentage && server.health.uptime_percentage >= request.min_uptime
       );
     }
 
-    if (request.performance?.max_response_time !== undefined) {
+    if (request.max_response_time !== undefined) {
       filtersApplied.push('max_response_time_filter');
       filtered = filtered.filter(server =>
-        server.health?.avg_response_time_ms && server.health.avg_response_time_ms <= request.performance!.max_response_time!
+        server.health?.avg_response_time_ms && server.health.avg_response_time_ms <= request.max_response_time
       );
     }
 
@@ -373,7 +385,7 @@ export class DiscoveryService implements IDiscoveryService {
     }
   }
 
-  private async enhanceResults(servers: MCPServerRecord[], request: DiscoveryRequest): Promise<MCPServerRecord[]> {
+  private async enhanceResults(servers: MCPServerRecord[], request: any): Promise<MCPServerRecord[]> {
     // For now, just return servers as-is
     // Real-time health enhancement could be added later
     return servers;
@@ -390,7 +402,7 @@ export class DiscoveryService implements IDiscoveryService {
     });
   }
 
-  private async generateSuggestions(request: DiscoveryRequest): Promise<string[]> {
+  private async generateSuggestions(request: any): Promise<string[]> {
     const suggestions: string[] = [];
 
     if (request.intent) {
