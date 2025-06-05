@@ -33,7 +33,7 @@ export default function HowToUsePage() {
                 <p className="text-sm text-gray-600 mb-4">
                   Run the MCP bridge in a container. No local dependencies needed.
                 </p>
-                <div className="bg-slate-50 p-3 rounded text-xs text-slate-700 mb-4">
+                <div className="bg-blue-50 p-3 rounded text-xs text-blue-700 mb-4">
                   ✅ Isolated environment<br/>
                   ✅ Easy deployment<br/>
                   ✅ No dependency conflicts<br/>
@@ -61,7 +61,7 @@ export default function HowToUsePage() {
                 <p className="text-sm text-gray-600 mb-4">
                   Install as a Node.js package for direct integration.
                 </p>
-                <div className="bg-slate-50 p-3 rounded text-xs text-slate-700 mb-4">
+                <div className="bg-green-50 p-3 rounded text-xs text-green-700 mb-4">
                   ✅ Direct integration<br/>
                   ✅ Customizable<br/>
                   ✅ TypeScript support<br/>
@@ -89,7 +89,7 @@ export default function HowToUsePage() {
                 <p className="text-sm text-gray-600 mb-4">
                   Clone and run directly from source code.
                 </p>
-                <div className="bg-slate-50 p-3 rounded text-xs text-slate-700 mb-4">
+                <div className="bg-purple-50 p-3 rounded text-xs text-purple-700 mb-4">
                   ✅ Latest features<br/>
                   ✅ Easy debugging<br/>
                   ✅ Contribution ready<br/>
@@ -117,7 +117,7 @@ export default function HowToUsePage() {
                 <p className="text-sm text-gray-600 mb-4">
                   Deploy on VPS or cloud for team/organizational use.
                 </p>
-                <div className="bg-slate-50 p-3 rounded text-xs text-slate-700 mb-4">
+                <div className="bg-orange-50 p-3 rounded text-xs text-orange-700 mb-4">
                   ✅ Team sharing<br/>
                   ✅ Centralized management<br/>
                   ✅ HTTP streaming support<br/>
@@ -413,9 +413,9 @@ export default function HowToUsePage() {
 
         {/* Next Steps */}
         <div className="text-center mt-12 space-y-6">
-          <div className="bg-slate-50 border border-slate-200 rounded-lg p-6 max-w-4xl mx-auto">
-            <h2 className="text-2xl font-bold text-gray-900 mb-3">What's Next?</h2>
-            <p className="text-gray-600 mb-6">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-4xl mx-auto">
+            <h2 className="text-2xl font-bold text-blue-900 mb-3">What's Next?</h2>
+            <p className="text-blue-800 mb-6">
               Once you have the bridge running, you can discover and connect to any MCP server dynamically.
               No more maintaining hardcoded lists!
             </p>
@@ -424,7 +424,7 @@ export default function HowToUsePage() {
                 <AnimatedButton
                   variant="solid"
                   size="lg"
-                  className="bg-slate-700 hover:bg-slate-800 text-white"
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
                   hoverScale={1.02}
                 >
                   🔍 Discover Servers
@@ -434,7 +434,7 @@ export default function HowToUsePage() {
                 <AnimatedButton
                   variant="outline"
                   size="lg"
-                  className="border-slate-300 text-slate-700 hover:bg-slate-50"
+                  className="border-blue-300 text-blue-700 hover:bg-blue-100"
                   hoverScale={1.02}
                 >
                   📡 Register Your Server

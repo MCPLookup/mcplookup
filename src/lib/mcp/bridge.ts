@@ -30,7 +30,12 @@ export class MCPHttpBridge {
 
   constructor(httpEndpoint: string, authHeaders: Record<string, string> = {}) {
     this.httpEndpoint = httpEndpoint.replace(/\/$/, ''); // Remove trailing slash
-    this.authHeaders = authHeaders;
+
+    // Merge provided auth headers with environment variables
+    this.authHeaders = {
+      ...this.getAuthHeadersFromEnv(),
+      ...authHeaders // Provided headers override env vars
+    };
     
     this.server = new McpServer({
       name: 'mcp-http-bridge',
@@ -38,6 +43,36 @@ export class MCPHttpBridge {
     });
 
     this.setupBridgeTools();
+  }
+
+  /**
+   * Get authentication headers from environment variables
+   */
+  private getAuthHeadersFromEnv(): Record<string, string> {
+    const authHeaders: Record<string, string> = {};
+
+    // Check for MCP API key in environment variables
+    const apiKey = process.env.MCP_API_KEY ||
+                   process.env.MCPLOOKUP_API_KEY ||
+                   process.env.API_KEY;
+
+    if (apiKey) {
+      authHeaders['Authorization'] = `Bearer ${apiKey}`;
+      authHeaders['X-API-Key'] = apiKey;
+    }
+
+    // Check for custom auth headers from environment
+    const customAuth = process.env.MCP_AUTH_HEADERS;
+    if (customAuth) {
+      try {
+        const parsed = JSON.parse(customAuth);
+        Object.assign(authHeaders, parsed);
+      } catch (error) {
+        console.warn('Failed to parse MCP_AUTH_HEADERS environment variable:', error);
+      }
+    }
+
+    return authHeaders;
   }
 
   /**
@@ -519,11 +554,32 @@ export class MCPDiscoveryBridge {
   }
 
   /**
+   * Create a bridge for domain using environment variables for authentication
+   */
+  async createBridgeForDomainWithEnvAuth(domain: string): Promise<MCPHttpBridge> {
+    const endpoint = await this.discoverServerEndpoint(domain);
+    // MCPHttpBridge constructor will automatically pick up env vars
+    return new MCPHttpBridge(endpoint);
+  }
+
+  /**
+   * Create a bridge with API key authentication
+   */
+  async createBridgeWithApiKey(domain: string, apiKey: string): Promise<MCPHttpBridge> {
+    const endpoint = await this.discoverServerEndpoint(domain);
+    const authHeaders = {
+      'Authorization': `Bearer ${apiKey}`,
+      'X-API-Key': apiKey
+    };
+    return new MCPHttpBridge(endpoint, authHeaders);
+  }
+
+  /**
    * Create a bridge to a server discovered by capability
    */
   async createBridgeForCapability(capability: string, authHeaders: Record<string, string> = {}): Promise<MCPHttpBridge> {
     const servers = await this.discoverServersByCapability(capability);
-    
+
     if (servers.length === 0) {
       throw new Error(`No servers found with capability: ${capability}`);
     }
@@ -531,6 +587,41 @@ export class MCPDiscoveryBridge {
     // Use the first (most relevant) server
     const endpoint = servers[0].endpoint;
     return new MCPHttpBridge(endpoint, authHeaders);
+  }
+
+  /**
+   * Create a bridge for capability with API key authentication
+   */
+  async createBridgeForCapabilityWithApiKey(capability: string, apiKey: string): Promise<MCPHttpBridge> {
+    const servers = await this.discoverServersByCapability(capability);
+
+    if (servers.length === 0) {
+      throw new Error(`No servers found with capability: ${capability}`);
+    }
+
+    // Use the first (most relevant) server
+    const endpoint = servers[0].endpoint;
+    const authHeaders = {
+      'Authorization': `Bearer ${apiKey}`,
+      'X-API-Key': apiKey
+    };
+    return new MCPHttpBridge(endpoint, authHeaders);
+  }
+
+  /**
+   * Create a bridge for capability using environment variables for authentication
+   */
+  async createBridgeForCapabilityWithEnvAuth(capability: string): Promise<MCPHttpBridge> {
+    const servers = await this.discoverServersByCapability(capability);
+
+    if (servers.length === 0) {
+      throw new Error(`No servers found with capability: ${capability}`);
+    }
+
+    // Use the first (most relevant) server
+    const endpoint = servers[0].endpoint;
+    // MCPHttpBridge constructor will automatically pick up env vars
+    return new MCPHttpBridge(endpoint);
   }
 
   /**

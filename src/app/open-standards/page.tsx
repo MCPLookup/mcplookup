@@ -75,31 +75,31 @@ export default function OpenStandardsPage() {
               
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-slate-50 p-6 rounded-lg">
-                    <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
+                  <div className="bg-blue-50 border border-blue-200 p-6 rounded-lg">
+                    <h3 className="font-semibold text-blue-900 mb-3 flex items-center">
                       <span className="text-xl mr-2">🔍</span>
                       Discovery Protocol
                     </h3>
-                    <p className="text-sm text-gray-600 mb-3">
+                    <p className="text-sm text-blue-800 mb-3">
                       Open API for discovering MCP servers based on capabilities, domains, and natural language queries.
                     </p>
-                    <ul className="text-xs text-gray-600 space-y-1">
+                    <ul className="text-xs text-blue-700 space-y-1">
                       <li>• RESTful API endpoints</li>
                       <li>• JSON-based responses</li>
                       <li>• Standardized metadata format</li>
                       <li>• Health monitoring integration</li>
                     </ul>
                   </div>
-                  
-                  <div className="bg-slate-50 p-6 rounded-lg">
-                    <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
+
+                  <div className="bg-green-50 border border-green-200 p-6 rounded-lg">
+                    <h3 className="font-semibold text-green-900 mb-3 flex items-center">
                       <span className="text-xl mr-2">🛡️</span>
                       Verification System
                     </h3>
-                    <p className="text-sm text-gray-600 mb-3">
+                    <p className="text-sm text-green-800 mb-3">
                       Cryptographic verification using DNS TXT records to prove domain ownership and authenticity.
                     </p>
-                    <ul className="text-xs text-gray-600 space-y-1">
+                    <ul className="text-xs text-green-700 space-y-1">
                       <li>• DNS-based verification</li>
                       <li>• Cryptographic signatures</li>
                       <li>• Trust score calculation</li>
@@ -246,11 +246,11 @@ export default function OpenStandardsPage() {
 
         {/* Call to Action */}
         <div className="text-center mt-12">
-          <div className="bg-slate-50 border border-slate-200 rounded-lg p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-8">
+            <h2 className="text-2xl font-bold text-blue-900 mb-4">
               Join the Open Standards Movement
             </h2>
-            <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
+            <p className="text-blue-800 mb-6 max-w-2xl mx-auto">
               Help us build the future of AI tool discovery with open, transparent, and community-driven standards.
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
@@ -262,7 +262,7 @@ export default function OpenStandardsPage() {
                 <AnimatedButton
                   variant="solid"
                   size="lg"
-                  className="bg-slate-700 hover:bg-slate-800 text-white"
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
                   hoverScale={1.02}
                 >
                   🚀 View on GitHub
@@ -272,7 +272,7 @@ export default function OpenStandardsPage() {
                 <AnimatedButton
                   variant="outline"
                   size="lg"
-                  className="border-slate-300 text-slate-700 hover:bg-slate-50"
+                  className="border-blue-300 text-blue-700 hover:bg-blue-100"
                   hoverScale={1.02}
                 >
                   📡 Register Your Server

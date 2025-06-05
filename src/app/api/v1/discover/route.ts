@@ -4,6 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DiscoveryRequestSchema, DiscoveryResponseSchema } from '@/lib/schemas/discovery';
 import { discoveryRateLimit, addRateLimitHeaders } from '@/lib/security/rate-limiting';
+import { apiKeyMiddleware, recordApiUsage } from '@/lib/auth/api-key-middleware';
 
 /**
  * @swagger
@@ -68,10 +69,22 @@ import { discoveryRateLimit, addRateLimitHeaders } from '@/lib/security/rate-lim
  *         description: Internal server error
  */
 export async function GET(request: NextRequest) {
+  const startTime = Date.now();
+
   // Apply rate limiting
   const rateLimitResponse = await discoveryRateLimit(request);
   if (rateLimitResponse) {
     return rateLimitResponse;
+  }
+
+  // Optional API key authentication (discovery is public but can be enhanced with API key)
+  const apiKeyResult = await apiKeyMiddleware(request, {
+    required: false,
+    permissions: ['discovery:read']
+  });
+
+  if (apiKeyResult.response) {
+    return apiKeyResult.response;
   }
 
   try {
@@ -117,9 +130,14 @@ export async function GET(request: NextRequest) {
         'Cache-Control': 'public, s-maxage=60', // Cache for 1 minute
         'Access-Control-Allow-Origin': process.env.ALLOWED_ORIGINS || 'https://mcplookup.org',
         'Access-Control-Allow-Methods': 'GET, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type'
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key'
       }
     });
+
+    // Record API usage if authenticated with API key
+    if (apiKeyResult.context) {
+      await recordApiUsage(apiKeyResult.context, request, response, startTime);
+    }
 
     return addRateLimitHeaders(response, request);
 
