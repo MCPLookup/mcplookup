@@ -1,72 +1,65 @@
-// Generated Bridge Tools
-// Auto-generated from OpenAPI spec on 2025-06-05T06:13:11.199Z
-// DO NOT EDIT MANUALLY - regenerate with: npm run sync:bridge
+// Bridge Tools with API Parity
+// Bridge version of the 6 main MCP server tools + invoke_tool
+// These tools call the REST API instead of services directly
 
 import { z } from 'zod';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
+import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
 
 /**
- * Generated bridge tools that map to REST API endpoints
+ * Bridge tools with API parity to main MCP server
+ * Same 6 tools but using API calls instead of direct service calls
+ * Plus invoke_tool for calling streaming HTTP MCP servers
  */
-export class GeneratedBridgeTools {
+export class BridgeToolsWithAPIParity {
   private server: McpServer;
   private apiBaseUrl: string;
+  private apiKey?: string;
 
-  constructor(server: McpServer, apiBaseUrl: string = 'https://mcplookup.org/api') {
+  constructor(server: McpServer, apiBaseUrl: string = 'https://mcplookup.org/api', apiKey?: string) {
     this.server = server;
     this.apiBaseUrl = apiBaseUrl;
-    this.setupGeneratedTools();
+    this.apiKey = apiKey;
+    this.setupBridgeTools();
   }
 
   /**
-   * Setup all generated bridge tools
+   * Setup the 6 main tools + invoke_tool
    */
-  private setupGeneratedTools(): void {
-    // Serverless function for MCP server discovery
+  private setupBridgeTools(): void {
+    // Tool 1: discover_mcp_servers - Same as main server but calls API
     this.server.tool(
-      'discover_servers_via_api',
+      'discover_mcp_servers',
+      'Flexible MCP server discovery with natural language queries, similarity search, complex capability matching, and performance constraints. Express any search requirement naturally.',
       {
-      "type": "object",
-      "properties": {
-            "query": {
-                  "type": "string",
-                  "description": "Natural language search query",
-                  "required": false
-            },
-            "domain": {
-                  "type": "string",
-                  "description": "Specific domain to search for",
-                  "required": false
-            },
-            "capability": {
-                  "type": "string",
-                  "description": "Required capability",
-                  "required": false
-            },
-            "limit": {
-                  "type": "integer",
-                  "description": "Maximum number of results",
-                  "required": false
-            },
-            "auth_headers": {
-                  "type": "object",
-                  "description": "Optional authentication headers",
-                  "required": false
-            }
+        // Natural language query (most flexible)
+        query: z.string().optional().describe('Natural language query: "Find email servers like Gmail but faster", "I need document collaboration tools", "Show me alternatives to Slack"'),
+
+        // Exact lookups
+        domain: z.string().optional().describe('Exact domain lookup (e.g., "gmail.com")'),
+        domains: z.array(z.string()).optional().describe('Multiple domain lookups'),
+
+        // Capability-based search
+        capability: z.string().optional().describe('Required capability (e.g., "email", "calendar", "storage")'),
+        capabilities: z.array(z.string()).optional().describe('Multiple required capabilities'),
+
+        // Performance and reliability filters
+        min_trust_score: z.number().min(0).max(100).optional().describe('Minimum trust score (0-100)'),
+        max_response_time: z.number().optional().describe('Maximum acceptable response time in milliseconds'),
+        require_ssl: z.boolean().optional().describe('Require SSL/TLS encryption'),
+        require_verified: z.boolean().optional().describe('Only show domain-verified servers'),
+
+        // Result formatting
+        limit: z.number().min(1).max(100).default(10).describe('Maximum number of results'),
+        include_health: z.boolean().default(true).describe('Include real-time health status'),
+        include_examples: z.boolean().default(false).describe('Include usage examples'),
+        sort_by: z.enum(['relevance', 'trust_score', 'response_time', 'popularity']).default('relevance')
       },
-      "description": "Generated from OpenAPI operation"
-},
       async (args) => {
         try {
-          const { auth_headers = {}, ...apiParams } = args;
-          
-          const result = await this.makeApiRequest(
-            '/v1/discover',
-            'GET',
-            apiParams,
-            auth_headers
-          );
-          
+          const result = await this.makeApiRequest('/v1/discover', 'GET', args);
           return {
             content: [{
               type: 'text',
@@ -77,7 +70,7 @@ export class GeneratedBridgeTools {
           return {
             content: [{
               type: 'text',
-              text: `Error calling discover_servers_via_api: ${error instanceof Error ? error.message : 'Unknown error'}`
+              text: `Error discovering servers: ${error instanceof Error ? error.message : 'Unknown error'}`
             }],
             isError: true
           };
@@ -85,31 +78,23 @@ export class GeneratedBridgeTools {
       }
     );
 
-    // Smart AI-powered discovery endpoint Three-step process: keywords → search → AI narrowing
+    // Tool 2: register_mcp_server - Same as main server but calls API
     this.server.tool(
-      'post_smart_via_api',
+      'register_mcp_server',
+      'Register a new MCP server in the global registry. Requires authentication and domain ownership verification.',
       {
-      "type": "object",
-      "properties": {
-            "auth_headers": {
-                  "type": "object",
-                  "description": "Optional authentication headers",
-                  "required": false
-            }
+        domain: z.string().regex(/^[a-z0-9.-]+\.[a-z]{2,}$/).describe('Domain name you control (e.g., "mycompany.com")'),
+        endpoint: z.string().url().describe('Full URL to your MCP server endpoint'),
+        capabilities: z.array(z.string()).optional().describe('List of capabilities your server provides'),
+        category: z.enum(['communication', 'productivity', 'development', 'finance', 'social', 'storage', 'other']).optional(),
+        auth_type: z.enum(['none', 'api_key', 'oauth2', 'basic']).default('none'),
+        contact_email: z.string().email().optional().describe('Contact email for verification and issues'),
+        description: z.string().max(500).optional().describe('Brief description of your MCP server\'s purpose'),
+        user_id: z.string().describe('User ID for authentication')
       },
-      "description": "Generated from OpenAPI operation"
-},
       async (args) => {
         try {
-          const { auth_headers = {}, ...apiParams } = args;
-          
-          const result = await this.makeApiRequest(
-            '/v1/discover/smart',
-            'POST',
-            apiParams,
-            auth_headers
-          );
-          
+          const result = await this.makeApiRequest('/v1/register', 'POST', args);
           return {
             content: [{
               type: 'text',
@@ -120,7 +105,7 @@ export class GeneratedBridgeTools {
           return {
             content: [{
               type: 'text',
-              text: `Error calling post_smart_via_api: ${error instanceof Error ? error.message : 'Unknown error'}`
+              text: `Error registering server: ${error instanceof Error ? error.message : 'Unknown error'}`
             }],
             isError: true
           };
@@ -128,31 +113,17 @@ export class GeneratedBridgeTools {
       }
     );
 
-    // Domain Ownership Check API GET /api/v1/domain-check?domain=example.com Check if authenticated user can register MCP servers for a domain
+    // Tool 3: verify_domain_ownership - Same as main server but calls API
     this.server.tool(
-      'get_domain-check_via_api',
+      'verify_domain_ownership',
+      'Check the DNS verification status for a domain registration.',
       {
-      "type": "object",
-      "properties": {
-            "auth_headers": {
-                  "type": "object",
-                  "description": "Optional authentication headers",
-                  "required": false
-            }
+        domain: z.string().describe('Domain to check verification status'),
+        challenge_id: z.string().optional().describe('Specific challenge ID to check')
       },
-      "description": "Generated from OpenAPI operation"
-},
       async (args) => {
         try {
-          const { auth_headers = {}, ...apiParams } = args;
-          
-          const result = await this.makeApiRequest(
-            '/v1/domain-check',
-            'GET',
-            apiParams,
-            auth_headers
-          );
-          
+          const result = await this.makeApiRequest('/v1/verify', 'POST', args);
           return {
             content: [{
               type: 'text',
@@ -163,7 +134,7 @@ export class GeneratedBridgeTools {
           return {
             content: [{
               type: 'text',
-              text: `Error calling get_domain-check_via_api: ${error instanceof Error ? error.message : 'Unknown error'}`
+              text: `Error verifying domain: ${error instanceof Error ? error.message : 'Unknown error'}`
             }],
             isError: true
           };
@@ -171,41 +142,17 @@ export class GeneratedBridgeTools {
       }
     );
 
-    // Real-time health checks for MCP servers
+    // Tool 4: get_server_health - Same as main server but calls API
     this.server.tool(
-      'check_server_health_via_api',
+      'get_server_health',
+      'Get real-time health, performance, and reliability metrics for MCP servers.',
       {
-      "type": "object",
-      "properties": {
-            "domain": {
-                  "type": "string",
-                  "description": "domain parameter",
-                  "required": true
-            },
-            "realtime": {
-                  "type": "boolean",
-                  "description": "Perform real-time health check",
-                  "required": false
-            },
-            "auth_headers": {
-                  "type": "object",
-                  "description": "Optional authentication headers",
-                  "required": false
-            }
+        domain: z.string().optional().describe('Specific domain to check'),
+        domains: z.array(z.string()).optional().describe('Multiple domains to check')
       },
-      "description": "Generated from OpenAPI operation"
-},
       async (args) => {
         try {
-          const { auth_headers = {}, ...apiParams } = args;
-          
-          const result = await this.makeApiRequest(
-            '/v1/health/{domain}',
-            'GET',
-            apiParams,
-            auth_headers
-          );
-          
+          const result = await this.makeApiRequest('/v1/health', 'GET', args);
           return {
             content: [{
               type: 'text',
@@ -216,7 +163,7 @@ export class GeneratedBridgeTools {
           return {
             content: [{
               type: 'text',
-              text: `Error calling check_server_health_via_api: ${error instanceof Error ? error.message : 'Unknown error'}`
+              text: `Error getting server health: ${error instanceof Error ? error.message : 'Unknown error'}`
             }],
             isError: true
           };
@@ -224,31 +171,18 @@ export class GeneratedBridgeTools {
       }
     );
 
-    // User-Specific Server Management API GET /api/v1/my/servers - List only MY servers Prevents users from seeing servers they don't own
+    // Tool 5: browse_capabilities - Same as main server but calls API
     this.server.tool(
-      'get_my_servers_via_api',
+      'browse_capabilities',
+      'Browse and search the taxonomy of available MCP capabilities across all registered servers.',
       {
-      "type": "object",
-      "properties": {
-            "auth_headers": {
-                  "type": "object",
-                  "description": "Optional authentication headers",
-                  "required": false
-            }
+        category: z.string().optional().describe('Filter by category'),
+        search: z.string().optional().describe('Search capability names and descriptions'),
+        popular: z.boolean().optional().describe('Show most popular capabilities')
       },
-      "description": "Generated from OpenAPI operation"
-},
       async (args) => {
         try {
-          const { auth_headers = {}, ...apiParams } = args;
-          
-          const result = await this.makeApiRequest(
-            '/v1/my/servers',
-            'GET',
-            apiParams,
-            auth_headers
-          );
-          
+          const result = await this.makeApiRequest('/v1/capabilities', 'GET', args);
           return {
             content: [{
               type: 'text',
@@ -259,7 +193,7 @@ export class GeneratedBridgeTools {
           return {
             content: [{
               type: 'text',
-              text: `Error calling get_my_servers_via_api: ${error instanceof Error ? error.message : 'Unknown error'}`
+              text: `Error browsing capabilities: ${error instanceof Error ? error.message : 'Unknown error'}`
             }],
             isError: true
           };
@@ -267,31 +201,17 @@ export class GeneratedBridgeTools {
       }
     );
 
-    // Onboarding API GET /api/v1/onboarding - Get user's onboarding state POST /api/v1/onboarding - Update onboarding progress
+    // Tool 6: get_discovery_stats - Same as main server but calls API
     this.server.tool(
-      'get_onboarding_via_api',
+      'get_discovery_stats',
+      'Get analytics about MCP server discovery patterns and usage statistics.',
       {
-      "type": "object",
-      "properties": {
-            "auth_headers": {
-                  "type": "object",
-                  "description": "Optional authentication headers",
-                  "required": false
-            }
+        timeframe: z.enum(['hour', 'day', 'week', 'month']).default('day'),
+        metric: z.enum(['discoveries', 'registrations', 'health_checks', 'popular_domains']).default('discoveries')
       },
-      "description": "Generated from OpenAPI operation"
-},
       async (args) => {
         try {
-          const { auth_headers = {}, ...apiParams } = args;
-          
-          const result = await this.makeApiRequest(
-            '/v1/onboarding',
-            'GET',
-            apiParams,
-            auth_headers
-          );
-          
+          const result = await this.makeApiRequest('/v1/stats', 'GET', args);
           return {
             content: [{
               type: 'text',
@@ -302,7 +222,7 @@ export class GeneratedBridgeTools {
           return {
             content: [{
               type: 'text',
-              text: `Error calling get_onboarding_via_api: ${error instanceof Error ? error.message : 'Unknown error'}`
+              text: `Error getting discovery stats: ${error instanceof Error ? error.message : 'Unknown error'}`
             }],
             isError: true
           };
@@ -310,406 +230,59 @@ export class GeneratedBridgeTools {
       }
     );
 
-    // Onboarding API GET /api/v1/onboarding - Get user's onboarding state POST /api/v1/onboarding - Update onboarding progress
+    // Tool 7: invoke_tool - Call tools on streaming HTTP MCP servers
     this.server.tool(
-      'post_onboarding_via_api',
+      'invoke_tool',
+      'Call any tool on any streaming HTTP MCP server. This is the bridge-specific tool for connecting to external MCP servers.',
       {
-      "type": "object",
-      "properties": {
-            "auth_headers": {
-                  "type": "object",
-                  "description": "Optional authentication headers",
-                  "required": false
-            }
+        endpoint: z.string().url().describe('MCP server endpoint URL'),
+        tool_name: z.string().describe('Name of the tool to call'),
+        arguments: z.record(z.any()).optional().describe('Arguments to pass to the tool'),
+        auth_headers: z.record(z.string()).optional().describe('Optional authentication headers')
       },
-      "description": "Generated from OpenAPI operation"
-},
       async (args) => {
         try {
-          const { auth_headers = {}, ...apiParams } = args;
-          
-          const result = await this.makeApiRequest(
-            '/v1/onboarding',
-            'POST',
-            apiParams,
-            auth_headers
-          );
-          
-          return {
-            content: [{
-              type: 'text',
-              text: JSON.stringify(result, null, 2)
-            }]
-          };
-        } catch (error) {
-          return {
-            content: [{
-              type: 'text',
-              text: `Error calling post_onboarding_via_api: ${error instanceof Error ? error.message : 'Unknown error'}`
-            }],
-            isError: true
-          };
-        }
-      }
-    );
+          const { endpoint, tool_name, arguments: toolArgs = {}, auth_headers = {} } = args;
 
-    // Handles MCP server registration with DNS verification
-    this.server.tool(
-      'register_server_via_api',
-      {
-      "type": "object",
-      "properties": {
-            "auth_headers": {
-                  "type": "object",
-                  "description": "Optional authentication headers",
-                  "required": false
-            }
-      },
-      "description": "Generated from OpenAPI operation"
-},
-      async (args) => {
-        try {
-          const { auth_headers = {}, ...apiParams } = args;
-          
-          const result = await this.makeApiRequest(
-            '/v1/register',
-            'POST',
-            apiParams,
-            auth_headers
-          );
-          
-          return {
-            content: [{
-              type: 'text',
-              text: JSON.stringify(result, null, 2)
-            }]
-          };
-        } catch (error) {
-          return {
-            content: [{
-              type: 'text',
-              text: `Error calling register_server_via_api: ${error instanceof Error ? error.message : 'Unknown error'}`
-            }],
-            isError: true
-          };
-        }
-      }
-    );
+          // Create MCP client for the target server
+          const client = new Client({
+            name: 'mcplookup-bridge',
+            version: '1.0.0'
+          }, {
+            capabilities: {}
+          });
 
-    // Verifies DNS challenges for domain ownership
-    this.server.tool(
-      'get_verify_via_api',
-      {
-      "type": "object",
-      "properties": {
-            "id": {
-                  "type": "string",
-                  "description": "id parameter",
-                  "required": true
-            },
-            "auth_headers": {
-                  "type": "object",
-                  "description": "Optional authentication headers",
-                  "required": false
-            }
-      },
-      "description": "Generated from OpenAPI operation"
-},
-      async (args) => {
-        try {
-          const { auth_headers = {}, ...apiParams } = args;
-          
-          const result = await this.makeApiRequest(
-            '/v1/register/verify/{id}',
-            'GET',
-            apiParams,
-            auth_headers
-          );
-          
-          return {
-            content: [{
-              type: 'text',
-              text: JSON.stringify(result, null, 2)
-            }]
-          };
-        } catch (error) {
-          return {
-            content: [{
-              type: 'text',
-              text: `Error calling get_verify_via_api: ${error instanceof Error ? error.message : 'Unknown error'}`
-            }],
-            isError: true
-          };
-        }
-      }
-    );
+          let transport;
+          try {
+            // Try Streamable HTTP first
+            transport = new StreamableHTTPClientTransport(endpoint, auth_headers);
+          } catch {
+            // Fallback to SSE
+            transport = new SSEClientTransport(endpoint, auth_headers);
+          }
 
-    // Verifies DNS challenges for domain ownership
-    this.server.tool(
-      'register_server_via_api',
-      {
-      "type": "object",
-      "properties": {
-            "id": {
-                  "type": "string",
-                  "description": "id parameter",
-                  "required": true
-            },
-            "auth_headers": {
-                  "type": "object",
-                  "description": "Optional authentication headers",
-                  "required": false
-            }
-      },
-      "description": "Generated from OpenAPI operation"
-},
-      async (args) => {
-        try {
-          const { auth_headers = {}, ...apiParams } = args;
-          
-          const result = await this.makeApiRequest(
-            '/v1/register/verify/{id}',
-            'POST',
-            apiParams,
-            auth_headers
-          );
-          
-          return {
-            content: [{
-              type: 'text',
-              text: JSON.stringify(result, null, 2)
-            }]
-          };
-        } catch (error) {
-          return {
-            content: [{
-              type: 'text',
-              text: `Error calling register_server_via_api: ${error instanceof Error ? error.message : 'Unknown error'}`
-            }],
-            isError: true
-          };
-        }
-      }
-    );
+          await client.connect(transport);
 
-    // Server Management API with Domain Ownership Validation PUT /api/v1/servers/{domain} - Update server (only if you own the domain) DELETE /api/v1/servers/{domain} - Delete server (only if you own the domain)
-    this.server.tool(
-      'put_servers_via_api',
-      {
-      "type": "object",
-      "properties": {
-            "domain": {
-                  "type": "string",
-                  "description": "domain parameter",
-                  "required": true
-            },
-            "auth_headers": {
-                  "type": "object",
-                  "description": "Optional authentication headers",
-                  "required": false
-            }
-      },
-      "description": "Generated from OpenAPI operation"
-},
-      async (args) => {
-        try {
-          const { auth_headers = {}, ...apiParams } = args;
-          
-          const result = await this.makeApiRequest(
-            '/v1/servers/{domain}',
-            'PUT',
-            apiParams,
-            auth_headers
-          );
-          
-          return {
-            content: [{
-              type: 'text',
-              text: JSON.stringify(result, null, 2)
-            }]
-          };
-        } catch (error) {
-          return {
-            content: [{
-              type: 'text',
-              text: `Error calling put_servers_via_api: ${error instanceof Error ? error.message : 'Unknown error'}`
-            }],
-            isError: true
-          };
-        }
-      }
-    );
+          // Call the tool
+          const result = await client.callTool({
+            name: tool_name,
+            arguments: toolArgs
+          });
 
-    // Server Management API with Domain Ownership Validation PUT /api/v1/servers/{domain} - Update server (only if you own the domain) DELETE /api/v1/servers/{domain} - Delete server (only if you own the domain)
-    this.server.tool(
-      'delete_servers_via_api',
-      {
-      "type": "object",
-      "properties": {
-            "domain": {
-                  "type": "string",
-                  "description": "domain parameter",
-                  "required": true
-            },
-            "auth_headers": {
-                  "type": "object",
-                  "description": "Optional authentication headers",
-                  "required": false
-            }
-      },
-      "description": "Generated from OpenAPI operation"
-},
-      async (args) => {
-        try {
-          const { auth_headers = {}, ...apiParams } = args;
-          
-          const result = await this.makeApiRequest(
-            '/v1/servers/{domain}',
-            'DELETE',
-            apiParams,
-            auth_headers
-          );
-          
-          return {
-            content: [{
-              type: 'text',
-              text: JSON.stringify(result, null, 2)
-            }]
-          };
-        } catch (error) {
-          return {
-            content: [{
-              type: 'text',
-              text: `Error calling delete_servers_via_api: ${error instanceof Error ? error.message : 'Unknown error'}`
-            }],
-            isError: true
-          };
-        }
-      }
-    );
+          await client.close();
 
-    // Domain Verification Check API POST /api/v1/verify/check - Check specific verification
-    this.server.tool(
-      'post_check_via_api',
-      {
-      "type": "object",
-      "properties": {
-            "auth_headers": {
-                  "type": "object",
-                  "description": "Optional authentication headers",
-                  "required": false
-            }
-      },
-      "description": "Generated from OpenAPI operation"
-},
-      async (args) => {
-        try {
-          const { auth_headers = {}, ...apiParams } = args;
-          
-          const result = await this.makeApiRequest(
-            '/v1/verify/check',
-            'POST',
-            apiParams,
-            auth_headers
-          );
-          
           return {
-            content: [{
+            content: result.content || [{
               type: 'text',
               text: JSON.stringify(result, null, 2)
-            }]
-          };
-        } catch (error) {
-          return {
-            content: [{
-              type: 'text',
-              text: `Error calling post_check_via_api: ${error instanceof Error ? error.message : 'Unknown error'}`
             }],
-            isError: true
-          };
-        }
-      }
-    );
-
-    // Domain Verification API POST /api/v1/verify - Start domain verification GET /api/v1/verify - Get user's verifications
-    this.server.tool(
-      'get_verify_via_api',
-      {
-      "type": "object",
-      "properties": {
-            "auth_headers": {
-                  "type": "object",
-                  "description": "Optional authentication headers",
-                  "required": false
-            }
-      },
-      "description": "Generated from OpenAPI operation"
-},
-      async (args) => {
-        try {
-          const { auth_headers = {}, ...apiParams } = args;
-          
-          const result = await this.makeApiRequest(
-            '/v1/verify',
-            'GET',
-            apiParams,
-            auth_headers
-          );
-          
-          return {
-            content: [{
-              type: 'text',
-              text: JSON.stringify(result, null, 2)
-            }]
+            isError: result.isError || false
           };
         } catch (error) {
           return {
             content: [{
               type: 'text',
-              text: `Error calling get_verify_via_api: ${error instanceof Error ? error.message : 'Unknown error'}`
-            }],
-            isError: true
-          };
-        }
-      }
-    );
-
-    // Domain Verification API POST /api/v1/verify - Start domain verification GET /api/v1/verify - Get user's verifications
-    this.server.tool(
-      'post_verify_via_api',
-      {
-      "type": "object",
-      "properties": {
-            "auth_headers": {
-                  "type": "object",
-                  "description": "Optional authentication headers",
-                  "required": false
-            }
-      },
-      "description": "Generated from OpenAPI operation"
-},
-      async (args) => {
-        try {
-          const { auth_headers = {}, ...apiParams } = args;
-          
-          const result = await this.makeApiRequest(
-            '/v1/verify',
-            'POST',
-            apiParams,
-            auth_headers
-          );
-          
-          return {
-            content: [{
-              type: 'text',
-              text: JSON.stringify(result, null, 2)
-            }]
-          };
-        } catch (error) {
-          return {
-            content: [{
-              type: 'text',
-              text: `Error calling post_verify_via_api: ${error instanceof Error ? error.message : 'Unknown error'}`
+              text: `Error invoking tool ${args.tool_name} on ${args.endpoint}: ${error instanceof Error ? error.message : 'Unknown error'}`
             }],
             isError: true
           };
@@ -719,30 +292,33 @@ export class GeneratedBridgeTools {
   }
 
   /**
-   * Make HTTP request to API endpoint
+   * Make HTTP request to API endpoint with authentication
    */
-  private async makeApiRequest(
-    path: string, 
-    method: string, 
-    params: any = {}, 
-    authHeaders: Record<string, string> = {}
-  ): Promise<any> {
+  private async makeApiRequest(path: string, method: string, params: any = {}): Promise<any> {
     const url = new URL(path, this.apiBaseUrl);
-    
+
     // Add query parameters for GET requests
     if (method === 'GET' && params) {
       Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && key !== 'auth_headers') {
-          url.searchParams.set(key, String(value));
+        if (value !== undefined) {
+          if (Array.isArray(value)) {
+            value.forEach(v => url.searchParams.append(key, String(v)));
+          } else {
+            url.searchParams.set(key, String(value));
+          }
         }
       });
     }
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      'User-Agent': 'MCPLookup-Bridge/1.0',
-      ...authHeaders
+      'User-Agent': 'MCPLookup-Bridge/1.0'
     };
+
+    // Add API key if available
+    if (this.apiKey) {
+      headers['Authorization'] = `Bearer ${this.apiKey}`;
+    }
 
     const requestOptions: RequestInit = {
       method,
@@ -751,18 +327,17 @@ export class GeneratedBridgeTools {
 
     // Add body for POST/PUT/PATCH requests
     if (['POST', 'PUT', 'PATCH'].includes(method) && params) {
-      const { auth_headers, ...bodyParams } = params;
-      requestOptions.body = JSON.stringify(bodyParams);
+      requestOptions.body = JSON.stringify(params);
     }
 
     try {
       const response = await fetch(url.toString(), requestOptions);
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(`API request failed: ${response.status} ${data.error || response.statusText}`);
       }
-      
+
       return data;
     } catch (error) {
       throw new Error(`Bridge API request failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -770,544 +345,5 @@ export class GeneratedBridgeTools {
   }
 }
 
-// Export tool schemas for validation
-export const GENERATED_TOOL_SCHEMAS = {
-  'discover_servers_via_api': {
-  "type": "object",
-  "properties": {
-    "query": {
-      "type": "string",
-      "description": "Natural language search query",
-      "required": false
-    },
-    "domain": {
-      "type": "string",
-      "description": "Specific domain to search for",
-      "required": false
-    },
-    "capability": {
-      "type": "string",
-      "description": "Required capability",
-      "required": false
-    },
-    "limit": {
-      "type": "integer",
-      "description": "Maximum number of results",
-      "required": false
-    },
-    "auth_headers": {
-      "type": "object",
-      "description": "Optional authentication headers",
-      "required": false
-    }
-  },
-  "description": "Generated from OpenAPI operation"
-},
-  'post_smart_via_api': {
-  "type": "object",
-  "properties": {
-    "auth_headers": {
-      "type": "object",
-      "description": "Optional authentication headers",
-      "required": false
-    }
-  },
-  "description": "Generated from OpenAPI operation"
-},
-  'get_domain-check_via_api': {
-  "type": "object",
-  "properties": {
-    "auth_headers": {
-      "type": "object",
-      "description": "Optional authentication headers",
-      "required": false
-    }
-  },
-  "description": "Generated from OpenAPI operation"
-},
-  'check_server_health_via_api': {
-  "type": "object",
-  "properties": {
-    "domain": {
-      "type": "string",
-      "description": "domain parameter",
-      "required": true
-    },
-    "realtime": {
-      "type": "boolean",
-      "description": "Perform real-time health check",
-      "required": false
-    },
-    "auth_headers": {
-      "type": "object",
-      "description": "Optional authentication headers",
-      "required": false
-    }
-  },
-  "description": "Generated from OpenAPI operation"
-},
-  'get_my_servers_via_api': {
-  "type": "object",
-  "properties": {
-    "auth_headers": {
-      "type": "object",
-      "description": "Optional authentication headers",
-      "required": false
-    }
-  },
-  "description": "Generated from OpenAPI operation"
-},
-  'get_onboarding_via_api': {
-  "type": "object",
-  "properties": {
-    "auth_headers": {
-      "type": "object",
-      "description": "Optional authentication headers",
-      "required": false
-    }
-  },
-  "description": "Generated from OpenAPI operation"
-},
-  'post_onboarding_via_api': {
-  "type": "object",
-  "properties": {
-    "auth_headers": {
-      "type": "object",
-      "description": "Optional authentication headers",
-      "required": false
-    }
-  },
-  "description": "Generated from OpenAPI operation"
-},
-  'register_server_via_api': {
-  "type": "object",
-  "properties": {
-    "auth_headers": {
-      "type": "object",
-      "description": "Optional authentication headers",
-      "required": false
-    }
-  },
-  "description": "Generated from OpenAPI operation"
-},
-  'get_verify_via_api': {
-  "type": "object",
-  "properties": {
-    "id": {
-      "type": "string",
-      "description": "id parameter",
-      "required": true
-    },
-    "auth_headers": {
-      "type": "object",
-      "description": "Optional authentication headers",
-      "required": false
-    }
-  },
-  "description": "Generated from OpenAPI operation"
-},
-  'register_server_via_api': {
-  "type": "object",
-  "properties": {
-    "id": {
-      "type": "string",
-      "description": "id parameter",
-      "required": true
-    },
-    "auth_headers": {
-      "type": "object",
-      "description": "Optional authentication headers",
-      "required": false
-    }
-  },
-  "description": "Generated from OpenAPI operation"
-},
-  'put_servers_via_api': {
-  "type": "object",
-  "properties": {
-    "domain": {
-      "type": "string",
-      "description": "domain parameter",
-      "required": true
-    },
-    "auth_headers": {
-      "type": "object",
-      "description": "Optional authentication headers",
-      "required": false
-    }
-  },
-  "description": "Generated from OpenAPI operation"
-},
-  'delete_servers_via_api': {
-  "type": "object",
-  "properties": {
-    "domain": {
-      "type": "string",
-      "description": "domain parameter",
-      "required": true
-    },
-    "auth_headers": {
-      "type": "object",
-      "description": "Optional authentication headers",
-      "required": false
-    }
-  },
-  "description": "Generated from OpenAPI operation"
-},
-  'post_check_via_api': {
-  "type": "object",
-  "properties": {
-    "auth_headers": {
-      "type": "object",
-      "description": "Optional authentication headers",
-      "required": false
-    }
-  },
-  "description": "Generated from OpenAPI operation"
-},
-  'get_verify_via_api': {
-  "type": "object",
-  "properties": {
-    "auth_headers": {
-      "type": "object",
-      "description": "Optional authentication headers",
-      "required": false
-    }
-  },
-  "description": "Generated from OpenAPI operation"
-},
-  'post_verify_via_api': {
-  "type": "object",
-  "properties": {
-    "auth_headers": {
-      "type": "object",
-      "description": "Optional authentication headers",
-      "required": false
-    }
-  },
-  "description": "Generated from OpenAPI operation"
-}
-};
-
-// Export tool metadata
-export const GENERATED_TOOL_METADATA = [
-  {
-    name: 'discover_servers_via_api',
-    description: 'Serverless function for MCP server discovery',
-    category: 'Discovery',
-    restEndpoint: {
-    "path": "/v1/discover",
-    "method": "GET",
-    "parameters": [
-        {
-            "name": "query",
-            "in": "query",
-            "schema": {
-                "type": "string"
-            },
-            "description": "Natural language search query",
-            "example": "Find email servers like Gmail"
-        },
-        {
-            "name": "domain",
-            "in": "query",
-            "schema": {
-                "type": "string"
-            },
-            "description": "Specific domain to search for",
-            "example": "gmail.com"
-        },
-        {
-            "name": "capability",
-            "in": "query",
-            "schema": {
-                "type": "string"
-            },
-            "description": "Required capability",
-            "example": "email"
-        },
-        {
-            "name": "limit",
-            "in": "query",
-            "schema": {
-                "type": "integer",
-                "minimum": 1,
-                "maximum": 100,
-                "default": 10
-            },
-            "description": "Maximum number of results"
-        }
-    ]
-}
-  },
-  {
-    name: 'post_smart_via_api',
-    description: 'Smart AI-powered discovery endpoint Three-step process: keywords → search → AI narrowing',
-    category: 'Discovery',
-    restEndpoint: {
-    "path": "/v1/discover/smart",
-    "method": "POST",
-    "requestBody": {
-        "required": true,
-        "content": {
-            "application/json": {
-                "schema": {
-                    "type": "object",
-                    "description": "Request payload"
-                }
-            }
-        }
-    }
-}
-  },
-  {
-    name: 'get_domain-check_via_api',
-    description: 'Domain Ownership Check API GET /api/v1/domain-check?domain=example.com Check if authenticated user can register MCP servers for a domain',
-    category: 'API Bridge',
-    restEndpoint: {
-    "path": "/v1/domain-check",
-    "method": "GET",
-    "parameters": []
-}
-  },
-  {
-    name: 'check_server_health_via_api',
-    description: 'Real-time health checks for MCP servers',
-    category: 'Health',
-    restEndpoint: {
-    "path": "/v1/health/{domain}",
-    "method": "GET",
-    "parameters": [
-        {
-            "name": "domain",
-            "in": "path",
-            "required": true,
-            "schema": {
-                "type": "string"
-            },
-            "description": "domain parameter"
-        },
-        {
-            "name": "realtime",
-            "in": "query",
-            "schema": {
-                "type": "boolean",
-                "default": false
-            },
-            "description": "Perform real-time health check"
-        }
-    ]
-}
-  },
-  {
-    name: 'get_my_servers_via_api',
-    description: 'User-Specific Server Management API GET /api/v1/my/servers - List only MY servers Prevents users from seeing servers they don't own',
-    category: 'User Management',
-    restEndpoint: {
-    "path": "/v1/my/servers",
-    "method": "GET",
-    "parameters": []
-}
-  },
-  {
-    name: 'get_onboarding_via_api',
-    description: 'Onboarding API GET /api/v1/onboarding - Get user's onboarding state POST /api/v1/onboarding - Update onboarding progress',
-    category: 'API Bridge',
-    restEndpoint: {
-    "path": "/v1/onboarding",
-    "method": "GET",
-    "parameters": []
-}
-  },
-  {
-    name: 'post_onboarding_via_api',
-    description: 'Onboarding API GET /api/v1/onboarding - Get user's onboarding state POST /api/v1/onboarding - Update onboarding progress',
-    category: 'API Bridge',
-    restEndpoint: {
-    "path": "/v1/onboarding",
-    "method": "POST",
-    "requestBody": {
-        "required": true,
-        "content": {
-            "application/json": {
-                "schema": {
-                    "type": "object",
-                    "description": "Request payload"
-                }
-            }
-        }
-    }
-}
-  },
-  {
-    name: 'register_server_via_api',
-    description: 'Handles MCP server registration with DNS verification',
-    category: 'Registration',
-    restEndpoint: {
-    "path": "/v1/register",
-    "method": "POST",
-    "requestBody": {
-        "required": true,
-        "content": {
-            "application/json": {
-                "schema": {
-                    "$ref": "#/components/schemas/RegistrationRequest"
-                }
-            }
-        }
-    }
-}
-  },
-  {
-    name: 'get_verify_via_api',
-    description: 'Verifies DNS challenges for domain ownership',
-    category: 'Registration',
-    restEndpoint: {
-    "path": "/v1/register/verify/{id}",
-    "method": "GET",
-    "parameters": [
-        {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-                "type": "string"
-            },
-            "description": "id parameter"
-        }
-    ]
-}
-  },
-  {
-    name: 'register_server_via_api',
-    description: 'Verifies DNS challenges for domain ownership',
-    category: 'Registration',
-    restEndpoint: {
-    "path": "/v1/register/verify/{id}",
-    "method": "POST",
-    "parameters": [
-        {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-                "type": "string"
-            },
-            "description": "id parameter"
-        }
-    ],
-    "requestBody": {
-        "required": true,
-        "content": {
-            "application/json": {
-                "schema": {
-                    "type": "object",
-                    "description": "Request payload"
-                }
-            }
-        }
-    }
-}
-  },
-  {
-    name: 'put_servers_via_api',
-    description: 'Server Management API with Domain Ownership Validation PUT /api/v1/servers/{domain} - Update server (only if you own the domain) DELETE /api/v1/servers/{domain} - Delete server (only if you own the domain)',
-    category: 'Server Management',
-    restEndpoint: {
-    "path": "/v1/servers/{domain}",
-    "method": "PUT",
-    "parameters": [
-        {
-            "name": "domain",
-            "in": "path",
-            "required": true,
-            "schema": {
-                "type": "string"
-            },
-            "description": "domain parameter"
-        }
-    ],
-    "requestBody": {
-        "required": true,
-        "content": {
-            "application/json": {
-                "schema": {
-                    "type": "object",
-                    "description": "Request payload"
-                }
-            }
-        }
-    }
-}
-  },
-  {
-    name: 'delete_servers_via_api',
-    description: 'Server Management API with Domain Ownership Validation PUT /api/v1/servers/{domain} - Update server (only if you own the domain) DELETE /api/v1/servers/{domain} - Delete server (only if you own the domain)',
-    category: 'Server Management',
-    restEndpoint: {
-    "path": "/v1/servers/{domain}",
-    "method": "DELETE",
-    "parameters": [
-        {
-            "name": "domain",
-            "in": "path",
-            "required": true,
-            "schema": {
-                "type": "string"
-            },
-            "description": "domain parameter"
-        }
-    ]
-}
-  },
-  {
-    name: 'post_check_via_api',
-    description: 'Domain Verification Check API POST /api/v1/verify/check - Check specific verification',
-    category: 'API Bridge',
-    restEndpoint: {
-    "path": "/v1/verify/check",
-    "method": "POST",
-    "requestBody": {
-        "required": true,
-        "content": {
-            "application/json": {
-                "schema": {
-                    "type": "object",
-                    "description": "Request payload"
-                }
-            }
-        }
-    }
-}
-  },
-  {
-    name: 'get_verify_via_api',
-    description: 'Domain Verification API POST /api/v1/verify - Start domain verification GET /api/v1/verify - Get user's verifications',
-    category: 'API Bridge',
-    restEndpoint: {
-    "path": "/v1/verify",
-    "method": "GET",
-    "parameters": []
-}
-  },
-  {
-    name: 'post_verify_via_api',
-    description: 'Domain Verification API POST /api/v1/verify - Start domain verification GET /api/v1/verify - Get user's verifications',
-    category: 'API Bridge',
-    restEndpoint: {
-    "path": "/v1/verify",
-    "method": "POST",
-    "requestBody": {
-        "required": true,
-        "content": {
-            "application/json": {
-                "schema": {
-                    "type": "object",
-                    "description": "Request payload"
-                }
-            }
-        }
-    }
-}
-  }
-];
+// Export for use in bridge
+export default BridgeToolsWithAPIParity;

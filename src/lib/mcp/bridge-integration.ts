@@ -3,79 +3,83 @@
 // Generated on 2025-06-05T06:13:11.205Z
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { GeneratedBridgeTools, GENERATED_TOOL_METADATA } from './bridge-generated';
-import { BRIDGE_CONFIG } from './bridge-config';
+import BridgeToolsWithAPIParity from './bridge-generated';
 
 /**
- * Enhanced bridge that combines manual and generated tools
+ * Enhanced bridge that combines the 6 main tools + invoke_tool
  */
 export class IntegratedBridge {
   private server: McpServer;
-  private generatedTools: GeneratedBridgeTools;
+  private bridgeTools: BridgeToolsWithAPIParity;
 
-  constructor(server: McpServer) {
+  constructor(server: McpServer, apiKey?: string) {
     this.server = server;
-    this.generatedTools = new GeneratedBridgeTools(server, BRIDGE_CONFIG.apiBaseUrl);
+    this.bridgeTools = new BridgeToolsWithAPIParity(server, 'https://mcplookup.org/api', apiKey);
     this.setupIntegration();
   }
 
   /**
-   * Setup integration between manual and generated tools
+   * Setup integration with the 7 bridge tools
    */
   private setupIntegration(): void {
-    console.log('🔧 Setting up integrated bridge with generated tools');
-    console.log(`📊 Generated tools available: ${GENERATED_TOOL_METADATA.length}`);
-    
-    // Log available tool categories
-    const categories = new Set(GENERATED_TOOL_METADATA.map(t => t.category));
-    console.log(`📂 Tool categories: ${Array.from(categories).join(', ')}`);
+    console.log('🔧 Setting up integrated bridge with API parity tools');
+    console.log('📊 Available tools: 6 main tools + invoke_tool');
+    console.log('🎯 Tools call REST API instead of services directly');
   }
 
   /**
-   * Get all available tools (manual + generated)
+   * Get all available tools (7 bridge tools)
    */
   getAvailableTools(): Array<{
     name: string;
     description: string;
     category: string;
-    source: 'manual' | 'generated';
+    source: 'bridge';
   }> {
-    const tools = [];
-    
-    // Add generated tools
-    for (const tool of GENERATED_TOOL_METADATA) {
-      tools.push({
-        name: tool.name,
-        description: tool.description,
-        category: tool.category,
-        source: 'generated' as const
-      });
-    }
-    
-    // Add manual tools (you can extend this)
-    const manualTools = [
+    return [
       {
-        name: 'connect_and_list_tools',
-        description: 'Connect to any MCP server and list its tools',
-        category: 'Bridge',
-        source: 'manual' as const
+        name: 'discover_mcp_servers',
+        description: 'Flexible MCP server discovery with natural language queries',
+        category: 'Discovery',
+        source: 'bridge' as const
       },
       {
-        name: 'call_tool_on_server',
-        description: 'Call any tool on any MCP server',
-        category: 'Bridge', 
-        source: 'manual' as const
+        name: 'register_mcp_server',
+        description: 'Register a new MCP server in the global registry',
+        category: 'Registration',
+        source: 'bridge' as const
       },
       {
-        name: 'read_resource_from_server',
-        description: 'Read any resource from any MCP server',
+        name: 'verify_domain_ownership',
+        description: 'Check the DNS verification status for a domain registration',
+        category: 'Verification',
+        source: 'bridge' as const
+      },
+      {
+        name: 'get_server_health',
+        description: 'Get real-time health, performance, and reliability metrics',
+        category: 'Health',
+        source: 'bridge' as const
+      },
+      {
+        name: 'browse_capabilities',
+        description: 'Browse and search the taxonomy of available MCP capabilities',
+        category: 'Discovery',
+        source: 'bridge' as const
+      },
+      {
+        name: 'get_discovery_stats',
+        description: 'Get analytics about MCP server discovery patterns and usage statistics',
+        category: 'Analytics',
+        source: 'bridge' as const
+      },
+      {
+        name: 'invoke_tool',
+        description: 'Call any tool on any streaming HTTP MCP server',
         category: 'Bridge',
-        source: 'manual' as const
+        source: 'bridge' as const
       }
     ];
-    
-    tools.push(...manualTools);
-    return tools;
   }
 
   /**
@@ -103,9 +107,9 @@ export class IntegratedBridge {
 }
 
 // Export for use in main bridge
-export { GeneratedBridgeTools, BRIDGE_CONFIG, GENERATED_TOOL_METADATA };
+export { BridgeToolsWithAPIParity };
 
 // Helper to setup integrated bridge
-export function setupIntegratedBridge(server: McpServer): IntegratedBridge {
-  return new IntegratedBridge(server);
+export function setupIntegratedBridge(server: McpServer, apiKey?: string): IntegratedBridge {
+  return new IntegratedBridge(server, apiKey);
 }

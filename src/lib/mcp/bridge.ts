@@ -453,34 +453,31 @@ export class MCPHttpBridge {
             type: 'text',
             text: JSON.stringify({
               bridge_version: '2.1.0',
-              enhanced_features: [
-                'Auto-generated bridge tools from OpenAPI spec',
-                'Complete API coverage with type safety',
-                'Bidirectional sync between API and bridge',
-                'Categorized tool organization'
-              ],
+              bridge_type: 'API Parity Bridge',
+              description: 'Bridge with same 6 tools as main MCP server but calls REST API instead of services',
               capabilities: [
-                'MCP server discovery via mcplookup.org',
-                'Dynamic tool calling on any MCP server',
-                'HTTP streaming transport (Streamable HTTP + SSE fallback)',
-                'Universal MCP client functionality',
-                'REST API bridge tools (auto-generated)',
-                'Type-safe tool implementations'
+                'MCP server discovery via REST API',
+                'Server registration via REST API',
+                'Domain verification via REST API',
+                'Health monitoring via REST API',
+                'Capability browsing via REST API',
+                'Discovery analytics via REST API',
+                'Tool invocation on streaming HTTP MCP servers'
               ],
-              discovery_endpoint: 'https://mcplookup.org/api/mcp',
+              api_endpoint: 'https://mcplookup.org/api',
               default_endpoint: this.httpEndpoint || 'none',
               connected_to_default: this.connected,
               tool_statistics: {
                 total_tools: availableTools.length,
-                manual_tools: availableTools.filter(t => t.source === 'manual').length,
-                generated_tools: availableTools.filter(t => t.source === 'generated').length,
+                main_tools: 6,
+                bridge_tools: 1,
                 categories: Object.keys(toolsByCategory).length
               },
               tools_by_category: toolsByCategory,
               integration_status: {
-                integrated_bridge_active: true,
-                openapi_sync_available: true,
-                last_sync: 'Auto-generated from OpenAPI spec'
+                api_parity_active: true,
+                calls_rest_api: true,
+                same_functionality_as_main_server: true
               }
             }, null, 2)
           }]
@@ -540,12 +537,11 @@ export class MCPHttpBridge {
     try {
       const availableTools = this.integratedBridge.getAvailableTools();
       const toolCount = availableTools.length;
-      const generatedCount = availableTools.filter(t => t.source === 'generated').length;
-      const manualCount = availableTools.filter(t => t.source === 'manual').length;
 
       console.log(`🌉 Starting Enhanced MCP HTTP Bridge v2.1.0`);
       console.log(`📡 Target endpoint: ${this.httpEndpoint}`);
-      console.log(`🔧 Integrated tools: ${toolCount} total (${generatedCount} generated + ${manualCount} manual)`);
+      console.log(`🔧 Bridge tools: ${toolCount} tools (6 main + invoke_tool)`);
+      console.log(`🎯 Tools call REST API instead of services directly`);
       console.log(`🔌 Listening on stdio...`);
 
       const transport = new StdioServerTransport();
@@ -553,11 +549,11 @@ export class MCPHttpBridge {
 
       console.log('✅ Enhanced bridge server started successfully');
       console.log('🎯 Key features:');
-      console.log('  • Auto-generated REST API bridge tools');
-      console.log('  • Complete API coverage with type safety');
-      console.log('  • Universal MCP server discovery and connection');
-      console.log('  • Bidirectional sync with OpenAPI spec');
-      console.log('💡 Use "bridge_status" tool to see all available tools and categories');
+      console.log('  • 6 main MCP tools with API parity');
+      console.log('  • invoke_tool for calling streaming HTTP MCP servers');
+      console.log('  • REST API calls instead of direct service calls');
+      console.log('  • Type-safe tool implementations');
+      console.log('💡 Use "bridge_status" tool to see all available tools');
 
     } catch (error) {
       console.error('❌ Failed to start enhanced bridge server:', error);
