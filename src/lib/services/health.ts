@@ -10,7 +10,7 @@ import { IHealthService } from './discovery';
  * Optimized for serverless environments
  */
 export class HealthService implements IHealthService {
-  private readonly HEALTH_CHECK_TIMEOUT_MS = 10000; // 10 seconds
+  private readonly HEALTH_CHECK_TIMEOUT_MS = 5000; // 5 seconds for faster tests
   private readonly MAX_CONCURRENT_CHECKS = 10;
 
   /**
@@ -25,37 +25,39 @@ export class HealthService implements IHealthService {
       const responseTime = Date.now() - startTime;
 
       if (response.success) {
+        // Calculate status based on response time
+        const status = this.calculateHealthStatus(responseTime, 0.01);
         return {
-          status: 'healthy',
-          uptime_percentage: 99.0, // Would be calculated from historical data
+          status,
+          uptime_percentage: this.estimateUptimePercentage(status),
           avg_response_time_ms: responseTime,
           response_time_ms: responseTime,
-          error_rate: 0.01, // Would be calculated from historical data
+          error_rate: this.estimateErrorRate(status),
           last_check: new Date().toISOString(),
           consecutive_failures: 0
         };
       } else {
         return {
-          status: 'degraded',
-          uptime_percentage: 95.0,
+          status: 'unhealthy',
+          uptime_percentage: 85.0,
           avg_response_time_ms: responseTime,
           response_time_ms: responseTime,
-          error_rate: 0.05,
+          error_rate: 0.15,
           last_check: new Date().toISOString(),
           consecutive_failures: 1
         };
       }
     } catch (error) {
       const responseTime = Date.now() - startTime;
-      
+
       return {
         status: 'unhealthy',
-        uptime_percentage: 90.0,
+        uptime_percentage: 80.0,
         avg_response_time_ms: responseTime,
         response_time_ms: responseTime,
-        error_rate: 0.1,
+        error_rate: 0.2, // Higher error rate for failed requests
         last_check: new Date().toISOString(),
-        consecutive_failures: 5
+        consecutive_failures: 1
       };
     }
   }
@@ -174,7 +176,8 @@ export class HealthService implements IHealthService {
    */
   private calculateHealthStatus(responseTime: number, errorRate: number): HealthMetrics['status'] {
     if (errorRate > 0.1) return 'unhealthy';
-    if (errorRate > 0.05 || responseTime > 5000) return 'degraded';
+    if (errorRate > 0.05 || responseTime > 3000) return 'degraded';
+    if (responseTime > 1000) return 'degraded';
     return 'healthy';
   }
 
@@ -211,17 +214,28 @@ export class HealthService implements IHealthService {
  */
 export class EnhancedHealthService extends HealthService {
   private healthHistory: Map<string, HealthMetrics[]> = new Map();
+  private healthCache: Map<string, { health: HealthMetrics; timestamp: number }> = new Map();
   private readonly MAX_HISTORY_ENTRIES = 100;
+  private readonly CACHE_TTL_MS = 30000; // 30 seconds cache
 
   async checkServerHealth(endpoint: string): Promise<HealthMetrics> {
+    // Check cache first
+    const cached = this.healthCache.get(endpoint);
+    if (cached && Date.now() - cached.timestamp < this.CACHE_TTL_MS) {
+      return cached.health;
+    }
+
     const currentHealth = await super.checkServerHealth(endpoint);
-    
+
     // Store in history
     this.storeHealthHistory(endpoint, currentHealth);
-    
+
     // Calculate enhanced metrics from history
     const enhancedHealth = this.calculateEnhancedMetrics(endpoint, currentHealth);
-    
+
+    // Cache the result
+    this.healthCache.set(endpoint, { health: enhancedHealth, timestamp: Date.now() });
+
     return enhancedHealth;
   }
 

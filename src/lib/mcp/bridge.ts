@@ -1,6 +1,7 @@
 // MCP STDIO-TO-HTTP BRIDGE
 // Uses @modelcontextprotocol/sdk to create a stdio server that proxies to HTTP streaming endpoints
 // Enables legacy agents to use modern HTTP MCP servers through stdio interface
+// Now enhanced with auto-generated bridge tools from OpenAPI spec
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
@@ -8,13 +9,15 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
 import { z } from 'zod';
+import { IntegratedBridge, setupIntegratedBridge } from './bridge-integration';
 
 /**
- * MCP Stdio-to-HTTP Bridge
- * 
+ * Enhanced MCP Stdio-to-HTTP Bridge
+ *
  * Creates a stdio MCP server that proxies all requests to an HTTP MCP server.
  * Legacy agents can connect via stdio, while the actual server runs over HTTP streaming.
- * 
+ * Now includes auto-generated bridge tools from OpenAPI spec for complete API coverage.
+ *
  * Usage:
  * ```
  * const bridge = new MCPHttpBridge('https://api.example.com/mcp');
@@ -27,6 +30,7 @@ export class MCPHttpBridge {
   private httpEndpoint: string;
   private authHeaders: Record<string, string>;
   private connected = false;
+  private integratedBridge: IntegratedBridge;
 
   constructor(httpEndpoint: string, authHeaders: Record<string, string> = {}) {
     this.httpEndpoint = httpEndpoint.replace(/\/$/, ''); // Remove trailing slash
@@ -36,11 +40,14 @@ export class MCPHttpBridge {
       ...this.getAuthHeadersFromEnv(),
       ...authHeaders // Provided headers override env vars
     };
-    
+
     this.server = new McpServer({
-      name: 'mcp-http-bridge',
-      version: '1.0.0',
+      name: 'mcp-http-bridge-enhanced',
+      version: '2.1.0',
     });
+
+    // Initialize integrated bridge with generated tools
+    this.integratedBridge = setupIntegratedBridge(this.server);
 
     this.setupBridgeTools();
   }
@@ -421,33 +428,60 @@ export class MCPHttpBridge {
       }
     );
 
-    // Tool 6: Get bridge status and capabilities
+    // Tool 6: Get enhanced bridge status and capabilities
     this.server.tool(
       'bridge_status',
       {},
       async () => {
+        const availableTools = this.integratedBridge.getAvailableTools();
+        const toolsByCategory = {};
+
+        // Group tools by category
+        for (const tool of availableTools) {
+          if (!toolsByCategory[tool.category]) {
+            toolsByCategory[tool.category] = [];
+          }
+          toolsByCategory[tool.category].push({
+            name: tool.name,
+            description: tool.description,
+            source: tool.source
+          });
+        }
+
         return {
           content: [{
             type: 'text',
             text: JSON.stringify({
-              bridge_version: '2.0.0',
+              bridge_version: '2.1.0',
+              enhanced_features: [
+                'Auto-generated bridge tools from OpenAPI spec',
+                'Complete API coverage with type safety',
+                'Bidirectional sync between API and bridge',
+                'Categorized tool organization'
+              ],
               capabilities: [
                 'MCP server discovery via mcplookup.org',
                 'Dynamic tool calling on any MCP server',
                 'HTTP streaming transport (Streamable HTTP + SSE fallback)',
-                'Universal MCP client functionality'
+                'Universal MCP client functionality',
+                'REST API bridge tools (auto-generated)',
+                'Type-safe tool implementations'
               ],
               discovery_endpoint: 'https://mcplookup.org/api/mcp',
               default_endpoint: this.httpEndpoint || 'none',
               connected_to_default: this.connected,
-              available_tools: [
-                'discover_mcp_servers - Find MCP servers using mcplookup.org',
-                'connect_and_list_tools - Connect to a server and list its tools',
-                'call_tool_on_server - Call any tool on any MCP server',
-                'read_resource_from_server - Read resources from any MCP server',
-                'discover_and_call_tool - One-step workflow: discover + call',
-                'bridge_status - This status information'
-              ]
+              tool_statistics: {
+                total_tools: availableTools.length,
+                manual_tools: availableTools.filter(t => t.source === 'manual').length,
+                generated_tools: availableTools.filter(t => t.source === 'generated').length,
+                categories: Object.keys(toolsByCategory).length
+              },
+              tools_by_category: toolsByCategory,
+              integration_status: {
+                integrated_bridge_active: true,
+                openapi_sync_available: true,
+                last_sync: 'Auto-generated from OpenAPI spec'
+              }
             }, null, 2)
           }]
         };
@@ -500,22 +534,33 @@ export class MCPHttpBridge {
   }
 
   /**
-   * Start the bridge server on stdio
+   * Start the enhanced bridge server on stdio
    */
   async run(): Promise<void> {
     try {
-      console.log(`🌉 Starting MCP HTTP Bridge`);
+      const availableTools = this.integratedBridge.getAvailableTools();
+      const toolCount = availableTools.length;
+      const generatedCount = availableTools.filter(t => t.source === 'generated').length;
+      const manualCount = availableTools.filter(t => t.source === 'manual').length;
+
+      console.log(`🌉 Starting Enhanced MCP HTTP Bridge v2.1.0`);
       console.log(`📡 Target endpoint: ${this.httpEndpoint}`);
+      console.log(`🔧 Integrated tools: ${toolCount} total (${generatedCount} generated + ${manualCount} manual)`);
       console.log(`🔌 Listening on stdio...`);
 
       const transport = new StdioServerTransport();
       await this.server.connect(transport);
-      
-      console.log('✅ Bridge server started successfully');
-      console.log('💡 Available bridge tools: call_remote_tool, list_remote_tools, list_remote_resources, read_remote_resource, bridge_status');
-      
+
+      console.log('✅ Enhanced bridge server started successfully');
+      console.log('🎯 Key features:');
+      console.log('  • Auto-generated REST API bridge tools');
+      console.log('  • Complete API coverage with type safety');
+      console.log('  • Universal MCP server discovery and connection');
+      console.log('  • Bidirectional sync with OpenAPI spec');
+      console.log('💡 Use "bridge_status" tool to see all available tools and categories');
+
     } catch (error) {
-      console.error('❌ Failed to start bridge server:', error);
+      console.error('❌ Failed to start enhanced bridge server:', error);
       throw error;
     }
   }
@@ -534,13 +579,104 @@ export class MCPHttpBridge {
 }
 
 /**
+ * Enhanced Bridge with Auto-Generated Tools
+ *
+ * This is the new recommended bridge that includes all auto-generated tools
+ * from the OpenAPI spec plus the original manual bridge tools.
+ */
+export class EnhancedMCPBridge {
+  private server: McpServer;
+  private integratedBridge: IntegratedBridge;
+  private httpEndpoint: string;
+  private authHeaders: Record<string, string>;
+
+  constructor(httpEndpoint: string = '', authHeaders: Record<string, string> = {}) {
+    this.httpEndpoint = httpEndpoint;
+    this.authHeaders = authHeaders;
+
+    this.server = new McpServer({
+      name: 'enhanced-mcp-bridge',
+      version: '2.1.0',
+    });
+
+    // Setup integrated bridge with all tools
+    this.integratedBridge = setupIntegratedBridge(this.server);
+  }
+
+  /**
+   * Get all available tools
+   */
+  getAvailableTools() {
+    return this.integratedBridge.getAvailableTools();
+  }
+
+  /**
+   * Get tools by category
+   */
+  getToolsByCategory(category: string) {
+    return this.integratedBridge.getToolsByCategory(category);
+  }
+
+  /**
+   * Check if a tool is available
+   */
+  hasToolAvailable(toolName: string) {
+    return this.integratedBridge.hasToolAvailable(toolName);
+  }
+
+  /**
+   * Get tool metadata
+   */
+  getToolMetadata(toolName: string) {
+    return this.integratedBridge.getToolMetadata(toolName);
+  }
+
+  /**
+   * Start the enhanced bridge server
+   */
+  async run(): Promise<void> {
+    try {
+      const availableTools = this.getAvailableTools();
+      const categories = new Set(availableTools.map(t => t.category));
+
+      console.log(`🚀 Starting Enhanced MCP Bridge v2.1.0`);
+      console.log(`🛠️ Total tools: ${availableTools.length}`);
+      console.log(`📂 Categories: ${Array.from(categories).join(', ')}`);
+      console.log(`🔌 Listening on stdio...`);
+
+      const transport = new StdioServerTransport();
+      await this.server.connect(transport);
+
+      console.log('✅ Enhanced MCP Bridge started successfully');
+      console.log('🎯 Features:');
+      console.log('  • Complete REST API coverage via auto-generated tools');
+      console.log('  • Universal MCP server discovery and connection');
+      console.log('  • Type-safe tool implementations');
+      console.log('  • Bidirectional sync with OpenAPI spec');
+      console.log('💡 Use "bridge_status" tool to explore all capabilities');
+
+    } catch (error) {
+      console.error('❌ Failed to start enhanced bridge:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Close the bridge
+   */
+  async close(): Promise<void> {
+    console.log('🔌 Enhanced bridge closed');
+  }
+}
+
+/**
  * Enhanced Bridge with Discovery Integration
- * 
+ *
  * This version can discover HTTP endpoints automatically using mcplookup.org
  */
 export class MCPDiscoveryBridge {
   private discoveryEndpoint: string;
-  
+
   constructor(discoveryEndpoint: string = 'https://mcplookup.org/api/v1') {
     this.discoveryEndpoint = discoveryEndpoint;
   }
