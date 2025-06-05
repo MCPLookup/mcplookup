@@ -36,23 +36,23 @@ function extractApiKey(request: NextRequest): string | null {
     return apiKeyParam;
   }
 
-  return null;
+  return undefined;
 }
 
 /**
  * Validate API key and return context
  */
-export async function validateApiKey(request: NextRequest): Promise<ApiKeyContext | null> {
+export async function validateApiKey(request: NextRequest): Promise<ApiKeyContext | undefined> {
   const rawKey = extractApiKey(request);
   
   if (!rawKey) {
-    return null;
+    return undefined;
   }
 
   const validation = await apiKeyService.validateApiKey(rawKey);
   
   if (!validation.valid || !validation.api_key) {
-    return null;
+    return undefined;
   }
 
   return {
@@ -103,7 +103,7 @@ export async function requireApiKey(
  * Middleware to optionally authenticate with API key
  * Returns context if valid API key is provided, null otherwise
  */
-export async function optionalApiKey(request: NextRequest): Promise<ApiKeyContext | null> {
+export async function optionalApiKey(request: NextRequest): Promise<ApiKeyContext | undefined> {
   return await validateApiKey(request);
 }
 

@@ -75,7 +75,7 @@ export class DiscoveryService implements IDiscoveryService {
       // Return simple format for backward compatibility with tests
       return {
         servers: enhancedServers,
-        total_results: totalCount,
+        total: totalCount,
         has_more: offset + limit < totalCount,
         query_time_ms: queryTime
       };

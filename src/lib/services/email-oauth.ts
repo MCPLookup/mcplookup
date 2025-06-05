@@ -113,7 +113,7 @@ export class EmailServiceOAuth {
 
   private setupOAuthTransporter(config: EmailConfigOAuth) {
     try {
-      this.transporter = nodemailer.createTransporter(config as any)
+      this.transporter = nodemailer.createTransport(config as any)
       this.isConfigured = true
       console.log('Email service initialized with OAuth2')
     } catch (error) {
@@ -124,7 +124,7 @@ export class EmailServiceOAuth {
 
   private setupSMTPTransporter(config: EmailConfigSMTP) {
     try {
-      this.transporter = nodemailer.createTransporter(config)
+      this.transporter = nodemailer.createTransport(config)
       this.isConfigured = true
       console.log('Email service initialized with SMTP')
     } catch (error) {

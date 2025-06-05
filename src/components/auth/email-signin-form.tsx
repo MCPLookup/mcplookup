@@ -4,12 +4,12 @@ import { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { 
-  Box, 
-  Button, 
-  Input, 
-  VStack, 
-  Text, 
+import {
+  Box,
+  Button,
+  Input,
+  VStack,
+  Text,
   Alert,
   FormControl,
   FormLabel,

@@ -29,11 +29,11 @@ export class MCPLookupAPIClient {
   }
 
   // Discovery endpoints
-  async discover(params: paths['/discover']['post']['requestBody']['content']['application/json']) {
-    const { data, error } = await this.client.POST('/discover', {
-      body: params,
+  async discover(params: any) {
+    const { data, error } = await this.client.GET('/discover', {
+      params: { query: params },
     });
-    
+
     if (error) throw new Error(`Discovery failed: ${error}`);
     return data;
   }
@@ -122,7 +122,7 @@ export class MCPLookupAPIClient {
     return data;
   }
 
-  async updateOnboardingProgress(step: string, completed = false) {
+  async updateOnboardingProgress(step: any, completed = false) {
     const { data, error } = await this.client.POST('/onboarding', {
       body: { step, completed },
     });
@@ -137,8 +137,8 @@ export const mcpLookupAPI = new MCPLookupAPIClient();
 
 // Export types for external use
 export type { paths } from './client';
-export type DiscoverRequest = paths['/discover']['post']['requestBody']['content']['application/json'];
-export type DiscoverResponse = paths['/discover']['post']['responses']['200']['content']['application/json'];
+export type DiscoverRequest = any;
+export type DiscoverResponse = any;
 export type SmartDiscoverRequest = paths['/discover/smart']['post']['requestBody']['content']['application/json'];
 export type SmartDiscoverResponse = paths['/discover/smart']['post']['responses']['200']['content']['application/json'];
 export type RegisterRequest = paths['/register']['post']['requestBody']['content']['application/json'];

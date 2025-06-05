@@ -1,7 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    optimizePackageImports: ["@chakra-ui/react"],
+    // Disable barrel optimization for Chakra UI to fix import issues
+    // optimizePackageImports: ["@chakra-ui/react"],
   },
   // Security headers
   async headers() {

@@ -25,19 +25,19 @@ const UpdateServerSchema = z.object({
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { domain: string } }
+  { params }: { params: Promise<{ domain: string }> }
 ) {
   try {
     const session = await auth()
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
       )
     }
-    
-    const domain = params.domain
+
+    const { domain } = await params
     
     // 🔒 SECURITY: Verify user owns this domain
     const domainVerified = await isUserDomainVerified(session.user.id, domain)
@@ -141,19 +141,19 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { domain: string } }
+  { params }: { params: Promise<{ domain: string }> }
 ) {
   try {
     const session = await auth()
-    
+
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
       )
     }
-    
-    const domain = params.domain
+
+    const { domain } = await params
     
     // 🔒 SECURITY: Verify user owns this domain
     const domainVerified = await isUserDomainVerified(session.user.id, domain)

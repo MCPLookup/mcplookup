@@ -31,7 +31,7 @@ export {
 export {
   signIn,
   signOut
-} from '../auth'
+} from '../../auth'
 
 // Types
 export type { User, AuthState } from './auth/server'
