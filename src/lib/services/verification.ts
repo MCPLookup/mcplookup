@@ -3,9 +3,20 @@
 
 import dns from 'dns/promises';
 import { randomUUID } from 'crypto';
-import { createVerificationStorage, StorageConfig } from './storage/storage';
-import { IVerificationStorage, VerificationChallengeData, isSuccessResult } from './storage/interfaces';
+import { createStorage } from './storage/factory';
+import { IStorage, isSuccessResult } from './storage/unified-storage';
 import { VerificationChallenge, RegistrationRequest, TransportCapabilities, MCPServerRecord, OpenAPIDocumentation } from '../schemas/discovery';
+
+// Verification data types for unified storage
+export interface VerificationChallengeData extends VerificationChallenge {
+  endpoint: string;
+  contact_email: string;
+  token: string;
+  created_at: string;
+  verified?: boolean;
+  verified_at?: string;
+  description?: string;
+}
 
 export interface IVerificationService {
   initiateDNSVerification(request: RegistrationRequest): Promise<VerificationChallenge>;
@@ -31,16 +42,16 @@ export class VerificationService implements IVerificationService {
   private readonly VERIFICATION_PREFIX = '_mcplookup-verify';
   private readonly TOKEN_TTL_HOURS = 24;
   
-  private storageService: IVerificationStorage;
+  private storage: IStorage;
+  private readonly COLLECTION = 'verification';
   private mcpService: IMCPValidationService;
   private registryService?: any; // Will be injected to avoid circular dependency
 
   constructor(
     mcpService: IMCPValidationService,
-    storageConfig?: StorageConfig,
     registryService?: any
   ) {
-    this.storageService = createVerificationStorage(storageConfig);
+    this.storage = createStorage();
     this.mcpService = mcpService;
     this.registryService = registryService;
   }
@@ -82,8 +93,8 @@ export class VerificationService implements IVerificationService {
       created_at: new Date().toISOString()
     };
 
-    const storeResult = await this.storageService.storeChallenge(challengeId, challengeData);
-    if (!storeResult.success) {
+    const storeResult = await this.storage.set(this.COLLECTION, challengeId, challengeData);
+    if (!isSuccessResult(storeResult)) {
       throw new Error(`Failed to store challenge: ${storeResult.error}`);
     }
 
@@ -94,8 +105,8 @@ export class VerificationService implements IVerificationService {
    * Verify DNS challenge by checking TXT records across multiple resolvers
    */
   async verifyDNSChallenge(challengeId: string): Promise<boolean> {
-    const challengeResult = await this.storageService.getChallenge(challengeId);
-    if (!challengeResult.success || !challengeResult.data) {
+    const challengeResult = await this.storage.get<VerificationChallengeData>(this.COLLECTION, challengeId);
+    if (!isSuccessResult(challengeResult) || !challengeResult.data) {
       throw new Error('Challenge not found or expired');
     }
 
@@ -103,7 +114,7 @@ export class VerificationService implements IVerificationService {
 
     // Check if challenge has expired
     if (new Date() > new Date(challenge.expires_at)) {
-      await this.storageService.deleteChallenge(challengeId);
+      await this.storage.delete(this.COLLECTION, challengeId);
       throw new Error('Challenge has expired');
     }
 
@@ -124,8 +135,13 @@ export class VerificationService implements IVerificationService {
 
       if (isVerified) {
         // Mark as verified in storage
-        const verifyResult = await this.storageService.markChallengeVerified(challengeId);
-        if (!verifyResult.success) {
+        const updatedChallenge = {
+          ...challenge,
+          verified: true,
+          verified_at: new Date().toISOString()
+        };
+        const verifyResult = await this.storage.set(this.COLLECTION, challengeId, updatedChallenge);
+        if (!isSuccessResult(verifyResult)) {
           console.error('Failed to mark challenge as verified:', verifyResult.error);
         }
 
@@ -184,8 +200,8 @@ export class VerificationService implements IVerificationService {
    */
   async completeVerificationAndRegister(challengeId: string): Promise<MCPServerRecord> {
     // Get the challenge data
-    const challengeResult = await this.storageService.getChallenge(challengeId);
-    if (!challengeResult.success || !challengeResult.data) {
+    const challengeResult = await this.storage.get<VerificationChallengeData>(this.COLLECTION, challengeId);
+    if (!isSuccessResult(challengeResult) || !challengeResult.data) {
       throw new Error('Challenge not found');
     }
 
@@ -352,9 +368,9 @@ export class VerificationService implements IVerificationService {
    */
   async getChallengeStatus(challengeId: string): Promise<VerificationChallenge | null> {
     try {
-      const challengeResult = await this.storageService.getChallenge(challengeId);
+      const challengeResult = await this.storage.get<VerificationChallengeData>(this.COLLECTION, challengeId);
 
-      if (!challengeResult.success || !challengeResult.data) {
+      if (!isSuccessResult(challengeResult) || !challengeResult.data) {
         return null;
       }
 
@@ -362,7 +378,7 @@ export class VerificationService implements IVerificationService {
 
       // Check if challenge has expired
       if (new Date(challengeData.expires_at) < new Date()) {
-        await this.storageService.deleteChallenge(challengeId);
+        await this.storage.delete(this.COLLECTION, challengeId);
         return null;
       }
 

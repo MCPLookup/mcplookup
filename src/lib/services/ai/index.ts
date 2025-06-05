@@ -10,5 +10,11 @@ export type { ModelMetadata, ModelState } from './Model';
 export type { AIResponse, QueryRequest } from './Provider';
 
 // Storage exports
-export { getAIStorage, InMemoryAIStorage } from '../storage/ai-storage';
-export type { IAIStorage, ModelState as StorageModelState, CachedResponse, ProviderStats } from '../storage/ai-storage';
+// AI Service exports
+export { AIService } from '../ai-service';
+export type {
+  ModelState,
+  CachedResponse,
+  ProviderStats,
+  AIUsageMetrics
+} from '../ai-service';

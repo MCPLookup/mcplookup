@@ -1,6 +1,6 @@
 // Model abstraction - represents an AI model with persistent state
 
-import type { IAIStorage } from '../storage/ai-storage';
+import { AIService } from '../ai-service';
 
 export interface ModelMetadata {
   id: string;
@@ -26,11 +26,11 @@ export interface ModelState {
 export class Model {
   public readonly metadata: ModelMetadata;
   public state: ModelState;
-  private storage?: IAIStorage;
+  private aiService?: AIService;
 
-  constructor(metadata: ModelMetadata, storage?: IAIStorage) {
+  constructor(metadata: ModelMetadata, aiService?: AIService) {
     this.metadata = metadata;
-    this.storage = storage;
+    this.aiService = aiService;
     this.state = {
       failureCount: 0,
       enabled: true
@@ -93,18 +93,18 @@ export class Model {
   }
 
   async loadState(): Promise<void> {
-    if (!this.storage) return;
+    if (!this.aiService) return;
 
     try {
-      const result = await this.storage.getModelState(this.id);
-      if (result.success && result.data) {
+      const model = await this.aiService.getModel(this.id);
+      if (model) {
         this.state = {
-          lastSuccess: result.data.lastSuccess,
-          lastFailure: result.data.lastFailure,
-          failureCount: result.data.failureCount,
-          enabled: result.data.enabled,
-          averageLatency: result.data.averageLatency,
-          successRate: result.data.successCount / Math.max(1, result.data.totalAttempts)
+          lastSuccess: new Date(model.last_used).getTime(),
+          lastFailure: undefined, // We'll track this separately
+          failureCount: model.error_count,
+          enabled: model.status === 'available',
+          averageLatency: model.average_response_time,
+          successRate: model.usage_count > 0 ? (model.usage_count - model.error_count) / model.usage_count : undefined
         };
       }
     } catch (error) {
@@ -113,26 +113,29 @@ export class Model {
   }
 
   async saveState(): Promise<void> {
-    if (!this.storage) return;
+    if (!this.aiService) return;
 
     try {
-      const totalAttempts = this.getAttemptCount();
-      const successCount = Math.floor((this.state.successRate || 0) * totalAttempts);
-      
-      const storageState = {
-        id: this.id,
+      const modelData = {
         provider: this.provider,
-        lastSuccess: this.state.lastSuccess,
-        lastFailure: this.state.lastFailure,
-        failureCount: this.state.failureCount,
-        enabled: this.state.enabled,
-        averageLatency: this.state.averageLatency,
-        successCount,
-        totalAttempts,
-        lastUsed: Date.now()
+        name: this.name,
+        status: this.state.enabled ? 'available' as const : 'error' as const,
+        last_used: new Date(this.state.lastSuccess || Date.now()).toISOString(),
+        usage_count: this.getAttemptCount(),
+        error_count: this.state.failureCount,
+        average_response_time: this.state.averageLatency || 0,
+        cost_per_token: this.estimatedCostPerQuery,
+        capabilities: this.metadata.supportsJSON ? ['json'] : [],
+        metadata: {
+          contextWindow: this.metadata.contextWindow,
+          inputCost: this.metadata.inputCost,
+          outputCost: this.metadata.outputCost,
+          supportsStreaming: this.metadata.supportsStreaming,
+          maxTokens: this.metadata.maxTokens
+        }
       };
 
-      await this.storage.setModelState(this.id, storageState);
+      await this.aiService.registerModel(modelData);
     } catch (error) {
       console.warn(`Failed to save state for model ${this.id}:`, error);
     }

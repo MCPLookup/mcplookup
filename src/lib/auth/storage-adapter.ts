@@ -1,200 +1,231 @@
 // NextAuth Storage Adapter
-// Integrates NextAuth with our storage abstraction system
+// Uses our unified storage system for NextAuth database sessions
 
-import type { Adapter, AdapterUser, AdapterAccount, AdapterSession, VerificationToken } from "next-auth/adapters"
-import { randomUUID } from "crypto"
-import { createUserStorage } from "../services/storage/storage"
-import { UserProfile, UserSession, isSuccessResult } from "../services/storage/interfaces"
+import type { Adapter } from "next-auth/adapters"
+import { createStorage } from "../services/storage/factory"
+import type { IStorage } from "../services/storage/unified-storage"
 
-/**
- * Create a NextAuth adapter that uses our storage abstraction
- */
 export function createStorageAdapter(): Adapter {
-  const userStorage = createUserStorage()
+  const storage = createStorage()
 
   return {
-    async createUser(user): Promise<AdapterUser> {
-      const userId = randomUUID()
-      const now = new Date().toISOString()
-
-      const userProfile: UserProfile = {
-        id: userId,
+    async createUser(user) {
+      const id = crypto.randomUUID()
+      const userData = {
+        id,
         email: user.email,
-        name: user.name || undefined,
-        image: user.image || undefined,
-        provider: 'email', // Default, will be updated by linkAccount
-        provider_id: userId,
-        role: 'user',
-        created_at: now,
-        updated_at: now,
-        email_verified: user.emailVerified ? true : false,
-        is_active: true,
-        preferences: {
-          theme: 'system',
-          notifications: true,
-          newsletter: false
+        name: user.name,
+        image: user.image,
+        emailVerified: user.emailVerified,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }
+      
+      await storage.set('auth_users', id, userData)
+      return userData
+    },
+
+    async getUser(id) {
+      const result = await storage.get('auth_users', id)
+      return result.success ? result.data : null
+    },
+
+    async getUserByEmail(email) {
+      const result = await storage.query('auth_users', {
+        filters: { email }
+      })
+      
+      if (result.success && result.data.items.length > 0) {
+        return result.data.items[0]
+      }
+      return null
+    },
+
+    async getUserByAccount({ providerAccountId, provider }) {
+      const result = await storage.query('auth_accounts', {
+        filters: { 
+          provider,
+          providerAccountId 
+        }
+      })
+      
+      if (result.success && result.data.items.length > 0) {
+        const account = result.data.items[0]
+        const userResult = await storage.get('auth_users', account.userId)
+        return userResult.success ? userResult.data : null
+      }
+      return null
+    },
+
+    async updateUser(user) {
+      const existing = await storage.get('auth_users', user.id!)
+      if (!existing.success || !existing.data) {
+        throw new Error('User not found')
+      }
+
+      const updatedUser = {
+        ...existing.data,
+        ...user,
+        updated_at: new Date().toISOString(),
+      }
+      
+      await storage.set('auth_users', user.id!, updatedUser)
+      return updatedUser
+    },
+
+    async deleteUser(userId) {
+      // Delete user's accounts first
+      const accountsResult = await storage.query('auth_accounts', {
+        filters: { userId }
+      })
+      
+      if (accountsResult.success) {
+        for (const account of accountsResult.data.items) {
+          await storage.delete('auth_accounts', `${account.provider}:${account.providerAccountId}`)
         }
       }
 
-      const result = await userStorage.storeUser(userId, userProfile)
-      if (!result.success) {
-        throw new Error(`Failed to create user: ${result.error}`)
+      // Delete user's sessions
+      const sessionsResult = await storage.query('auth_sessions', {
+        filters: { userId }
+      })
+      
+      if (sessionsResult.success) {
+        for (const session of sessionsResult.data.items) {
+          await storage.delete('auth_sessions', session.sessionToken)
+        }
       }
 
-      return {
-        id: userId,
-        email: user.email,
-        name: user.name,
-        image: user.image,
-        emailVerified: user.emailVerified
-      }
+      // Delete user
+      await storage.delete('auth_users', userId)
     },
 
-    async getUser(id): Promise<AdapterUser | null> {
-      const result = await userStorage.getUser(id)
-      if (!result.success || !result.data) {
-        return null
+    async linkAccount(account) {
+      const accountData = {
+        id: `${account.provider}:${account.providerAccountId}`,
+        userId: account.userId,
+        type: account.type,
+        provider: account.provider,
+        providerAccountId: account.providerAccountId,
+        refresh_token: account.refresh_token,
+        access_token: account.access_token,
+        expires_at: account.expires_at,
+        token_type: account.token_type,
+        scope: account.scope,
+        id_token: account.id_token,
+        session_state: account.session_state,
+        created_at: new Date().toISOString(),
       }
-
-      const user = result.data
-      return {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        image: user.image,
-        emailVerified: user.email_verified ? new Date() : null
-      }
+      
+      await storage.set('auth_accounts', accountData.id, accountData)
+      return accountData
     },
 
-    async getUserByEmail(email): Promise<AdapterUser | null> {
-      const result = await userStorage.getUserByEmail(email)
-      if (!result.success || !result.data) {
-        return null
-      }
-
-      const user = result.data
-      return {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        image: user.image,
-        emailVerified: user.email_verified ? new Date() : null
-      }
+    async unlinkAccount({ providerAccountId, provider }) {
+      const accountId = `${provider}:${providerAccountId}`
+      await storage.delete('auth_accounts', accountId)
     },
 
-    async getUserByAccount({ providerAccountId, provider }): Promise<AdapterUser | null> {
-      const result = await userStorage.getUserByProvider(provider, providerAccountId)
-      if (!result.success || !result.data) {
-        return null
-      }
-
-      const user = result.data
-      return {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        image: user.image,
-        emailVerified: user.email_verified ? new Date() : null
-      }
-    },
-
-    async updateUser(user): Promise<AdapterUser> {
-      const updates: Partial<UserProfile> = {
-        name: user.name || undefined,
-        image: user.image || undefined,
-        email_verified: user.emailVerified ? true : false,
-        updated_at: new Date().toISOString()
-      }
-
-      if (user.email) {
-        updates.email = user.email
-      }
-
-      const result = await userStorage.updateUser(user.id, updates)
-      if (!result.success) {
-        throw new Error(`Failed to update user: ${result.error}`)
-      }
-
-      // Return updated user
-      const getUserResult = await userStorage.getUser(user.id)
-      if (!getUserResult.success || !getUserResult.data) {
-        throw new Error('Failed to retrieve updated user')
-      }
-
-      const updatedUser = getUserResult.data
-      return {
-        id: updatedUser.id,
-        email: updatedUser.email,
-        name: updatedUser.name,
-        image: updatedUser.image,
-        emailVerified: updatedUser.email_verified ? new Date() : null
-      }
-    },
-
-    async deleteUser(userId): Promise<void> {
-      const result = await userStorage.deleteUser(userId)
-      if (!result.success) {
-        throw new Error(`Failed to delete user: ${result.error}`)
-      }
-    },
-
-    async linkAccount(account): Promise<AdapterAccount> {
-      // Update user's provider information
-      const userResult = await userStorage.getUser(account.userId)
-      if (userResult.success && userResult.data) {
-        await userStorage.updateUser(account.userId, {
-          provider: account.provider as 'github' | 'google' | 'email',
-          provider_id: account.providerAccountId,
-          updated_at: new Date().toISOString()
-        })
-      }
-
-      // For our simplified storage, we don't store separate account records
-      // The provider info is stored directly in the user profile
-      return account
-    },
-
-    async unlinkAccount({ providerAccountId, provider }): Promise<void> {
-      // Find user by provider and reset to email provider
-      const userResult = await userStorage.getUserByProvider(provider, providerAccountId)
-      if (userResult.success && userResult.data) {
-        await userStorage.updateUser(userResult.data.id, {
-          provider: 'email',
-          provider_id: userResult.data.id,
-          updated_at: new Date().toISOString()
-        })
-      }
-    },
-
-    // For simplicity, we'll use JWT for sessions since our current storage
-    // doesn't have efficient session token indexing
-    // In production, you'd want to implement proper session storage
-    async createSession({ sessionToken, userId, expires }): Promise<AdapterSession> {
-      return {
+    async createSession({ sessionToken, userId, expires }) {
+      const sessionData = {
         sessionToken,
         userId,
-        expires
+        expires: expires.toISOString(),
+        created_at: new Date().toISOString(),
+      }
+      
+      await storage.set('auth_sessions', sessionToken, sessionData)
+      return sessionData
+    },
+
+    async getSessionAndUser(sessionToken) {
+      const sessionResult = await storage.get('auth_sessions', sessionToken)
+      
+      if (!sessionResult.success || !sessionResult.data) {
+        return null
+      }
+
+      const session = sessionResult.data
+      
+      // Check if session is expired
+      if (new Date(session.expires) < new Date()) {
+        await storage.delete('auth_sessions', sessionToken)
+        return null
+      }
+
+      const userResult = await storage.get('auth_users', session.userId)
+      
+      if (!userResult.success || !userResult.data) {
+        return null
+      }
+
+      return {
+        session: {
+          ...session,
+          expires: new Date(session.expires)
+        },
+        user: userResult.data
       }
     },
 
-    async getSessionAndUser(sessionToken): Promise<{ session: AdapterSession; user: AdapterUser } | null> {
-      return null
+    async updateSession({ sessionToken, expires }) {
+      const sessionResult = await storage.get('auth_sessions', sessionToken)
+      
+      if (!sessionResult.success || !sessionResult.data) {
+        return null
+      }
+
+      const updatedSession = {
+        ...sessionResult.data,
+        expires: expires?.toISOString() || sessionResult.data.expires,
+      }
+      
+      await storage.set('auth_sessions', sessionToken, updatedSession)
+      
+      return {
+        ...updatedSession,
+        expires: new Date(updatedSession.expires)
+      }
     },
 
-    async updateSession({ sessionToken, expires }): Promise<AdapterSession | null | undefined> {
-      return null
+    async deleteSession(sessionToken) {
+      await storage.delete('auth_sessions', sessionToken)
     },
 
-    async deleteSession(sessionToken): Promise<void> {
-      // No-op for JWT sessions
+    async createVerificationToken({ identifier, expires, token }) {
+      const verificationData = {
+        identifier,
+        token,
+        expires: expires.toISOString(),
+        created_at: new Date().toISOString(),
+      }
+      
+      await storage.set('auth_verification_tokens', token, verificationData)
+      return verificationData
     },
 
-    async createVerificationToken({ identifier, expires, token }): Promise<VerificationToken> {
-      return { identifier, expires, token }
-    },
+    async useVerificationToken({ identifier, token }) {
+      const result = await storage.get('auth_verification_tokens', token)
+      
+      if (!result.success || !result.data) {
+        return null
+      }
 
-    async useVerificationToken({ identifier, token }): Promise<VerificationToken | null> {
-      return null
-    }
+      const verificationToken = result.data
+      
+      // Check if token matches identifier and is not expired
+      if (verificationToken.identifier !== identifier || 
+          new Date(verificationToken.expires) < new Date()) {
+        return null
+      }
+
+      // Delete the token (one-time use)
+      await storage.delete('auth_verification_tokens', token)
+      
+      return {
+        ...verificationToken,
+        expires: new Date(verificationToken.expires)
+      }
+    },
   }
 }

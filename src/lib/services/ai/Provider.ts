@@ -2,7 +2,7 @@
 
 import { Model, ModelMetadata } from './Model';
 import { PromptBuilder, type MCPSearchResult } from './PromptBuilder';
-import type { IAIStorage } from '../storage/ai-storage';
+import { AIService } from '../ai-service';
 
 export interface AIResponse {
   capabilities: string[];
@@ -38,11 +38,11 @@ export abstract class Provider {
   protected models: Model[] = [];
   protected modelsLastFetched?: number;
   protected readonly modelsCacheTTL = 60 * 60 * 1000; // 1 hour
-  protected storage?: IAIStorage;
+  protected aiService?: AIService;
   protected promptBuilder: PromptBuilder;
 
-  constructor(storage?: IAIStorage) {
-    this.storage = storage;
+  constructor(aiService?: AIService) {
+    this.aiService = aiService;
     this.promptBuilder = new PromptBuilder();
   }
 
@@ -79,7 +79,7 @@ export abstract class Provider {
     // Fetch fresh models
     try {
       const modelMetadata = await this.fetchModels();
-      this.models = modelMetadata.map(metadata => new Model(metadata, this.storage));
+      this.models = modelMetadata.map(metadata => new Model(metadata, this.aiService));
       
       // Load persistent state for each model
       await Promise.all(this.models.map(model => model.loadState()));
@@ -247,8 +247,8 @@ Respond with valid JSON only:`;
   }
 
   async resetModels(): Promise<void> {
-    if (this.storage) {
-      await this.storage.resetAllModelStates();
+    if (this.aiService) {
+      await this.aiService.resetAllData();
     }
     this.models.forEach(model => model.reset());
   }

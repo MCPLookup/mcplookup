@@ -2,27 +2,29 @@
 // Storage Abstraction Test Script
 // Tests all storage providers to ensure they work correctly
 
-import { createRegistryStorage, createVerificationStorage } from '../src/lib/services/storage/storage.js';
+import { createStorage } from '../src/lib/services/storage/factory';
+import { RegistryService } from '../src/lib/services/registry';
+import { VerificationService } from '../src/lib/services/verification';
+import { MCPValidationService } from '../src/lib/services/verification';
 import { MCPServerRecord, CapabilityCategory } from '../src/lib/schemas/discovery.js';
-import { VerificationChallengeData, isSuccessResult } from '../src/lib/services/storage/interfaces.js';
 
-async function testStorageProvider(providerName: string, provider: 'memory' | 'local' | 'upstash') {
+async function testStorageProvider(providerName: string, backend: 'memory' | 'redis') {
   console.log(`\n🧪 Testing ${providerName} Storage Provider`);
   console.log('='.repeat(50));
 
   try {
-    // Get storage instances
-    const registryStorage = createRegistryStorage({ provider });
-    const verificationStorage = createVerificationStorage({ provider });
+    // Create services with specific backend
+    const storage = createStorage({ backend });
+    const registryService = new RegistryService();
+    const mcpService = new MCPValidationService();
+    const verificationService = new VerificationService(mcpService, registryService);
 
     // Test health checks
     console.log('📊 Health Checks:');
-    const registryHealth = await registryStorage.healthCheck();
-    const verificationHealth = await verificationStorage.healthCheck();
-    console.log(`  Registry: ${registryHealth.healthy ? '✅ Healthy' : '❌ Unhealthy'}`);
-    console.log(`  Verification: ${verificationHealth.healthy ? '✅ Healthy' : '❌ Unhealthy'}`);
+    const storageHealth = await storage.healthCheck();
+    console.log(`  Storage: ${storageHealth.healthy ? '✅ Healthy' : '❌ Unhealthy'}`);
 
-    if (!registryHealth.healthy || !verificationHealth.healthy) {
+    if (!storageHealth.healthy) {
       console.log(`⚠️  Skipping ${providerName} tests due to health check failures`);
       return;
     }
@@ -106,60 +108,58 @@ async function testStorageProvider(providerName: string, provider: 'memory' | 'l
     };
 
     // Store server
-    const storeResult = await registryStorage.storeServer('test-example.com', mockServer);
-    if (isSuccessResult(storeResult)) {
+    try {
+      await registryService.registerServer(mockServer);
       console.log('  ✅ Server stored successfully');
-    } else {
-      console.log(`  ❌ Failed to store server: ${storeResult.error}`);
+    } catch (error) {
+      console.log(`  ❌ Failed to store server: ${error}`);
       return;
     }
 
     // Retrieve server
-    const retrieveResult = await registryStorage.getServer('test-example.com');
-    if (isSuccessResult(retrieveResult)) {
-      const retrieved = retrieveResult.data;
+    try {
+      const retrieved = await registryService.getServer('test-example.com');
       console.log(`  ✅ Server retrieved: ${retrieved?.domain === 'test-example.com' ? 'Match' : 'Mismatch'}`);
-    } else {
-      console.log(`  ❌ Failed to retrieve server: ${retrieveResult.error}`);
+    } catch (error) {
+      console.log(`  ❌ Failed to retrieve server: ${error}`);
     }
 
     // Get all servers
-    const allServersResult = await registryStorage.getAllServers();
-    if (isSuccessResult(allServersResult)) {
-      console.log(`  ✅ All servers count: ${allServersResult.data.items.length}`);
-    } else {
-      console.log(`  ❌ Failed to get all servers: ${allServersResult.error}`);
+    try {
+      const allServers = await registryService.getAllServers();
+      console.log(`  ✅ All servers count: ${allServers.length}`);
+    } catch (error) {
+      console.log(`  ❌ Failed to get all servers: ${error}`);
     }
 
     // Get servers by category
-    const categoryResult = await registryStorage.getServersByCategory('productivity' as CapabilityCategory);
-    if (isSuccessResult(categoryResult)) {
-      console.log(`  ✅ Category servers count: ${categoryResult.data.items.length}`);
-    } else {
-      console.log(`  ❌ Failed to get category servers: ${categoryResult.error}`);
+    try {
+      const categoryServers = await registryService.getServersByCategory('productivity' as CapabilityCategory);
+      console.log(`  ✅ Category servers count: ${categoryServers.length}`);
+    } catch (error) {
+      console.log(`  ❌ Failed to get category servers: ${error}`);
     }
 
     // Search servers
-    const searchResult = await registryStorage.searchServers('test');
-    if (isSuccessResult(searchResult)) {
-      console.log(`  ✅ Search results count: ${searchResult.data.items.length}`);
-    } else {
-      console.log(`  ❌ Failed to search servers: ${searchResult.error}`);
+    try {
+      const searchResults = await registryService.searchServers(['test']);
+      console.log(`  ✅ Search results count: ${searchResults.length}`);
+    } catch (error) {
+      console.log(`  ❌ Failed to search servers: ${error}`);
     }
 
     // Get statistics
-    const statsResult = await registryStorage.getStats();
-    if (isSuccessResult(statsResult)) {
-      const stats = statsResult.data;
-      console.log(`  ✅ Stats - Total: ${stats.totalServers}, Categories: ${Object.keys(stats.categories).length}`);
-    } else {
-      console.log(`  ❌ Failed to get stats: ${statsResult.error}`);
+    try {
+      const stats = await registryService.getRegistryStats();
+      console.log(`  ✅ Stats - Total: ${stats.totalServers}, Registered: ${stats.registeredServers}`);
+    } catch (error) {
+      console.log(`  ❌ Failed to get stats: ${error}`);
     }
 
     // Test verification storage
     console.log('\n🔐 Testing Verification Storage:');
-    
-    const mockChallenge: VerificationChallengeData = {
+
+    const mockChallenge = {
       // Base VerificationChallenge fields
       challenge_id: 'test-challenge-123',
       domain: 'test-example.com',
@@ -175,53 +175,31 @@ async function testStorageProvider(providerName: string, provider: 'memory' | 'l
       created_at: new Date().toISOString()
     };
 
-    // Store challenge
-    const storeChallengeResult = await verificationStorage.storeChallenge('test-challenge-123', mockChallenge);
-    if (isSuccessResult(storeChallengeResult)) {
-      console.log('  ✅ Challenge stored successfully');
-    } else {
-      console.log(`  ❌ Failed to store challenge: ${storeChallengeResult.error}`);
-      return;
-    }
+    // Test verification service
+    try {
+      const request = {
+        domain: 'test-example.com',
+        endpoint: 'https://test-example.com/.well-known/mcp',
+        contact_email: 'test@example.com'
+      };
+      const challenge = await verificationService.initiateDNSVerification(request);
+      console.log('  ✅ Challenge created successfully');
 
-    // Retrieve challenge
-    const retrieveChallengeResult = await verificationStorage.getChallenge('test-challenge-123');
-    if (isSuccessResult(retrieveChallengeResult)) {
-      const retrievedChallenge = retrieveChallengeResult.data;
-      console.log(`  ✅ Challenge retrieved: ${retrievedChallenge?.challenge_id === 'test-challenge-123' ? 'Match' : 'Mismatch'}`);
-    } else {
-      console.log(`  ❌ Failed to retrieve challenge: ${retrieveChallengeResult.error}`);
-    }
+      // Test challenge retrieval
+      const retrieved = await verificationService.getChallengeStatus(challenge.challenge_id);
+      console.log(`  ✅ Challenge retrieved: ${retrieved?.challenge_id === challenge.challenge_id ? 'Match' : 'Mismatch'}`);
 
-    // Mark as verified
-    const verifyResult = await verificationStorage.markChallengeVerified('test-challenge-123');
-    if (isSuccessResult(verifyResult)) {
-      const verifiedChallengeResult = await verificationStorage.getChallenge('test-challenge-123');
-      if (isSuccessResult(verifiedChallengeResult)) {
-        const verifiedChallenge = verifiedChallengeResult.data;
-        console.log(`  ✅ Challenge verified: ${verifiedChallenge?.verified_at ? 'Yes' : 'No'}`);
-      }
-    } else {
-      console.log(`  ❌ Failed to verify challenge: ${verifyResult.error}`);
-    }
-
-    // Get verification stats
-    const verificationStatsResult = await verificationStorage.getStats();
-    if (isSuccessResult(verificationStatsResult)) {
-      const verificationStats = verificationStatsResult.data;
-      console.log(`  ✅ Verification stats - Total: ${verificationStats.totalChallenges}`);
-    } else {
-      console.log(`  ❌ Failed to get verification stats: ${verificationStatsResult.error}`);
+      console.log('  ✅ Verification service working');
+    } catch (error) {
+      console.log(`  ❌ Verification service failed: ${error}`);
     }
 
     // Cleanup
     console.log('\n🧹 Cleanup:');
-    const deleteServerResult = await registryStorage.deleteServer('test-example.com');
-    const deleteChallengeResult = await verificationStorage.deleteChallenge('test-challenge-123');
-
-    if (isSuccessResult(deleteServerResult) && isSuccessResult(deleteChallengeResult)) {
+    try {
+      await registryService.unregisterServer('test-example.com');
       console.log('  ✅ Test data cleaned up');
-    } else {
+    } catch (error) {
       console.log('  ⚠️  Some cleanup operations failed');
     }
 
@@ -239,20 +217,12 @@ async function main() {
   // Test in-memory storage (always available)
   await testStorageProvider('In-Memory', 'memory');
 
-  // Test local Redis storage (if available)
-  if (process.env.REDIS_URL) {
-    await testStorageProvider('Local Redis', 'local');
+  // Test Redis storage (if available)
+  if (process.env.REDIS_URL || process.env.UPSTASH_REDIS_REST_URL) {
+    await testStorageProvider('Redis', 'redis');
   } else {
-    console.log('\n⚠️  Local Redis tests skipped (REDIS_URL not set)');
-    console.log('   To test local Redis: docker-compose up -d redis');
-  }
-
-  // Test Upstash storage (if available)
-  if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
-    await testStorageProvider('Upstash Redis', 'upstash');
-  } else {
-    console.log('\n⚠️  Upstash Redis tests skipped (credentials not set)');
-    console.log('   To test Upstash: Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN');
+    console.log('\n⚠️  Redis tests skipped (no Redis credentials set)');
+    console.log('   To test Redis: Set REDIS_URL or UPSTASH_REDIS_REST_URL');
   }
 
   console.log('\n🎉 Storage abstraction test suite completed!');

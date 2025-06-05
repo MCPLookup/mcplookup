@@ -2,13 +2,13 @@
 
 import { Provider, QueryRequest } from './Provider';
 import { Model, ModelMetadata } from './Model';
-import type { IAIStorage } from '../storage/ai-storage';
+import { AIService } from '../ai-service';
 
 export class TogetherProvider extends Provider {
   readonly name = 'together';
 
-  constructor(storage?: IAIStorage) {
-    super(storage);
+  constructor(aiService?: AIService) {
+    super(aiService);
   }
 
   isAvailable(): boolean {

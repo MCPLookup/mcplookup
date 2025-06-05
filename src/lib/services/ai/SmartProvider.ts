@@ -5,17 +5,17 @@ import { Provider, AIResponse } from './Provider';
 import { Model } from './Model';
 import { TogetherProvider } from './TogetherProvider';
 import { OpenRouterProvider } from './OpenRouterProvider';
-import { getAIStorage, type IAIStorage } from '../storage/ai-storage';
+import { AIService } from '../ai-service';
 import { createHash } from 'crypto';
 
 export class SmartProvider {
   private providers: Provider[] = [];
-  private storage: IAIStorage;
+  private aiService: AIService;
   private lastSuccessfulModel?: string;
   private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-  constructor(storage?: IAIStorage) {
-    this.storage = storage || getAIStorage();
+  constructor(aiService?: AIService) {
+    this.aiService = aiService || new AIService();
     this.initializeProviders();
   }
 
@@ -215,8 +215,8 @@ export class SmartProvider {
 
   private initializeProviders(): void {
     this.providers = [
-      new TogetherProvider(this.storage),
-      new OpenRouterProvider(this.storage)
+      new TogetherProvider(this.aiService),
+      new OpenRouterProvider(this.aiService)
     ];
   }
 
@@ -248,7 +248,16 @@ export class SmartProvider {
         cost: 0,
         latency: 0
       };
-      await this.storage.setCachedResponse(queryHash, cachedResponse);
+      await this.aiService.cacheResponse(
+        queryHash,
+        'smart-provider',
+        'multi-model',
+        query,
+        JSON.stringify(response),
+        0, // tokens
+        0, // cost
+        24 // TTL hours
+      );
     } catch (error) {
       console.warn('Failed to cache response:', error);
     }
@@ -257,16 +266,15 @@ export class SmartProvider {
   private async getCachedResponse(query: string): Promise<{ selectedSlugs: string[]; reasoning: string; confidence: number } | null> {
     try {
       const queryHash = this.hashQuery(query);
-      const result = await this.storage.getCachedResponse(queryHash);
-      
-      if (!result.success || !result.data) return null;
-      
-      const cached = result.data;
-      const age = Date.now() - cached.timestamp;
-      
+      const cached = await this.aiService.getCachedResponse(queryHash);
+
+      if (!cached) return null;
+
+      const age = Date.now() - new Date(cached.created_at).getTime();
+
       if (age > this.CACHE_TTL) return null;
-      
-      return cached.response;
+
+      return JSON.parse(cached.response);
     } catch (error) {
       console.warn('Failed to get cached response:', error);
       return null;

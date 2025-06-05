@@ -2,12 +2,13 @@
 // Provides easy access to all backend services with proper dependency injection
 
 import { RegistryService } from './registry';
+import { UserService } from './user-service';
+import { AuditService } from './audit-service';
+import { AIService } from './ai-service';
 import { HealthService, EnhancedHealthService } from './health';
 import { IntentService, EnhancedIntentService } from './intent';
 import { VerificationService, MCPValidationService } from './verification';
 import { DiscoveryService } from './discovery';
-import { StorageConfig } from './storage/storage';
-
 /**
  * Service Configuration Options
  */
@@ -16,7 +17,6 @@ export interface ServiceConfig {
   cacheEnabled?: boolean;
   healthCheckInterval?: number;
   intentAIEnabled?: boolean;
-  storage?: StorageConfig;
 }
 
 /**
@@ -29,6 +29,9 @@ export class ServiceFactory {
   
   // Service instances (singletons)
   private registryService?: RegistryService;
+  private userService?: UserService;
+  private auditService?: AuditService;
+  private aiService?: AIService;
   private healthService?: HealthService | EnhancedHealthService;
   private intentService?: IntentService | EnhancedIntentService;
   private verificationService?: VerificationService;
@@ -59,9 +62,39 @@ export class ServiceFactory {
    */
   getRegistryService(): RegistryService {
     if (!this.registryService) {
-      this.registryService = new RegistryService(this.config.storage);
+      this.registryService = new RegistryService();
     }
     return this.registryService;
+  }
+
+  /**
+   * Get User Service
+   */
+  getUserService(): UserService {
+    if (!this.userService) {
+      this.userService = new UserService();
+    }
+    return this.userService;
+  }
+
+  /**
+   * Get Audit Service
+   */
+  getAuditService(): AuditService {
+    if (!this.auditService) {
+      this.auditService = new AuditService();
+    }
+    return this.auditService;
+  }
+
+  /**
+   * Get AI Service
+   */
+  getAIService(): AIService {
+    if (!this.aiService) {
+      this.aiService = new AIService();
+    }
+    return this.aiService;
   }
 
   /**
@@ -107,7 +140,7 @@ export class ServiceFactory {
     if (!this.verificationService) {
       const mcpService = new MCPValidationService();
       const registryService = this.getRegistryService();
-      this.verificationService = new VerificationService(mcpService, this.config.storage, registryService);
+      this.verificationService = new VerificationService(mcpService, registryService);
     }
     return this.verificationService;
   }
@@ -132,6 +165,9 @@ export class ServiceFactory {
   getAllServices() {
     return {
       registry: this.getRegistryService(),
+      user: this.getUserService(),
+      audit: this.getAuditService(),
+      ai: this.getAIService(),
       health: this.getHealthService(),
       intent: this.getIntentService(),
       verification: this.getVerificationService(),
@@ -144,6 +180,9 @@ export class ServiceFactory {
    */
   reset(): void {
     this.registryService = undefined;
+    this.userService = undefined;
+    this.auditService = undefined;
+    this.aiService = undefined;
     this.healthService = undefined;
     this.intentService = undefined;
     this.verificationService = undefined;
@@ -185,13 +224,14 @@ export function getDevelopmentServices() {
  * Get services for testing with mock storage
  */
 export function getTestServices() {
-  // Configure to use memory storage for testing
-  const factory = ServiceFactory.getInstance({
-    storage: { provider: 'memory' }
-  });
-  
+  // Memory storage will be auto-detected in test environment
+  const factory = ServiceFactory.getInstance();
+
   return {
     registry: factory.getRegistryService(),
+    user: factory.getUserService(),
+    audit: factory.getAuditService(),
+    ai: factory.getAIService(),
     health: factory.getHealthService(),
     intent: factory.getIntentService(),
     discovery: factory.getDiscoveryService(),
