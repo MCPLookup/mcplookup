@@ -61,8 +61,13 @@
   "author": "MCPLookup.org",
   "license": "MIT",
   "dependencies": {
+    "@chakra-ui/alert": "^2.2.2",
+    "@chakra-ui/form-control": "^2.2.0",
+    "@chakra-ui/input": "^2.1.2",
+    "@chakra-ui/layout": "^2.3.1",
     "@chakra-ui/react": "^3.19.2",
     "@emotion/react": "^11.14.0",
+    "@heroicons/react": "^2.2.0",
     "@hookform/resolvers": "^3.9.1",
     "@modelcontextprotocol/sdk": "^1.12.1",
     "@types/bcryptjs": "^2.4.6",

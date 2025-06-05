@@ -4,20 +4,9 @@ import { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import {
-  Box,
-  Button,
-  Input,
-  VStack,
-  Text,
-  Alert,
-  FormControl,
-  FormLabel,
-  FormErrorMessage,
-  InputGroup,
-  InputRightElement,
-  IconButton
-} from '@chakra-ui/react'
+import { Box, Button, VStack, Text, IconButton, Alert } from '@chakra-ui/react'
+import { FormControl, FormLabel, FormErrorMessage } from '@chakra-ui/form-control'
+import { Input, InputGroup, InputRightElement } from '@chakra-ui/input'
 import { FaEye, FaEyeSlash } from 'react-icons/fa'
 
 interface EmailSignInFormProps {
@@ -92,9 +81,10 @@ export function EmailSignInForm({ callbackUrl = '/', onToggleMode }: EmailSignIn
     <Box as="form" onSubmit={handleSubmit}>
       <VStack spacing={4}>
         {error && (
-          <Alert status="error" borderRadius="md">
-            <Text fontSize="sm">{error}</Text>
-          </Alert>
+          <Alert.Root status="error">
+            <Alert.Indicator />
+            <Alert.Title fontSize="sm">{error}</Alert.Title>
+          </Alert.Root>
         )}
 
         <FormControl isInvalid={!!emailError}>

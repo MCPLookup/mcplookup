@@ -1,22 +1,9 @@
 "use client"
 
 import { useState } from 'react'
-import {
-  Box,
-  Button,
-  Input,
-  VStack,
-  Text,
-  Alert,
-  FormControl,
-  FormLabel,
-  FormErrorMessage,
-  InputGroup,
-  InputRightElement,
-  IconButton,
-  Progress,
-  HStack
-} from '@chakra-ui/react'
+import { Box, Button, VStack, Text, IconButton, Progress, HStack, Alert } from '@chakra-ui/react'
+import { FormControl, FormLabel, FormErrorMessage } from '@chakra-ui/form-control'
+import { Input, InputGroup, InputRightElement } from '@chakra-ui/input'
 import { FaEye, FaEyeSlash, FaCheck, FaTimes } from 'react-icons/fa'
 import { validatePassword, getPasswordStrengthDescription } from '@/lib/auth/password'
 
@@ -131,9 +118,10 @@ export function EmailSignUpForm({ onToggleMode, onSuccess }: EmailSignUpFormProp
     <Box as="form" onSubmit={handleSubmit}>
       <VStack spacing={4}>
         {errors.general && (
-          <Alert status="error" borderRadius="md">
-            <Text fontSize="sm">{errors.general}</Text>
-          </Alert>
+          <Alert.Root status="error">
+            <Alert.Indicator />
+            <Alert.Title fontSize="sm">{errors.general}</Alert.Title>
+          </Alert.Root>
         )}
 
         <FormControl isInvalid={!!errors.name}>

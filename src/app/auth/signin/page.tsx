@@ -5,7 +5,8 @@ import { SignInButton } from "@/components/auth/signin-button"
 import { EmailSignInForm } from "@/components/auth/email-signin-form"
 import { EmailSignUpForm } from "@/components/auth/email-signup-form"
 import Link from "next/link"
-import { Alert, Text, Box, Divider, HStack } from "@chakra-ui/react"
+import { Text, Box, HStack, Alert } from "@chakra-ui/react"
+import { Divider } from "@chakra-ui/layout"
 
 export default function SignInPage() {
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')
@@ -34,9 +35,10 @@ export default function SignInPage() {
           <div className="bg-white rounded-lg shadow-md p-8">
             <div className="space-y-6">
               {successMessage && (
-                <Alert status="success" borderRadius="md">
-                  <Text fontSize="sm">{successMessage}</Text>
-                </Alert>
+                <Alert.Root status="success">
+                  <Alert.Indicator />
+                  <Alert.Title fontSize="sm">{successMessage}</Alert.Title>
+                </Alert.Root>
               )}
 
               <div className="text-center">

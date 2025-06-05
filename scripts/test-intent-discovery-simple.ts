@@ -70,14 +70,14 @@ async function testIntentDiscovery() {
         }
         
       } catch (error) {
-        console.log(`❌ ${name} failed: ${error.message}`);
+        console.log(`❌ ${name} failed: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
     
     console.log('\n🎉 Intent discovery testing complete!');
     
   } catch (error) {
-    console.error('❌ Error testing intent discovery:', error.message);
+    console.error('❌ Error testing intent discovery:', error instanceof Error ? error.message : String(error));
     process.exit(1);
   }
 }

@@ -20,10 +20,14 @@ export interface MCPAuthContext {
  * Extract authentication from MCP request
  * MCP requests can include auth in headers, tool arguments, or environment variables
  */
-export async function extractMCPAuth(request: NextRequest): Promise<MCPAuthContext | null> {
+export async function extractMCPAuth(request: NextRequest | any): Promise<MCPAuthContext | null> {
   // Try to extract API key from headers first
-  const authHeader = request.headers.get('authorization');
-  const apiKeyHeader = request.headers.get('x-api-key');
+  // Handle both NextRequest and MCP request types
+  const headers = request.headers instanceof Headers ? request.headers :
+                  request.headers ? new Headers(request.headers) : new Headers();
+
+  const authHeader = headers.get('authorization');
+  const apiKeyHeader = headers.get('x-api-key');
 
   let apiKey: string | null = null;
 
@@ -98,7 +102,7 @@ export function getToolPermissions(toolName: string): ApiKeyPermission[] {
  * Validate authentication for MCP tool execution
  */
 export async function validateMCPToolAuth(
-  request: NextRequest | undefined,
+  request: NextRequest | any | undefined,
   toolName: string,
   toolArgs: any
 ): Promise<{

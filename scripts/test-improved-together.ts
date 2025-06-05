@@ -65,8 +65,8 @@ async function testImprovedModels() {
     console.log(`📈 Improvement: ${freeModels.length}x more free models available`);
     
   } catch (error) {
-    console.error('❌ Error testing models:', error.message);
-    console.error('Stack:', error.stack);
+    console.error('❌ Error testing models:', error instanceof Error ? error.message : String(error));
+    console.error('Stack:', error instanceof Error ? error.stack : "No stack trace available");
     process.exit(1);
   }
 }

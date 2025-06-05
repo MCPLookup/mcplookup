@@ -327,16 +327,33 @@ function createAuthenticatedMcpHandler() {
           // If challenge_id provided, check specific challenge status
           if (args.challenge_id) {
             try {
-              const challengeStatus = await services.verification.checkChallengeStatus(args.challenge_id);
+              const challengeStatus = await services.verification.getChallengeStatus(args.challenge_id);
+
+              if (!challengeStatus) {
+                return {
+                  content: [{
+                    type: 'text',
+                    text: JSON.stringify({
+                      domain: args.domain,
+                      challenge_id: args.challenge_id,
+                      verified: false,
+                      status: 'challenge_not_found',
+                      error: 'Challenge ID not found or expired',
+                      timestamp: new Date().toISOString()
+                    }, null, 2)
+                  }]
+                };
+              }
+
               return {
                 content: [{
                   type: 'text',
                   text: JSON.stringify({
                     domain: args.domain,
                     challenge_id: args.challenge_id,
-                    verified: challengeStatus.verified,
+                    verified: challengeStatus.status === 'verified',
                     status: challengeStatus.status,
-                    verification_date: challengeStatus.verified_at,
+                    verification_date: challengeStatus.status === 'verified' ? new Date().toISOString() : null,
                     verification_method: 'dns',
                     timestamp: new Date().toISOString()
                   }, null, 2)
@@ -827,18 +844,6 @@ function createAuthenticatedMcpHandler() {
         }
       }
     );
-  },
-  {
-    // Server options
-    name: 'mcp-lookup-discovery-server',
-    version: '1.0.0'
-  },
-  {
-    // Adapter configuration
-    redisUrl: process.env.REDIS_URL || process.env.UPSTASH_REDIS_REST_URL,
-    basePath: '/api/mcp',
-    maxDuration: process.env.VERCEL_ENV === 'production' ? 300 : 60, // 5 minutes for production
-    verboseLogs: process.env.NODE_ENV === 'development'
   }
 );
 }

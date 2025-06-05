@@ -34,12 +34,13 @@ export async function GET(
     // Return challenge status
     return NextResponse.json({
       challenge_id: status.challenge_id,
-      status: status.verified ? 'verified' : 
+      status: status.status ||
               (new Date() > new Date(status.expires_at)) ? 'expired' : 'pending',
-      created_at: status.created_at,
+      domain: status.domain,
       expires_at: status.expires_at,
-      verified_at: status.verified_at,
-      dns_record: status.txt_record_value
+      txt_record_name: status.txt_record_name,
+      txt_record_value: status.txt_record_value,
+      instructions: status.instructions
     });
 
   } catch (error) {
