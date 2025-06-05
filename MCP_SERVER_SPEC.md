@@ -1,30 +1,24 @@
-<<<<<<< HEAD
-# THE ONE RING: MCP SERVER SPECIFICATION
+# 🔍 MCP DISCOVERY SERVER SPECIFICATION
 
-**Status**: ✅ **LIVE AND OPERATIONAL**
-**The Master MCP Server that discovers all other MCP servers**
-*The Registry. The Discovery Engine. The One Ring to Rule Them All.*
-=======
-# PROFESSIONAL MCP DISCOVERY SERVER SPECIFICATION
-
+**Status**: ✅ **LIVE & OPERATIONAL**
 **Enterprise-grade MCP Server Discovery and Registration Service**
 *The Central Registry. The Discovery Engine. Professional MCP Infrastructure.*
-*Zero Infrastructure. Zero Database. Maximum Discovery.*
->>>>>>> c4afad7 (feat: redesign UI with professional styling and remove 'one ring' references)
 
 ---
 
 ## 🎯 **ARCHITECTURE & IMPLEMENTATION**
 
 **Endpoint**: `https://mcplookup.org/api/mcp`
-**Implementation**: `@vercel/mcp-adapter` with direct service integration
-**Protocol**: Native MCP JSON-RPC over HTTP
+**Implementation**: Complete `@vercel/mcp-adapter` integration with real services
+**Protocol**: Native MCP JSON-RPC over HTTP with SSE support
 
 ### **🏗️ Technical Stack**
-- **MCP Adapter**: `@vercel/mcp-adapter` for native protocol support
+- **MCP Adapter**: `@vercel/mcp-adapter` v0.7.3+ for native protocol support
 - **Service Integration**: Direct calls to service layer (no HTTP overhead)
 - **Storage**: Multi-tier Redis with auto-detection (Upstash/Local/Memory)
 - **Deployment**: Vercel serverless functions with global edge network
+- **Transport**: Both Streamable HTTP and Server-Sent Events (SSE)
+- **Redis Integration**: For SSE transport resumability and pub/sub
 
 ### **⚡ Performance Architecture**
 ```

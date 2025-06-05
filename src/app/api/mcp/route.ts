@@ -240,23 +240,75 @@ const handler = createMcpHandler(
       'verify_domain_ownership',
       'Check the DNS verification status for a domain registration.',
       {
-        domain: z.string().describe('Domain to check verification status')
+        domain: z.string().describe('Domain to check verification status'),
+        challenge_id: z.string().optional().describe('Specific challenge ID to check')
       },
       async (args) => {
         try {
-          // For now, we'll need to implement a method to check domain verification status
-          // This is a placeholder that should be implemented in the verification service
-          const verificationStatus = { verified: false, verification_date: null, method: 'dns', status: 'pending' };
+          // Check if domain is already registered and verified
+          const existingServer = await services.discovery.discoverByDomain(args.domain);
 
+          if (existingServer?.verification?.dns_verified) {
+            return {
+              content: [{
+                type: 'text',
+                text: JSON.stringify({
+                  domain: args.domain,
+                  verified: true,
+                  verification_date: existingServer.verification.verified_at,
+                  verification_method: existingServer.verification.verification_method,
+                  status: 'verified',
+                  server_endpoint: existingServer.endpoint,
+                  timestamp: new Date().toISOString()
+                }, null, 2)
+              }]
+            };
+          }
+
+          // If challenge_id provided, check specific challenge status
+          if (args.challenge_id) {
+            try {
+              const challengeStatus = await services.verification.checkChallengeStatus(args.challenge_id);
+              return {
+                content: [{
+                  type: 'text',
+                  text: JSON.stringify({
+                    domain: args.domain,
+                    challenge_id: args.challenge_id,
+                    verified: challengeStatus.verified,
+                    status: challengeStatus.status,
+                    verification_date: challengeStatus.verified_at,
+                    verification_method: 'dns',
+                    timestamp: new Date().toISOString()
+                  }, null, 2)
+                }]
+              };
+            } catch (error) {
+              return {
+                content: [{
+                  type: 'text',
+                  text: JSON.stringify({
+                    domain: args.domain,
+                    challenge_id: args.challenge_id,
+                    verified: false,
+                    status: 'challenge_not_found',
+                    error: 'Challenge ID not found or expired',
+                    timestamp: new Date().toISOString()
+                  }, null, 2)
+                }]
+              };
+            }
+          }
+
+          // Domain not found in registry
           return {
             content: [{
               type: 'text',
               text: JSON.stringify({
                 domain: args.domain,
-                verified: verificationStatus.verified,
-                verification_date: verificationStatus.verification_date,
-                verification_method: verificationStatus.method,
-                status: verificationStatus.status,
+                verified: false,
+                status: 'not_registered',
+                message: 'Domain not found in registry. Use register_mcp_server to start registration.',
                 timestamp: new Date().toISOString()
               }, null, 2)
             }]
@@ -560,14 +612,139 @@ const handler = createMcpHandler(
         }
       }
     );
+
+    // Tool 7: list_mcp_tools - List all available MCP tools in this server
+    server.tool(
+      'list_mcp_tools',
+      'List all available MCP tools provided by this discovery server with descriptions and parameters.',
+      {},
+      async () => {
+        try {
+          const tools = [
+            {
+              name: 'discover_mcp_servers',
+              description: 'Flexible MCP server discovery with natural language queries, similarity search, complex capability matching, and performance constraints.',
+              category: 'discovery',
+              parameters: ['query', 'domain', 'domains', 'capabilities', 'similar_to', 'categories', 'keywords', 'performance', 'technical', 'limit', 'include_alternatives', 'include_similar', 'sort_by'],
+              examples: [
+                'Find email servers like Gmail but faster',
+                'Show me document collaboration tools',
+                'Find servers with OAuth2 authentication'
+              ]
+            },
+            {
+              name: 'register_mcp_server',
+              description: 'Register a new MCP server in the global registry with DNS verification.',
+              category: 'registration',
+              parameters: ['domain', 'endpoint', 'capabilities', 'category', 'auth_type', 'contact_email', 'description'],
+              examples: [
+                'Register mycompany.com MCP server',
+                'Add new productivity server to registry'
+              ]
+            },
+            {
+              name: 'verify_domain_ownership',
+              description: 'Check DNS verification status for domain registration.',
+              category: 'verification',
+              parameters: ['domain', 'challenge_id'],
+              examples: [
+                'Check if mycompany.com is verified',
+                'Get verification status for challenge'
+              ]
+            },
+            {
+              name: 'get_server_health',
+              description: 'Get real-time health, performance, and reliability metrics for MCP servers.',
+              category: 'monitoring',
+              parameters: ['domain', 'domains'],
+              examples: [
+                'Check health of gmail.com',
+                'Monitor multiple server health'
+              ]
+            },
+            {
+              name: 'browse_capabilities',
+              description: 'Browse and search the taxonomy of available MCP capabilities across all registered servers.',
+              category: 'discovery',
+              parameters: ['category', 'search', 'popular'],
+              examples: [
+                'Show popular email capabilities',
+                'Search for document editing features'
+              ]
+            },
+            {
+              name: 'get_discovery_stats',
+              description: 'Get analytics about MCP server discovery patterns and usage statistics.',
+              category: 'analytics',
+              parameters: ['timeframe', 'metric'],
+              examples: [
+                'Show daily discovery statistics',
+                'Get popular domains this week'
+              ]
+            },
+            {
+              name: 'list_mcp_tools',
+              description: 'List all available MCP tools provided by this discovery server.',
+              category: 'meta',
+              parameters: [],
+              examples: [
+                'What tools are available?',
+                'Show all MCP capabilities'
+              ]
+            }
+          ];
+
+          return {
+            content: [{
+              type: 'text',
+              text: JSON.stringify({
+                server_info: {
+                  name: 'MCP Lookup Discovery Server',
+                  description: 'The master MCP server that discovers all other MCP servers',
+                  endpoint: 'https://mcplookup.org/api/mcp',
+                  protocol_version: '2024-11-05',
+                  capabilities: ['tools', 'discovery', 'registration', 'verification', 'monitoring']
+                },
+                tools: tools,
+                total_tools: tools.length,
+                categories: ['discovery', 'registration', 'verification', 'monitoring', 'analytics', 'meta'],
+                usage_instructions: [
+                  'Use discover_mcp_servers for finding servers',
+                  'Use register_mcp_server to add new servers',
+                  'Use verify_domain_ownership to check verification',
+                  'Use get_server_health for monitoring',
+                  'Use browse_capabilities to explore features',
+                  'Use get_discovery_stats for analytics'
+                ],
+                timestamp: new Date().toISOString()
+              }, null, 2)
+            }]
+          };
+        } catch (error) {
+          return {
+            content: [{
+              type: 'text',
+              text: JSON.stringify({
+                error: 'Tool listing failed',
+                message: error instanceof Error ? error.message : 'Unknown error',
+                timestamp: new Date().toISOString()
+              }, null, 2)
+            }]
+          };
+        }
+      }
+    );
   },
   {
-    // Server options - removed name/version as they're not in ServerOptions type
+    // Server options
+    name: 'mcp-lookup-discovery-server',
+    version: '1.0.0'
   },
   {
     // Adapter configuration
+    redisUrl: process.env.REDIS_URL || process.env.UPSTASH_REDIS_REST_URL,
     basePath: '/api/mcp',
-    maxDuration: 60,
+    maxDuration: process.env.VERCEL_ENV === 'production' ? 300 : 60, // 5 minutes for production
     verboseLogs: process.env.NODE_ENV === 'development'
   }
 );
