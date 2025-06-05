@@ -15,10 +15,20 @@ export const CardRoot = React.forwardRef<HTMLDivElement, CardRootProps>(
         ref={ref}
         bg="white"
         color="gray.900"
+        shadow="sm"
+        border="1px solid"
+        borderColor="gray.200"
+        rounded="lg"
         _dark={{
           bg: "gray.800",
-          color: "gray.100"
+          color: "gray.100",
+          borderColor: "gray.700"
         }}
+        _hover={{
+          shadow: "md",
+          transform: "translateY(-1px)"
+        }}
+        transition="all 0.2s ease"
         className="text-gray-900 dark:text-gray-100"
         {...props}
       />

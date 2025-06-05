@@ -132,9 +132,9 @@ export const AnimatedCard = React.forwardRef<HTMLDivElement, AnimatedCardProps>(
             color: "gray.100",
             borderColor: borderOnHover && isHovered ? "blue.400" : "gray.700"
           }}
-          shadow={isHovered ? "xl" : "md"}
+          shadow={isHovered ? "lg" : "sm"}
           rounded="lg"
-          border={borderOnHover && isHovered ? "2px" : "1px"}
+          border="1px solid"
           borderColor={borderOnHover && isHovered ? "blue.400" : "gray.200"}
           transition="all 0.2s ease"
           overflow="hidden"
