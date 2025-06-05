@@ -519,17 +519,48 @@ export class MCPDiscoveryBridge {
   }
 
   /**
+   * Create a bridge with API key authentication
+   */
+  async createBridgeWithApiKey(domain: string, apiKey: string): Promise<MCPHttpBridge> {
+    const endpoint = await this.discoverServerEndpoint(domain);
+    const authHeaders = {
+      'Authorization': `Bearer ${apiKey}`,
+      'X-API-Key': apiKey
+    };
+    return new MCPHttpBridge(endpoint, authHeaders);
+  }
+
+  /**
    * Create a bridge to a server discovered by capability
    */
   async createBridgeForCapability(capability: string, authHeaders: Record<string, string> = {}): Promise<MCPHttpBridge> {
     const servers = await this.discoverServersByCapability(capability);
-    
+
     if (servers.length === 0) {
       throw new Error(`No servers found with capability: ${capability}`);
     }
 
     // Use the first (most relevant) server
     const endpoint = servers[0].endpoint;
+    return new MCPHttpBridge(endpoint, authHeaders);
+  }
+
+  /**
+   * Create a bridge for capability with API key authentication
+   */
+  async createBridgeForCapabilityWithApiKey(capability: string, apiKey: string): Promise<MCPHttpBridge> {
+    const servers = await this.discoverServersByCapability(capability);
+
+    if (servers.length === 0) {
+      throw new Error(`No servers found with capability: ${capability}`);
+    }
+
+    // Use the first (most relevant) server
+    const endpoint = servers[0].endpoint;
+    const authHeaders = {
+      'Authorization': `Bearer ${apiKey}`,
+      'X-API-Key': apiKey
+    };
     return new MCPHttpBridge(endpoint, authHeaders);
   }
 

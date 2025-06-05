@@ -5,6 +5,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { SmartProvider } from '@/lib/services/ai';
 import { getServerlessServices } from '@/lib/services';
+import { apiKeyMiddleware, recordApiUsage, addRateLimitHeaders as addApiKeyRateLimitHeaders } from '@/lib/auth/api-key-middleware';
+import { discoveryRateLimit, addRateLimitHeaders } from '@/lib/security/rate-limiting';
 
 // Request schema
 const SmartDiscoveryRequestSchema = z.object({
@@ -19,7 +21,23 @@ const SmartDiscoveryRequestSchema = z.object({
 
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
-  
+
+  // Apply rate limiting
+  const rateLimitResponse = await discoveryRateLimit(request);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
+  // Optional API key authentication (discovery is public but can be enhanced with API key)
+  const apiKeyResult = await apiKeyMiddleware(request, {
+    required: false,
+    permissions: ['discovery:read']
+  });
+
+  if (apiKeyResult.response) {
+    return apiKeyResult.response;
+  }
+
   try {
     // Parse request body
     const body = await request.json();
@@ -107,15 +125,23 @@ export async function POST(request: NextRequest) {
     };
     
     console.log(`✅ Smart discovery completed in ${processingTime}ms, selected ${limitedServers.length} servers`);
-    
-    return NextResponse.json(response, {
+
+    const nextResponse = NextResponse.json(response, {
       headers: {
         'Cache-Control': 'public, s-maxage=300',
         'Access-Control-Allow-Origin': process.env.ALLOWED_ORIGINS || 'https://mcplookup.org',
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type'
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key'
       }
     });
+
+    // Record API usage if authenticated with API key
+    if (apiKeyResult.context) {
+      await recordApiUsage(apiKeyResult.context, request, nextResponse, startTime);
+      await addApiKeyRateLimitHeaders(nextResponse, apiKeyResult.context);
+    }
+
+    return addRateLimitHeaders(nextResponse, request);
     
   } catch (error) {
     console.error('Smart discovery error:', error);
@@ -146,7 +172,7 @@ export async function OPTIONS(request: NextRequest) {
     headers: {
       'Access-Control-Allow-Origin': process.env.ALLOWED_ORIGINS || 'https://mcplookup.org',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key',
     },
   });
 }

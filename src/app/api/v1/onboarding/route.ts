@@ -4,13 +4,14 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '../../../../../auth'
-import { 
-  getUserOnboardingState, 
+import {
+  getUserOnboardingState,
   getOnboardingProgress,
   updateOnboardingStep,
   needsOnboarding
 } from '@/lib/onboarding/state'
 import { z } from 'zod'
+import { apiKeyMiddleware, recordApiUsage } from '@/lib/auth/api-key-middleware'
 
 const UpdateOnboardingSchema = z.object({
   step: z.enum(['welcome', 'domain_verify', 'server_register', 'dashboard_tour', 'training_impact', 'completed']),
@@ -22,29 +23,58 @@ const UpdateOnboardingSchema = z.object({
  * Get user's onboarding state and progress
  */
 export async function GET(request: NextRequest) {
+  const startTime = Date.now();
+
   try {
-    const session = await auth()
-    
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      )
+    // Support both session auth and API key auth
+    let userId: string | null = null;
+    let apiKeyContext = null;
+
+    // Try API key authentication first
+    const apiKeyResult = await apiKeyMiddleware(request, {
+      required: false,
+      permissions: ['analytics:read']
+    });
+
+    if (apiKeyResult.response) {
+      return apiKeyResult.response;
+    }
+
+    if (apiKeyResult.context) {
+      userId = apiKeyResult.context.userId;
+      apiKeyContext = apiKeyResult.context;
+    } else {
+      // Fall back to session authentication
+      const session = await auth();
+      if (!session?.user?.id) {
+        return NextResponse.json(
+          { error: 'Authentication required - provide valid session or API key' },
+          { status: 401 }
+        );
+      }
+      userId = session.user.id;
     }
     
     const [state, progress, needs] = await Promise.all([
-      getUserOnboardingState(session.user.id),
-      getOnboardingProgress(session.user.id),
-      needsOnboarding(session.user.id)
+      getUserOnboardingState(userId),
+      getOnboardingProgress(userId),
+      needsOnboarding(userId)
     ])
-    
-    return NextResponse.json({
+
+    const response = NextResponse.json({
       success: true,
       state,
       progress,
       needsOnboarding: needs,
-      user_id: session.user.id
-    })
+      user_id: userId
+    });
+
+    // Record API usage if authenticated with API key
+    if (apiKeyContext) {
+      await recordApiUsage(apiKeyContext, request, response, startTime);
+    }
+
+    return response;
     
   } catch (error) {
     console.error('Get onboarding error:', error)
@@ -64,14 +94,36 @@ export async function GET(request: NextRequest) {
  * Update user's onboarding progress
  */
 export async function POST(request: NextRequest) {
+  const startTime = Date.now();
+
   try {
-    const session = await auth()
-    
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      )
+    // Support both session auth and API key auth
+    let userId: string | null = null;
+    let apiKeyContext = null;
+
+    // Try API key authentication first
+    const apiKeyResult = await apiKeyMiddleware(request, {
+      required: false,
+      permissions: ['analytics:read'] // Onboarding updates are considered analytics
+    });
+
+    if (apiKeyResult.response) {
+      return apiKeyResult.response;
+    }
+
+    if (apiKeyResult.context) {
+      userId = apiKeyResult.context.userId;
+      apiKeyContext = apiKeyResult.context;
+    } else {
+      // Fall back to session authentication
+      const session = await auth();
+      if (!session?.user?.id) {
+        return NextResponse.json(
+          { error: 'Authentication required - provide valid session or API key' },
+          { status: 401 }
+        );
+      }
+      userId = session.user.id;
     }
     
     const body = await request.json()
@@ -90,17 +142,24 @@ export async function POST(request: NextRequest) {
     const { step, completed } = validation.data
     
     // Update onboarding step
-    const updatedState = await updateOnboardingStep(session.user.id, step, completed)
-    
+    const updatedState = await updateOnboardingStep(userId, step, completed)
+
     // Get updated progress
-    const progress = await getOnboardingProgress(session.user.id)
-    
-    return NextResponse.json({
+    const progress = await getOnboardingProgress(userId)
+
+    const response = NextResponse.json({
       success: true,
       state: updatedState,
       progress,
       message: completed ? `Step '${step}' completed` : `Moved to step '${step}'`
-    })
+    });
+
+    // Record API usage if authenticated with API key
+    if (apiKeyContext) {
+      await recordApiUsage(apiKeyContext, request, response, startTime);
+    }
+
+    return response;
     
   } catch (error) {
     console.error('Update onboarding error:', error)

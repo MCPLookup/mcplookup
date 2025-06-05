@@ -5,12 +5,14 @@
 import { createMcpHandler } from '@vercel/mcp-adapter';
 import { z } from 'zod';
 import { getServerlessServices } from '../../../lib/services/index';
+import { validateMCPToolAuth } from '@/lib/mcp/auth-wrapper';
 
 // Initialize services for serverless deployment
 const services = getServerlessServices();
 
-// Create the MCP handler with all discovery tools
-const handler = createMcpHandler(
+// Helper function to create authenticated MCP handler
+function createAuthenticatedMcpHandler() {
+  return createMcpHandler(
   (server) => {
     // Tool 1: discover_mcp_servers - Flexible MCP server discovery
     server.tool(
@@ -179,11 +181,31 @@ const handler = createMcpHandler(
         description: z.string().max(500).optional().describe('Brief description of your MCP server\'s purpose'),
         user_id: z.string().describe('Your authenticated user ID - required for domain ownership verification')
       },
-      async (args) => {
+      async (args, request) => {
         try {
+          // 🔒 SECURITY: Validate API key authentication for registration
+          const authResult = await validateMCPToolAuth(request, 'register_mcp_server', args);
+
+          if (!authResult.success) {
+            return {
+              content: [{
+                type: 'text',
+                text: JSON.stringify({
+                  error: 'Authentication failed',
+                  message: authResult.error,
+                  tool: 'register_mcp_server',
+                  timestamp: new Date().toISOString()
+                }, null, 2)
+              }]
+            };
+          }
+
+          // Use authenticated user ID instead of args.user_id
+          const userId = authResult.context?.userId || args.user_id;
+
           // 🔒 SECURITY: Verify domain ownership before allowing registration
           const { isUserDomainVerified } = await import('@/lib/services/dns-verification');
-          const domainVerified = await isUserDomainVerified(args.user_id, args.domain);
+          const domainVerified = await isUserDomainVerified(userId, args.domain);
 
           if (!domainVerified) {
             return {
@@ -263,8 +285,25 @@ const handler = createMcpHandler(
         domain: z.string().describe('Domain to check verification status'),
         challenge_id: z.string().optional().describe('Specific challenge ID to check')
       },
-      async (args) => {
+      async (args, request) => {
         try {
+          // 🔒 SECURITY: Validate API key authentication for verification check
+          const authResult = await validateMCPToolAuth(request, 'verify_domain_ownership', args);
+
+          if (!authResult.success) {
+            return {
+              content: [{
+                type: 'text',
+                text: JSON.stringify({
+                  error: 'Authentication failed',
+                  message: authResult.error,
+                  tool: 'verify_domain_ownership',
+                  timestamp: new Date().toISOString()
+                }, null, 2)
+              }]
+            };
+          }
+
           // Check if domain is already registered and verified
           const existingServer = await services.discovery.discoverByDomain(args.domain);
 
@@ -357,8 +396,25 @@ const handler = createMcpHandler(
         domain: z.string().optional().describe('Specific domain to check'),
         domains: z.array(z.string()).optional().describe('Multiple domains to check')
       },
-      async (args) => {
+      async (args, request) => {
         try {
+          // 🔒 SECURITY: Validate API key authentication for health checks
+          const authResult = await validateMCPToolAuth(request, 'get_server_health', args);
+
+          if (!authResult.success) {
+            return {
+              content: [{
+                type: 'text',
+                text: JSON.stringify({
+                  error: 'Authentication failed',
+                  message: authResult.error,
+                  tool: 'get_server_health',
+                  timestamp: new Date().toISOString()
+                }, null, 2)
+              }]
+            };
+          }
+
           const domainsToCheck = args.domains || (args.domain ? [args.domain] : []);
 
           if (domainsToCheck.length === 0) {
@@ -555,8 +611,25 @@ const handler = createMcpHandler(
         timeframe: z.enum(['hour', 'day', 'week', 'month']).default('day'),
         metric: z.enum(['discoveries', 'registrations', 'health_checks', 'popular_domains']).default('discoveries')
       },
-      async (args) => {
+      async (args, request) => {
         try {
+          // 🔒 SECURITY: Validate API key authentication for analytics
+          const authResult = await validateMCPToolAuth(request, 'get_discovery_stats', args);
+
+          if (!authResult.success) {
+            return {
+              content: [{
+                type: 'text',
+                text: JSON.stringify({
+                  error: 'Authentication failed',
+                  message: authResult.error,
+                  tool: 'get_discovery_stats',
+                  timestamp: new Date().toISOString()
+                }, null, 2)
+              }]
+            };
+          }
+
           // Get current registry statistics
           const allServers = await services.registry.getAllVerifiedServers();
           const verifiedCount = allServers.filter(s => s.verification?.dns_verified).length;
@@ -768,5 +841,9 @@ const handler = createMcpHandler(
     verboseLogs: process.env.NODE_ENV === 'development'
   }
 );
+}
+
+// Create the authenticated handler
+const handler = createAuthenticatedMcpHandler();
 
 export { handler as GET, handler as POST, handler as DELETE };

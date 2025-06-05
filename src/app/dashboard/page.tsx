@@ -5,6 +5,7 @@ import { Footer } from "@/components/layout/footer"
 import { AnimatedButton } from "@/components/ui/animated-button"
 import AnimatedCard, { AnimatedList } from "@/components/ui/animated-card"
 import { DashboardWalkthrough } from "@/components/onboarding/dashboard-walkthrough"
+import { ApiKeysTab } from "@/components/dashboard/api-keys-tab"
 import Link from "next/link"
 import { useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
@@ -169,6 +170,7 @@ export default function DashboardPage() {
           {[
             { id: 'servers', label: '🖥️ My Servers', count: stats.totalServers },
             { id: 'domains', label: '🌐 Domains', count: 2 },
+            { id: 'api-keys', label: '🔑 API Keys', count: null },
             { id: 'analytics', label: '📊 Analytics', count: null },
             { id: 'profile', label: '👤 Profile', count: null }
           ].map((tab) => (
@@ -512,6 +514,11 @@ export default function DashboardPage() {
               </AnimatedCard.Body>
             </AnimatedCard.Root>
           </div>
+        )}
+
+        {/* API Keys Tab */}
+        {activeTab === 'api-keys' && (
+          <ApiKeysTab />
         )}
 
         {/* Analytics Tab */}

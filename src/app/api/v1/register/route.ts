@@ -8,8 +8,11 @@ import { SecureURLSchema, SecureDomainSchema } from '@/lib/security/url-validati
 import { createVerificationService } from '@/lib/services';
 import { auth } from '../../../../auth';
 import { isUserDomainVerified } from '@/lib/services/dns-verification';
+import { apiKeyMiddleware, recordApiUsage } from '@/lib/auth/api-key-middleware';
 
 export async function POST(request: NextRequest) {
+  const startTime = Date.now();
+
   // Apply rate limiting
   const rateLimitResponse = await registerRateLimit(request);
   if (rateLimitResponse) {
@@ -17,16 +20,36 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // 🔒 SECURITY: Require authentication for MCP server registration
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        {
-          error: 'Authentication required',
-          details: 'You must be logged in to register MCP servers'
-        },
-        { status: 401 }
-      );
+    // 🔒 SECURITY: Support both session auth and API key auth for MCP server registration
+    let userId: string | null = null;
+    let apiKeyContext = null;
+
+    // Try API key authentication first
+    const apiKeyResult = await apiKeyMiddleware(request, {
+      required: false,
+      permissions: ['servers:write']
+    });
+
+    if (apiKeyResult.response) {
+      return apiKeyResult.response;
+    }
+
+    if (apiKeyResult.context) {
+      userId = apiKeyResult.context.userId;
+      apiKeyContext = apiKeyResult.context;
+    } else {
+      // Fall back to session authentication
+      const session = await auth();
+      if (!session?.user?.id) {
+        return NextResponse.json(
+          {
+            error: 'Authentication required',
+            details: 'You must be logged in or provide a valid API key to register MCP servers'
+          },
+          { status: 401 }
+        );
+      }
+      userId = session.user.id;
     }
 
     const body = await request.json();
@@ -39,7 +62,7 @@ export async function POST(request: NextRequest) {
     SecureDomainSchema.parse(validatedRequest.domain);
 
     // 🔒 SECURITY: Check if user has verified ownership of this domain
-    const domainVerified = await isUserDomainVerified(session.user.id, validatedRequest.domain);
+    const domainVerified = await isUserDomainVerified(userId, validatedRequest.domain);
     if (!domainVerified) {
       return NextResponse.json(
         {
@@ -81,6 +104,11 @@ export async function POST(request: NextRequest) {
         'Access-Control-Allow-Headers': 'Content-Type'
       }
     });
+
+    // Record API usage if authenticated with API key
+    if (apiKeyContext) {
+      await recordApiUsage(apiKeyContext, request, response, startTime);
+    }
 
     return addRateLimitHeaders(response, request);
 
