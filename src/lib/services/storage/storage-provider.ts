@@ -99,7 +99,8 @@ export class StorageProvider implements IStorage {
       const collectionKey = this.getCollectionKey(collection);
 
       // Store the record
-      await this.backend.set(redisKey, JSON.stringify(dataWithTimestamp));
+      const jsonString = JSON.stringify(dataWithTimestamp);
+      await this.backend.set(redisKey, jsonString);
       
       // Add to collection index
       await this.backend.sAdd(collectionKey, key);
