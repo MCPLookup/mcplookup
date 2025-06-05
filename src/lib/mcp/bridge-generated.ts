@@ -1,5 +1,5 @@
 // Bridge Tools with API Parity
-// Bridge version of the 6 main MCP server tools + invoke_tool
+// Bridge version of the 7 main MCP server tools + invoke_tool
 // These tools call the REST API instead of services directly
 
 import { z } from 'zod';
@@ -10,7 +10,7 @@ import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
 
 /**
  * Bridge tools with API parity to main MCP server
- * Same 6 tools but using API calls instead of direct service calls
+ * Same 7 tools but using API calls instead of direct service calls
  * Plus invoke_tool for calling streaming HTTP MCP servers
  */
 export class BridgeToolsWithAPIParity {
@@ -26,7 +26,7 @@ export class BridgeToolsWithAPIParity {
   }
 
   /**
-   * Setup the 6 main tools + invoke_tool
+   * Setup the 7 main tools + invoke_tool
    */
   private setupBridgeTools(): void {
     // Tool 1: discover_mcp_servers - Same as main server but calls API
@@ -230,7 +230,33 @@ export class BridgeToolsWithAPIParity {
       }
     );
 
-    // Tool 7: invoke_tool - Call tools on streaming HTTP MCP servers
+    // Tool 7: list_mcp_tools - Same as main server but calls API
+    this.server.tool(
+      'list_mcp_tools',
+      'List all available MCP tools provided by this discovery server with descriptions and parameters.',
+      {},
+      async () => {
+        try {
+          const result = await this.makeApiRequest('/v1/tools', 'GET', {});
+          return {
+            content: [{
+              type: 'text',
+              text: JSON.stringify(result, null, 2)
+            }]
+          };
+        } catch (error) {
+          return {
+            content: [{
+              type: 'text',
+              text: `Error listing MCP tools: ${error instanceof Error ? error.message : 'Unknown error'}`
+            }],
+            isError: true
+          };
+        }
+      }
+    );
+
+    // Tool 8: invoke_tool - Call tools on streaming HTTP MCP servers
     this.server.tool(
       'invoke_tool',
       'Call any tool on any streaming HTTP MCP server. This is the bridge-specific tool for connecting to external MCP servers.',

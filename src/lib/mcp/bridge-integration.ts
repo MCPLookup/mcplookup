@@ -19,11 +19,11 @@ export class IntegratedBridge {
   }
 
   /**
-   * Setup integration with the 7 bridge tools
+   * Setup integration with the 8 bridge tools
    */
   private setupIntegration(): void {
     console.log('🔧 Setting up integrated bridge with API parity tools');
-    console.log('📊 Available tools: 6 main tools + invoke_tool');
+    console.log('📊 Available tools: 7 main tools + invoke_tool');
     console.log('🎯 Tools call REST API instead of services directly');
   }
 
@@ -71,6 +71,12 @@ export class IntegratedBridge {
         name: 'get_discovery_stats',
         description: 'Get analytics about MCP server discovery patterns and usage statistics',
         category: 'Analytics',
+        source: 'bridge' as const
+      },
+      {
+        name: 'list_mcp_tools',
+        description: 'List all available MCP tools provided by this discovery server',
+        category: 'Discovery',
         source: 'bridge' as const
       },
       {

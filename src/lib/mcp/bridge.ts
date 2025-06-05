@@ -428,62 +428,7 @@ export class MCPHttpBridge {
       }
     );
 
-    // Tool 6: Get enhanced bridge status and capabilities
-    this.server.tool(
-      'bridge_status',
-      {},
-      async () => {
-        const availableTools = this.integratedBridge.getAvailableTools();
-        const toolsByCategory = {};
 
-        // Group tools by category
-        for (const tool of availableTools) {
-          if (!toolsByCategory[tool.category]) {
-            toolsByCategory[tool.category] = [];
-          }
-          toolsByCategory[tool.category].push({
-            name: tool.name,
-            description: tool.description,
-            source: tool.source
-          });
-        }
-
-        return {
-          content: [{
-            type: 'text',
-            text: JSON.stringify({
-              bridge_version: '2.1.0',
-              bridge_type: 'API Parity Bridge',
-              description: 'Bridge with same 6 tools as main MCP server but calls REST API instead of services',
-              capabilities: [
-                'MCP server discovery via REST API',
-                'Server registration via REST API',
-                'Domain verification via REST API',
-                'Health monitoring via REST API',
-                'Capability browsing via REST API',
-                'Discovery analytics via REST API',
-                'Tool invocation on streaming HTTP MCP servers'
-              ],
-              api_endpoint: 'https://mcplookup.org/api',
-              default_endpoint: this.httpEndpoint || 'none',
-              connected_to_default: this.connected,
-              tool_statistics: {
-                total_tools: availableTools.length,
-                main_tools: 6,
-                bridge_tools: 1,
-                categories: Object.keys(toolsByCategory).length
-              },
-              tools_by_category: toolsByCategory,
-              integration_status: {
-                api_parity_active: true,
-                calls_rest_api: true,
-                same_functionality_as_main_server: true
-              }
-            }, null, 2)
-          }]
-        };
-      }
-    );
   }
 
   /**
@@ -549,11 +494,10 @@ export class MCPHttpBridge {
 
       console.log('✅ Enhanced bridge server started successfully');
       console.log('🎯 Key features:');
-      console.log('  • 6 main MCP tools with API parity');
+      console.log('  • 7 main MCP tools with API parity');
       console.log('  • invoke_tool for calling streaming HTTP MCP servers');
       console.log('  • REST API calls instead of direct service calls');
       console.log('  • Type-safe tool implementations');
-      console.log('💡 Use "bridge_status" tool to see all available tools');
 
     } catch (error) {
       console.error('❌ Failed to start enhanced bridge server:', error);
@@ -649,7 +593,7 @@ export class EnhancedMCPBridge {
       console.log('  • Universal MCP server discovery and connection');
       console.log('  • Type-safe tool implementations');
       console.log('  • Bidirectional sync with OpenAPI spec');
-      console.log('💡 Use "bridge_status" tool to explore all capabilities');
+      console.log('💡 Bridge provides API parity with main MCP server');
 
     } catch (error) {
       console.error('❌ Failed to start enhanced bridge:', error);
