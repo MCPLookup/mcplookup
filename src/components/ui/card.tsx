@@ -10,7 +10,19 @@ export interface CardFooterProps extends ChakraCard.FooterProps {}
 
 export const CardRoot = React.forwardRef<HTMLDivElement, CardRootProps>(
   function CardRoot(props, ref) {
-    return <ChakraCard.Root ref={ref} {...props} />
+    return (
+      <ChakraCard.Root
+        ref={ref}
+        bg="white"
+        color="gray.900"
+        _dark={{
+          bg: "gray.800",
+          color: "gray.100"
+        }}
+        className="text-gray-900 dark:text-gray-100"
+        {...props}
+      />
+    )
   }
 )
 
