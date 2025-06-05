@@ -1172,4 +1172,29 @@ class LocalRedisAIStorage implements IAIStorage {
       let enabledModels = 0;
       for (const key of modelKeys) {
         const data = await this.redis.get(key);
-        if
+        if (data) {
+          const model = JSON.parse(data);
+          if (model.enabled) {
+            enabledModels++;
+          }
+        }
+      }
+
+      return {
+        success: true,
+        data: {
+          totalModels: modelKeys.length,
+          enabledModels,
+          cachedResponses: cacheKeys.length,
+          totalProviders: statsKeys.length
+        }
+      };
+    } catch (error) {
+      console.error('Error getting storage stats:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+}
