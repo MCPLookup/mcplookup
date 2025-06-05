@@ -90,7 +90,7 @@ export default function DiscoverPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-white">
       <Header />
       
       <div className="max-w-5xl mx-auto py-16 px-4">
