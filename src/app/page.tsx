@@ -75,8 +75,8 @@ export default function HomePage() {
                     <span className="text-2xl">👨‍💻</span>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">For Developers</h3>
-                    <p className="text-gray-600 text-sm mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">For Developers</h3>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
                       Start with free discovery to find AI tools. Get free API keys for server registration and analytics.
                     </p>
                   </div>
@@ -95,7 +95,7 @@ export default function HomePage() {
                       <AnimatedButton
                         variant="outline"
                         size="sm"
-                        className="w-full border-slate-300 text-slate-600 hover:bg-slate-50 text-xs py-1.5"
+                        className="w-full border-slate-300 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs py-1.5"
                       >
                         📖 Integration Guide
                       </AnimatedButton>
@@ -113,8 +113,8 @@ export default function HomePage() {
                     <span className="text-2xl">🛠️</span>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">For Tool Creators</h3>
-                    <p className="text-gray-600 text-sm mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">For Tool Creators</h3>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
                       Make your AI tools discoverable. Get free API keys to register your MCP servers and reach more users.
                     </p>
                   </div>
@@ -133,7 +133,7 @@ export default function HomePage() {
                       <AnimatedButton
                         variant="outline"
                         size="sm"
-                        className="w-full border-slate-300 text-slate-600 hover:bg-slate-50 text-xs py-1.5"
+                        className="w-full border-slate-300 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs py-1.5"
                       >
                         📡 Register Your Tool
                       </AnimatedButton>
@@ -151,8 +151,8 @@ export default function HomePage() {
                     <span className="text-2xl">🌟</span>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">For Explorers</h3>
-                    <p className="text-gray-600 text-sm mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">For Explorers</h3>
+                    <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
                       Curious about AI tools? Browse the ecosystem and learn what's possible.
                     </p>
                   </div>
@@ -171,7 +171,7 @@ export default function HomePage() {
                       <AnimatedButton
                         variant="outline"
                         size="sm"
-                        className="w-full border-slate-300 text-slate-600 hover:bg-slate-50 text-xs py-1.5"
+                        className="w-full border-slate-300 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs py-1.5"
                       >
                         📚 Learn More
                       </AnimatedButton>
@@ -205,7 +205,7 @@ export default function HomePage() {
                     <div className="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center mr-3">
                       <span className="text-red-600 text-sm font-bold">❌</span>
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900">Before: Manual Configuration</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Before: Manual Configuration</h3>
                   </div>
 
                   <div className="bg-gray-900 rounded-lg p-4 mb-4">
@@ -219,7 +219,7 @@ export default function HomePage() {
                     </code>
                   </div>
 
-                  <div className="space-y-2 text-sm text-gray-600">
+                  <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
                     <div className="flex items-center">
                       <span className="text-red-400 mr-2">•</span>
                       Manual updates for every new tool
@@ -249,7 +249,7 @@ export default function HomePage() {
                     <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mr-3">
                       <span className="text-green-600 text-sm font-bold">✅</span>
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900">After: Dynamic Discovery</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">After: Dynamic Discovery</h3>
                   </div>
 
                   <div className="bg-gray-900 rounded-lg p-4 mb-4">
@@ -263,7 +263,7 @@ export default function HomePage() {
                     </code>
                   </div>
 
-                  <div className="space-y-2 text-sm text-gray-600">
+                  <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
                     <div className="flex items-center">
                       <span className="text-green-500 mr-2">•</span>
                       Automatic discovery of new tools
@@ -308,8 +308,8 @@ export default function HomePage() {
                   <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-3">
                     <span className="text-lg">🧠</span>
                   </div>
-                  <h3 className="text-base font-semibold text-gray-900 mb-2">AI-Powered Search</h3>
-                  <p className="text-gray-600 text-sm">
+                  <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-2">AI-Powered Search</h3>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm">
                     Find tools using natural language. "I need email and calendar integration" returns relevant MCP servers.
                   </p>
                 </div>
@@ -323,8 +323,8 @@ export default function HomePage() {
                   <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-3">
                     <span className="text-lg">🛡️</span>
                   </div>
-                  <h3 className="text-base font-semibold text-gray-900 mb-2">DNS Verification</h3>
-                  <p className="text-gray-600 text-sm">
+                  <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-2">DNS Verification</h3>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm">
                     Cryptographic proof of domain ownership ensures you're connecting to legitimate services.
                   </p>
                 </div>
@@ -338,8 +338,8 @@ export default function HomePage() {
                   <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-3">
                     <span className="text-lg">💓</span>
                   </div>
-                  <h3 className="text-base font-semibold text-gray-900 mb-2">Health Monitoring</h3>
-                  <p className="text-gray-600 text-sm">
+                  <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-2">Health Monitoring</h3>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm">
                     Continuous monitoring ensures you only connect to healthy, responsive servers.
                   </p>
                 </div>
@@ -353,8 +353,8 @@ export default function HomePage() {
                   <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-3">
                     <span className="text-lg">🌍</span>
                   </div>
-                  <h3 className="text-base font-semibold text-gray-900 mb-2">Global Scale</h3>
-                  <p className="text-gray-600 text-sm">
+                  <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-2">Global Scale</h3>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm">
                     Serverless architecture with edge distribution for sub-100ms response times worldwide.
                   </p>
                 </div>
@@ -368,8 +368,8 @@ export default function HomePage() {
                   <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-3">
                     <span className="text-lg">🔓</span>
                   </div>
-                  <h3 className="text-base font-semibold text-gray-900 mb-2">Open Standards</h3>
-                  <p className="text-gray-600 text-sm">
+                  <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-2">Open Standards</h3>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm">
                     Built on open protocols. Fork our code, compete with us, improve the ecosystem.
                   </p>
                 </div>
@@ -383,8 +383,8 @@ export default function HomePage() {
                   <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-3">
                     <span className="text-lg">⚡</span>
                   </div>
-                  <h3 className="text-base font-semibold text-gray-900 mb-2">Developer Friendly</h3>
-                  <p className="text-gray-600 text-sm">
+                  <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-2">Developer Friendly</h3>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm">
                     Start with free discovery, then get free API keys for server registration. Simple REST API and comprehensive docs.
                   </p>
                 </div>
