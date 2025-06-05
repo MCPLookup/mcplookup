@@ -95,7 +95,7 @@ export default function HomePage() {
                       <AnimatedButton
                         variant="outline"
                         size="sm"
-                        className="w-full border-slate-300 text-slate-600 hover:bg-slate-50 text-xs py-1.5"
+                        className="w-full border-slate-300 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs py-1.5"
                       >
                         📖 Integration Guide
                       </AnimatedButton>
@@ -133,7 +133,7 @@ export default function HomePage() {
                       <AnimatedButton
                         variant="outline"
                         size="sm"
-                        className="w-full border-slate-300 text-slate-600 hover:bg-slate-50 text-xs py-1.5"
+                        className="w-full border-slate-300 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs py-1.5"
                       >
                         📡 Register Your Tool
                       </AnimatedButton>
@@ -171,7 +171,7 @@ export default function HomePage() {
                       <AnimatedButton
                         variant="outline"
                         size="sm"
-                        className="w-full border-slate-300 text-slate-600 hover:bg-slate-50 text-xs py-1.5"
+                        className="w-full border-slate-300 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs py-1.5"
                       >
                         📚 Learn More
                       </AnimatedButton>
