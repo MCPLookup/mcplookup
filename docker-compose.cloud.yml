@@ -1,0 +1,44 @@
+# Docker Compose for Cloud/VPS Deployment
+# Simple production setup for team/organizational use
+
+version: '3.8'
+
+services:
+  # MCP Universal Bridge - Main Service
+  mcp-bridge:
+    build:
+      context: .
+      dockerfile: bridge.Dockerfile
+    container_name: mcp-bridge-cloud
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      # Optional: Add authentication
+      # - MCP_AUTH_TOKEN=${MCP_AUTH_TOKEN}
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "node", "-e", "console.log('Bridge healthy')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Optional: Redis for enhanced caching
+  redis:
+    image: redis:7-alpine
+    container_name: mcp-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    profiles: ["with-redis"]
+
+volumes:
+  redis_data:
+    driver: local
