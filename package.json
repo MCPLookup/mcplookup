@@ -1,0 +1,49 @@
+{
+  "name": "@mcplookup-org/mcp-server",
+  "version": "1.0.0",
+  "description": "MCP Bridge Server - Universal MCP client with dynamic discovery and tool management",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "mcp-bridge": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js",
+    "test": "vitest",
+    "lint": "eslint src/**/*.ts",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "bridge",
+    "server",
+    "proxy",
+    "mcplookup"
+  ],
+  "author": "MCPLookup.org",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MCPLookup-org/mcp-server.git"
+  },
+  "dependencies": {
+    "@mcplookup-org/mcp-sdk": "file:../mcp-sdk",
+    "@modelcontextprotocol/sdk": "^1.0.7",
+    "zod": "^3.25.50"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.29",
+    "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
