@@ -4,6 +4,7 @@ import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Box, Text, VStack, HStack, Badge, Button, Card } from "@chakra-ui/react"
 import { InfrastructureFeature } from "@/components/mcplookup"
+import { LinkButton } from "@/components/ui/link-button"
 
 export default function SecurityPage() {
   return (
@@ -147,26 +148,24 @@ export default function SecurityPage() {
                 Have questions about our security practices or need to report a security issue?
               </Text>
               <HStack gap={3} flexDir={{ base: "column", sm: "row" }}>
-                <Button
-                  as="a"
+                <LinkButton
                   href="mailto:security@mcplookup.org"
+                  external
                   variant="outline"
                   colorPalette="blue"
                   bg="white"
                 >
                   📧 security@mcplookup.org
-                </Button>
-                <Button
-                  as="a"
+                </LinkButton>
+                <LinkButton
                   href="https://github.com/TSavo/mcplookup.org/security"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  external
                   variant="outline"
                   colorPalette="blue"
                   bg="white"
                 >
                   🔒 Security Policy
-                </Button>
+                </LinkButton>
               </HStack>
             </VStack>
           </Box>

@@ -13,20 +13,16 @@ export const LinkButton = forwardRef<HTMLButtonElement, LinkButtonProps>(
   ({ href, external = false, children, ...props }, ref) => {
     if (external) {
       return (
-        <Button
-          as="a"
-          href={href}
-          target="_blank"
-          rel="noopener noreferrer"
-          {...props}
-        >
-          {children}
-        </Button>
+        <a href={href} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+          <Button ref={ref} {...props}>
+            {children}
+          </Button>
+        </a>
       )
     }
 
     return (
-      <Link href={href}>
+      <Link href={href} style={{ textDecoration: 'none' }}>
         <Button ref={ref} {...props}>
           {children}
         </Button>

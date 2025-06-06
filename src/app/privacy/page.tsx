@@ -82,9 +82,9 @@ export default function PrivacyPage() {
                       <Text><Text as="span" fontWeight="bold">Email:</Text> privacy@mcplookup.org</Text>
                       <Text>
                         <Text as="span" fontWeight="bold">GitHub:</Text>{" "}
-                        <Text as="a" href="https://github.com/TSavo/mcplookup.org/issues" color="blue.600" _hover={{ textDecoration: "underline" }}>
+                        <a href="https://github.com/TSavo/mcplookup.org/issues" style={{ color: "#2563eb", textDecoration: "none" }}>
                           Report an issue
-                        </Text>
+                        </a>
                       </Text>
                     </VStack>
                   </Box>

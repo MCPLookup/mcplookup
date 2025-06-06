@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Box, Text, VStack, HStack, Badge, Button, Input, Card } from "@chakra-ui/react"
 import { RegistrationFlow, RegistrationBenefit, CodeBlock } from "@/components/mcplookup"
+import { LinkButton } from "@/components/ui/link-button"
 import Link from "next/link"
 
 interface RegistrationData {
@@ -218,23 +219,21 @@ export default function RegisterPage() {
                   needs authentication to prevent spam and ensure quality.
                 </Text>
                 <HStack gap={3} flexWrap="wrap">
-                  <Button
-                    as={Link}
+                  <LinkButton
                     href="/dashboard"
                     colorPalette="blue"
                     size="sm"
                   >
                     🔑 Get Free API Keys
-                  </Button>
-                  <Button
-                    as={Link}
+                  </LinkButton>
+                  <LinkButton
                     href="/discover"
                     variant="outline"
                     colorPalette="blue"
                     size="sm"
                   >
                     🔍 Discover Servers (Free)
-                  </Button>
+                  </LinkButton>
                 </HStack>
               </VStack>
             </HStack>

@@ -4,6 +4,7 @@ import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Box, Text, VStack, HStack, Badge, Button, Card } from "@chakra-ui/react"
 import { InfrastructureFeature, CodeBlock } from "@/components/mcplookup"
+import { LinkButton } from "@/components/ui/link-button"
 import Link from "next/link"
 
 export default function OpenStandardsPage() {
@@ -107,25 +108,22 @@ export default function OpenStandardsPage() {
                     All our code is open source and available for inspection, contribution, and forking.
                   </Text>
                   <HStack gap={3}>
-                    <Button
-                      as="a"
+                    <LinkButton
                       href="https://github.com/TSavo/mcplookup.org"
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      external
                       colorPalette="blue"
                       size="sm"
                     >
                       View Source Code
-                    </Button>
-                    <Button
-                      as={Link}
+                    </LinkButton>
+                    <LinkButton
                       href="/api/docs"
                       variant="outline"
                       colorPalette="blue"
                       size="sm"
                     >
                       API Documentation
-                    </Button>
+                    </LinkButton>
                   </HStack>
                 </Box>
               </VStack>
@@ -202,25 +200,22 @@ GET /api/v1/verify/domain.com`}
                 Contribute to the infrastructure that makes dynamic discovery possible.
               </Text>
               <HStack gap={4} flexDir={{ base: "column", sm: "row" }}>
-                <Button
-                  as="a"
+                <LinkButton
                   href="https://github.com/TSavo/mcplookup.org"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  external
                   colorPalette="blue"
                   size="lg"
                 >
                   🚀 View on GitHub
-                </Button>
-                <Button
-                  as={Link}
+                </LinkButton>
+                <LinkButton
                   href="/register"
                   variant="outline"
                   colorPalette="blue"
                   size="lg"
                 >
                   📡 Register Your Server
-                </Button>
+                </LinkButton>
               </HStack>
             </VStack>
           </Box>

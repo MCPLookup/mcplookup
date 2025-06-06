@@ -1,6 +1,7 @@
 "use client"
 
 import { Box, Card, Text, VStack, HStack, Button, Badge, List } from "@chakra-ui/react"
+import { LinkButton } from "@/components/ui/link-button"
 import Link from "next/link"
 
 interface UserPathProps {
@@ -131,19 +132,17 @@ export function UserPath({
 
       <Card.Footer>
         <VStack align="stretch" gap={3} w="full">
-          <Button
-            as={Link}
+          <LinkButton
             href={primaryCTA.href}
             size="lg"
             w="full"
             className={primaryCTA.className}
           >
             {primaryCTA.text}
-          </Button>
-          
+          </LinkButton>
+
           {secondaryCTA && (
-            <Button
-              as={Link}
+            <LinkButton
               href={secondaryCTA.href}
               variant="outline"
               size="md"
@@ -151,7 +150,7 @@ export function UserPath({
               colorPalette="gray"
             >
               {secondaryCTA.text}
-            </Button>
+            </LinkButton>
           )}
         </VStack>
       </Card.Footer>

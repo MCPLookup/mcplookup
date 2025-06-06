@@ -4,6 +4,7 @@ import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Box, Text, VStack, HStack, Badge, Button } from "@chakra-ui/react"
 import { WorkflowStep, CodeBlock } from "@/components/mcplookup"
+import { LinkButton } from "@/components/ui/link-button"
 import Link from "next/link"
 
 export default function HowToUsePage() {
@@ -87,15 +88,14 @@ export default function HowToUsePage() {
                   <Text>✅ No dependency conflicts</Text>
                   <Text>✅ Production ready</Text>
                 </VStack>
-                <Button
-                  as={Link}
+                <LinkButton
                   href="#docker-setup"
                   colorPalette="blue"
                   size="sm"
                   w="full"
                 >
                   🐳 Docker Setup
-                </Button>
+                </LinkButton>
               </Box>
 
               <Box
@@ -121,15 +121,14 @@ export default function HowToUsePage() {
                   <Text>✅ TypeScript support</Text>
                   <Text>✅ Local development</Text>
                 </VStack>
-                <Button
-                  as={Link}
+                <LinkButton
                   href="#npm-setup"
                   colorPalette="green"
                   size="sm"
                   w="full"
                 >
                   📦 NPM Setup
-                </Button>
+                </LinkButton>
               </Box>
             </Box>
           </VStack>
@@ -301,17 +300,15 @@ npx @mcplookup/bridge`}
               No more maintaining hardcoded lists!
             </Text>
             <HStack gap={4} justify="center" flexDir={{ base: "column", sm: "row" }}>
-              <Button
-                as={Link}
+              <LinkButton
                 href="/discover"
                 colorPalette="blue"
                 size="lg"
                 px={8}
               >
                 🔍 Start Discovering
-              </Button>
-              <Button
-                as={Link}
+              </LinkButton>
+              <LinkButton
                 href="/register"
                 variant="outline"
                 colorPalette="blue"
@@ -319,7 +316,7 @@ npx @mcplookup/bridge`}
                 px={8}
               >
                 📡 Register Your Tools
-              </Button>
+              </LinkButton>
             </HStack>
           </Box>
         </VStack>

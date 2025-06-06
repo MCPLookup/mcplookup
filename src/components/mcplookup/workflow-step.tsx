@@ -1,6 +1,7 @@
 "use client"
 
 import { Box, Card, Text, VStack, Button } from "@chakra-ui/react"
+import { LinkButton } from "@/components/ui/link-button"
 import Link from "next/link"
 
 interface WorkflowStepProps {
@@ -58,8 +59,7 @@ export function WorkflowStep({ number, title, description, cta, ctaLink }: Workf
       </Card.Body>
 
       <Card.Footer>
-        <Button
-          as={Link}
+        <LinkButton
           href={ctaLink}
           colorPalette="blue"
           size="lg"
@@ -68,7 +68,7 @@ export function WorkflowStep({ number, title, description, cta, ctaLink }: Workf
           transition="all 0.2s"
         >
           {cta}
-        </Button>
+        </LinkButton>
       </Card.Footer>
     </Card.Root>
   )

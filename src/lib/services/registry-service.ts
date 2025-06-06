@@ -88,7 +88,16 @@ export class RegistryService {
 
     const updatedServer = {
       ...serverResult.data,
-      health: { ...serverResult.data.health, ...healthData },
+      health: {
+        status: 'unknown' as const,
+        avg_response_time_ms: 0,
+        uptime_percentage: 0,
+        error_rate: 0,
+        last_check: new Date().toISOString(),
+        consecutive_failures: 0,
+        ...serverResult.data.health,
+        ...healthData
+      },
       updated_at: new Date().toISOString()
     };
 
@@ -110,7 +119,7 @@ export class RegistryService {
     }
 
     const servers = allServersResult.data.items;
-    const active = servers.filter(s => s.health.status === 'healthy').length;
+    const active = servers.filter(s => s.health?.status === 'healthy').length;
     
     const byCategory = servers.reduce((acc, server) => {
       const category = server.capabilities.category;

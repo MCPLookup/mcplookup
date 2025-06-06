@@ -1,6 +1,7 @@
 "use client"
 
 import { Box, Card, Text, VStack, HStack, Button, Badge } from "@chakra-ui/react"
+import { LinkButton } from "@/components/ui/link-button"
 import Link from "next/link"
 
 interface RegistrationStep {
@@ -109,8 +110,7 @@ export function RegistrationFlow({ steps }: RegistrationFlowProps) {
 
             <Card.Footer>
               {step.href ? (
-                <Button
-                  as={Link}
+                <LinkButton
                   href={step.href}
                   colorPalette={step.technical ? "orange" : "green"}
                   size="lg"
@@ -119,7 +119,7 @@ export function RegistrationFlow({ steps }: RegistrationFlowProps) {
                   transition="all 0.2s"
                 >
                   {step.action}
-                </Button>
+                </LinkButton>
               ) : (
                 <Button
                   colorPalette={step.technical ? "orange" : "green"}

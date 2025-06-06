@@ -15,6 +15,7 @@ import {
   RegistrationBenefit,
   InfrastructureFeature
 } from "@/components/mcplookup"
+import { LinkButton } from "@/components/ui/link-button"
 import Link from "next/link"
 
 export default function HomePage() {
@@ -56,8 +57,7 @@ export default function HomePage() {
             </VStack>
 
             <HStack gap={4} flexDir={{ base: "column", sm: "row" }}>
-              <Button
-                as={Link}
+              <LinkButton
                 href="/discover"
                 colorPalette="blue"
                 size="lg"
@@ -67,9 +67,8 @@ export default function HomePage() {
                 transition="all 0.2s"
               >
                 ⚡ Enable Dynamic Discovery
-              </Button>
-              <Button
-                as={Link}
+              </LinkButton>
+              <LinkButton
                 href="/how-to-use"
                 variant="outline"
                 colorPalette="gray"
@@ -79,7 +78,7 @@ export default function HomePage() {
                 _hover={{ bg: "gray.50" }}
               >
                 🔍 See Available Tools
-              </Button>
+              </LinkButton>
             </HStack>
           </VStack>
         </Box>
@@ -433,8 +432,7 @@ export default function HomePage() {
               Start with available tools today, be ready for the future tomorrow.
             </Text>
             <HStack gap={4} flexDir={{ base: "column", sm: "row" }}>
-              <Button
-                as={Link}
+              <LinkButton
                 href="/discover"
                 size="lg"
                 bg="white"
@@ -446,9 +444,8 @@ export default function HomePage() {
                 transition="all 0.2s"
               >
                 ⚡ Enable Discovery
-              </Button>
-              <Button
-                as={Link}
+              </LinkButton>
+              <LinkButton
                 href="/register"
                 variant="outline"
                 size="lg"
@@ -459,7 +456,7 @@ export default function HomePage() {
                 py={3}
               >
                 📡 Make Tools Discoverable
-              </Button>
+              </LinkButton>
             </HStack>
           </VStack>
         </Box>

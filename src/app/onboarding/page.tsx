@@ -4,6 +4,7 @@ import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Box, Text, VStack, HStack, Badge, Button, Card } from "@chakra-ui/react"
 import { WorkflowStep, InfrastructureFeature } from "@/components/mcplookup"
+import { LinkButton } from "@/components/ui/link-button"
 import Link from "next/link"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
@@ -240,30 +241,27 @@ export default function OnboardingPage() {
               Want to learn more before starting?
             </Text>
             <HStack gap={4} flexWrap="wrap" justify="center">
-              <Button
-                as={Link}
+              <LinkButton
                 href="/open-standards"
                 variant="outline"
                 size="sm"
               >
                 🌍 Open Standards
-              </Button>
-              <Button
-                as={Link}
+              </LinkButton>
+              <LinkButton
                 href="/how-to-use"
                 variant="outline"
                 size="sm"
               >
                 📖 Setup Guide
-              </Button>
-              <Button
-                as={Link}
+              </LinkButton>
+              <LinkButton
                 href="/discover"
                 variant="outline"
                 size="sm"
               >
                 🔍 Explore Ecosystem
-              </Button>
+              </LinkButton>
             </HStack>
           </VStack>
         </VStack>

@@ -196,21 +196,20 @@ export default function DocsPage() {
                 </Card.Root>
               </Link>
 
-              <Card.Root
-                as={Link}
-                href="/how-to-use"
-                bg="white"
-                borderWidth="1px"
-                borderColor="gray.200"
-                _hover={{
-                  shadow: "lg",
-                  borderColor: "green.300",
-                  bg: "green.50",
-                  transform: "translateY(-2px)"
-                }}
-                transition="all 0.2s"
-                cursor="pointer"
-              >
+              <Link href="/how-to-use">
+                <Card.Root
+                  bg="white"
+                  borderWidth="1px"
+                  borderColor="gray.200"
+                  _hover={{
+                    shadow: "lg",
+                    borderColor: "green.300",
+                    bg: "green.50",
+                    transform: "translateY(-2px)"
+                  }}
+                  transition="all 0.2s"
+                  cursor="pointer"
+                >
                 <Card.Body p={6} textAlign="center">
                   <VStack gap={4}>
                     <Text fontSize="4xl">⚡</Text>
@@ -225,23 +224,23 @@ export default function DocsPage() {
                     </Button>
                   </VStack>
                 </Card.Body>
-              </Card.Root>
+                </Card.Root>
+              </Link>
 
-              <Card.Root
-                as={Link}
-                href="/api/docs"
-                bg="white"
-                borderWidth="1px"
-                borderColor="gray.200"
-                _hover={{
-                  shadow: "lg",
-                  borderColor: "purple.300",
-                  bg: "purple.50",
-                  transform: "translateY(-2px)"
-                }}
-                transition="all 0.2s"
-                cursor="pointer"
-              >
+              <Link href="/api/docs">
+                <Card.Root
+                  bg="white"
+                  borderWidth="1px"
+                  borderColor="gray.200"
+                  _hover={{
+                    shadow: "lg",
+                    borderColor: "purple.300",
+                    bg: "purple.50",
+                    transform: "translateY(-2px)"
+                  }}
+                  transition="all 0.2s"
+                  cursor="pointer"
+                >
                 <Card.Body p={6} textAlign="center">
                   <VStack gap={4}>
                     <Text fontSize="4xl">🔌</Text>
@@ -256,7 +255,8 @@ export default function DocsPage() {
                     </Button>
                   </VStack>
                 </Card.Body>
-              </Card.Root>
+                </Card.Root>
+              </Link>
             </Box>
           </VStack>
 
@@ -275,21 +275,19 @@ export default function DocsPage() {
                 <Card.Body p={6}>
                   <Box display="grid" gridTemplateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={4}>
                     {section.items.map((item) => (
-                      <Card.Root
-                        key={item.href}
-                        as={Link}
-                        href={item.href}
-                        bg="white"
-                        borderWidth="1px"
-                        borderColor="gray.200"
-                        _hover={{
-                          shadow: "md",
-                          borderColor: "blue.300",
-                          bg: "blue.50"
-                        }}
-                        transition="all 0.2s"
-                        cursor="pointer"
-                      >
+                      <Link key={item.href} href={item.href}>
+                        <Card.Root
+                          bg="white"
+                          borderWidth="1px"
+                          borderColor="gray.200"
+                          _hover={{
+                            shadow: "md",
+                            borderColor: "blue.300",
+                            bg: "blue.50"
+                          }}
+                          transition="all 0.2s"
+                          cursor="pointer"
+                        >
                         <Card.Body p={4}>
                           <HStack gap={3} align="start">
                             <Text fontSize="2xl" flexShrink={0}>
@@ -313,7 +311,8 @@ export default function DocsPage() {
                             </VStack>
                           </HStack>
                         </Card.Body>
-                      </Card.Root>
+                        </Card.Root>
+                      </Link>
                     ))}
                   </Box>
                 </Card.Body>

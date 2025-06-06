@@ -96,15 +96,15 @@ export default function TermsPage() {
                       <Text><Text as="span" fontWeight="bold">Email:</Text> legal@mcplookup.org</Text>
                       <Text>
                         <Text as="span" fontWeight="bold">GitHub:</Text>{" "}
-                        <Text as="a" href="https://github.com/TSavo/mcplookup.org/issues" color="blue.600" _hover={{ textDecoration: "underline" }}>
+                        <a href="https://github.com/TSavo/mcplookup.org/issues" style={{ color: "#2563eb", textDecoration: "none" }}>
                           Report an issue
-                        </Text>
+                        </a>
                       </Text>
                       <Text>
                         <Text as="span" fontWeight="bold">Website:</Text>{" "}
-                        <Text as="a" href="https://mcplookup.org" color="blue.600" _hover={{ textDecoration: "underline" }}>
+                        <a href="https://mcplookup.org" style={{ color: "#2563eb", textDecoration: "none" }}>
                           mcplookup.org
-                        </Text>
+                        </a>
                       </Text>
                     </VStack>
                   </Box>

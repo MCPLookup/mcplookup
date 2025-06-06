@@ -223,14 +223,14 @@ export class DailyVerificationSweepService {
     const allServers = await this.registryService.getAllServers();
     
     return allServers
-      .filter(server => server.verification_status === 'unverified')
+      .filter(server => server.verification_status === 'unverified' && server.endpoint)
       .map(server => ({
         domain: server.domain,
-        endpoint: server.endpoint,
-        last_verified_at: new Date(server.verification.verified_at || server.verification.last_verification),
-        marked_unverified_at: new Date(server.marked_unverified_at || Date.now()),
-        verification_failure_reason: server.verification_failure_reason || 'Unknown',
-        consecutive_failures: server.consecutive_verification_failures || 0
+        endpoint: server.endpoint!,
+        last_verified_at: new Date(server.verification?.verified_at || server.verification?.last_verification || Date.now()),
+        marked_unverified_at: new Date((server as any).marked_unverified_at || Date.now()),
+        verification_failure_reason: (server as any).verification_failure_reason || 'Unknown',
+        consecutive_failures: (server as any).consecutive_verification_failures || 0
       }));
   }
 
