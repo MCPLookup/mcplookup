@@ -41,10 +41,18 @@ export async function GET(
     }
 
     const server = servers[0];
-    
+
+    // Ensure server has an endpoint
+    if (!server.endpoint) {
+      return NextResponse.json(
+        { error: 'Server endpoint not available', domain },
+        { status: 404 }
+      );
+    }
+
     // Get health metrics
     let healthMetrics = server.health;
-    
+
     if (realtime) {
       try {
         healthMetrics = await health.checkServerHealth(server.endpoint);

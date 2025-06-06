@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Box, Text, VStack, HStack, Badge, Button, Input, Card } from "@chakra-ui/react"
 import { DiscoveryInterface } from "@/components/mcplookup"
+import { LinkButton } from "@/components/ui/link-button"
 import Link from "next/link"
 
 // Force dynamic rendering
@@ -175,15 +176,14 @@ export default function DiscoverPage() {
                   </Text>
                 </VStack>
               </HStack>
-              <Button
-                as={Link}
+              <LinkButton
                 href="/api/docs"
                 variant="outline"
                 colorPalette="blue"
                 size="sm"
               >
                 View API Docs →
-              </Button>
+              </LinkButton>
             </HStack>
           </Box>
 
@@ -234,7 +234,7 @@ export default function DiscoverPage() {
                         {/* Server Header */}
                         <VStack align="stretch" gap={2}>
                           <HStack justify="space-between" align="start">
-                            <Text fontSize="md" fontWeight="semibold" color="gray.900" noOfLines={1}>
+                            <Text fontSize="md" fontWeight="semibold" color="gray.900" lineClamp={1}>
                               {server.name || server.domain}
                             </Text>
                             {server.verified && (
@@ -246,7 +246,7 @@ export default function DiscoverPage() {
 
                         {/* Description */}
                         {server.description && (
-                          <Text fontSize="sm" color="gray.600" noOfLines={2}>
+                          <Text fontSize="sm" color="gray.600" lineClamp={2}>
                             {server.description}
                           </Text>
                         )}
@@ -318,7 +318,7 @@ export default function DiscoverPage() {
 
                         {/* Endpoint */}
                         <Box pt={2} borderTop="1px solid" borderColor="gray.200">
-                          <Text fontSize="xs" color="gray.500" fontFamily="mono" noOfLines={1}>
+                          <Text fontSize="xs" color="gray.500" fontFamily="mono" lineClamp={1}>
                             {server.endpoint}
                           </Text>
                         </Box>
