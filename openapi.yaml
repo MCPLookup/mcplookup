@@ -317,6 +317,213 @@ paths:
         '422':
           description: MCP endpoint validation failed
 
+  /register/github:
+    post:
+      tags: [Registration]
+      summary: Auto-register MCP server from GitHub repository
+      description: |
+        Automatically analyze and register an MCP server from a GitHub repository URL.
+
+        **Intelligent Analysis Process**:
+        1. **Repository Analysis**: Fetches repository metadata, file structure, and README content
+        2. **MCP Detection**: Searches for Claude Desktop configurations, MCP keywords, and server indicators
+        3. **Deployment Viability**: Analyzes NPM packages, Docker support, Python packages, live URLs
+        4. **Quality Assessment**: Evaluates documentation quality, installation complexity, and usability
+        5. **Smart Decision**: Accepts, warns, or rejects based on comprehensive analysis
+
+        **Rejection Logic**:
+        - Repositories without viable deployment methods (no NPM, Docker, or live URL)
+        - Missing MCP server indicators or Claude configurations
+        - Poor documentation or unclear installation process
+        - Archived or unmaintained repositories
+
+        **Quality Scoring**:
+        - **Confidence Score (0-100)**: Likelihood this is an MCP server
+        - **Usability Score (0-100)**: Ease of deployment and usage
+        - **Installation Complexity**: simple | moderate | complex | unclear
+        - **Documentation Quality**: poor | fair | good | excellent
+
+        **Force Registration**: Rejected repositories can be force-registered with explicit acknowledgment.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [github_url, contact_email]
+              properties:
+                github_url:
+                  type: string
+                  format: uri
+                  description: GitHub repository URL
+                  example: "https://github.com/modelcontextprotocol/server-filesystem"
+                  pattern: "^https://github\\.com/[^/]+/[^/]+/?$"
+                contact_email:
+                  type: string
+                  format: email
+                  description: Contact email for verification and notifications
+                  example: "developer@example.com"
+                force_register:
+                  type: boolean
+                  default: false
+                  description: Force registration despite analysis warnings or rejections
+                skip_analysis:
+                  type: boolean
+                  default: false
+                  description: Skip detailed analysis for faster processing (not recommended)
+      responses:
+        '200':
+          description: MCP server successfully registered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "MCP server successfully registered from GitHub repository"
+                  server:
+                    type: object
+                    properties:
+                      domain:
+                        type: string
+                        example: "github.com/modelcontextprotocol/server-filesystem"
+                      name:
+                        type: string
+                        example: "Filesystem MCP Server"
+                      description:
+                        type: string
+                        example: "MCP server for filesystem operations"
+                      github_url:
+                        type: string
+                        format: uri
+                      registration_type:
+                        type: string
+                        enum: [github_auto]
+                      verification_required:
+                        type: boolean
+                        example: false
+                  analysis:
+                    $ref: '#/components/schemas/GitHubAnalysisReport'
+                  next_steps:
+                    type: array
+                    items:
+                      type: string
+                    example: 
+                      - "Install the package: npm install -g @modelcontextprotocol/server-filesystem"
+                      - "Add the Claude Desktop configuration from the README"
+                      - "Your MCP server is now discoverable in the registry"
+                  recommendations:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - "Consider adding Docker support for easier deployment"
+                      - "Enhance documentation with more usage examples"
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "GitHub repository analysis failed"
+                  details:
+                    type: string
+                    example: "Could not analyze the provided GitHub repository. Please ensure it exists and is public."
+                  analysis_report:
+                    type: object
+                    properties:
+                      is_mcp_server:
+                        type: boolean
+                        example: false
+                      confidence_score:
+                        type: integer
+                        example: 0
+                      rejection_reasons:
+                        type: array
+                        items:
+                          type: string
+                        example: ["Repository not accessible or does not exist"]
+                      recommended_action:
+                        type: string
+                        enum: [reject]
+        '401':
+          description: Authentication required
+        '409':
+          description: Server already registered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Server already registered"
+                  details:
+                    type: string
+                    example: "A server for github.com/owner/repo is already registered"
+                  existing_server:
+                    type: object
+                    properties:
+                      domain:
+                        type: string
+                      name:
+                        type: string
+                      registered_at:
+                        type: string
+                        format: date-time
+                  analysis:
+                    $ref: '#/components/schemas/GitHubAnalysisReport'
+        '422':
+          description: Repository rejected for MCP server registration
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Repository rejected for MCP server registration"
+                  details:
+                    type: string
+                    example: "This repository does not appear to be a usable MCP server"
+                  analysis:
+                    $ref: '#/components/schemas/GitHubAnalysisReport'
+                  rejection_reasons:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - "No viable deployment method detected (no NPM package, Docker, or live URL)"
+                      - "No clear indication this is an MCP server"
+                      - "Missing README documentation"
+                  suggestions:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - "Add a comprehensive README.md file with installation and usage instructions"
+                      - "Include Claude Desktop configuration examples in your README"
+                      - "Publish your package to NPM for easy installation"
+                  force_register_option:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: "You can force registration by setting force_register: true"
+                      warning:
+                        type: string
+                        example: "Forced registration may result in a non-functional server listing"
+        '429':
+          description: Rate limit exceeded
+
+
   /register/verify/{challengeId}:
     post:
       tags: [Registration]
@@ -1173,3 +1380,191 @@ components:
               type: string
               format: date-time
               description: Last validation timestamp
+
+    GitHubAnalysisReport:
+      type: object
+      description: Comprehensive GitHub repository analysis report for MCP server registration
+      properties:
+        repository:
+          type: object
+          description: Repository metadata
+          properties:
+            owner:
+              type: string
+              description: Repository owner
+              example: "modelcontextprotocol"
+            repo:
+              type: string
+              description: Repository name
+              example: "server-filesystem"
+            stars:
+              type: integer
+              description: Number of stars
+              example: 42
+            language:
+              type: string
+              description: Primary programming language
+              example: "TypeScript"
+            topics:
+              type: array
+              items:
+                type: string
+              description: Repository topics/tags
+              example: ["mcp", "filesystem", "claude"]
+            license:
+              type: string
+              description: License identifier
+              example: "MIT"
+        deployment_options:
+          type: object
+          description: Available deployment methods
+          properties:
+            npm_package:
+              type: boolean
+              description: Available as NPM package
+            docker_support:
+              type: boolean
+              description: Docker support available
+            has_dockerfile:
+              type: boolean
+              description: Contains Dockerfile
+            has_docker_compose:
+              type: boolean
+              description: Contains docker-compose configuration
+            live_url_detected:
+              type: boolean
+              description: Live URL detected in repository
+            github_actions:
+              type: boolean
+              description: GitHub Actions CI/CD configured
+            python_package:
+              type: boolean
+              description: Python package structure detected
+            rust_crate:
+              type: boolean
+              description: Rust crate structure detected
+            go_module:
+              type: boolean
+              description: Go module structure detected
+        mcp_features:
+          type: object
+          description: MCP-specific features detected
+          properties:
+            has_claude_config:
+              type: boolean
+              description: Contains Claude Desktop configuration
+            npm_package:
+              type: string
+              nullable: true
+              description: NPM package name if available
+              example: "@modelcontextprotocol/server-filesystem"
+            installation_command:
+              type: string
+              nullable: true
+              description: Installation command
+              example: "npm install -g @modelcontextprotocol/server-filesystem"
+            environment_variables:
+              type: array
+              items:
+                type: string
+              description: Required environment variables
+              example: ["API_KEY", "BASE_URL"]
+            suggested_auth_type:
+              type: string
+              enum: [none, api_key, oauth2, basic]
+              description: Suggested authentication type
+        quality_assessment:
+          type: object
+          description: Quality and usability assessment
+          properties:
+            confidence_score:
+              type: integer
+              minimum: 0
+              maximum: 100
+              description: Confidence this is an MCP server (0-100)
+              example: 85
+            usability_score:
+              type: integer
+              minimum: 0
+              maximum: 100
+              description: Ease of deployment and usage (0-100)
+              example: 90
+            installation_complexity:
+              type: string
+              enum: [simple, moderate, complex, unclear]
+              description: Installation complexity assessment
+              example: "simple"
+            documentation_quality:
+              type: string
+              enum: [poor, fair, good, excellent]
+              description: Documentation quality assessment
+              example: "excellent"
+            recommended_action:
+              type: string
+              enum: [accept, accept_with_warnings, reject, needs_review]
+              description: Recommended registration action
+              example: "accept"
+        file_analysis:
+          type: object
+          description: Repository file structure analysis
+          properties:
+            has_readme:
+              type: boolean
+              description: Contains README file
+            has_package_json:
+              type: boolean
+              description: Contains package.json
+            has_dockerfile:
+              type: boolean
+              description: Contains Dockerfile
+            has_requirements_txt:
+              type: boolean
+              description: Contains requirements.txt (Python)
+            has_cargo_toml:
+              type: boolean
+              description: Contains Cargo.toml (Rust)
+            has_go_mod:
+              type: boolean
+              description: Contains go.mod (Go)
+            has_mcp_keywords:
+              type: boolean
+              description: Filenames contain MCP-related keywords
+            config_files:
+              type: array
+              items:
+                type: string
+              description: Configuration files found
+            documentation_files:
+              type: array
+              items:
+                type: string
+              description: Documentation files found
+        feedback:
+          type: object
+          description: Analysis feedback and recommendations
+          properties:
+            positive_indicators:
+              type: array
+              items:
+                type: string
+              description: Positive aspects found
+              example:
+                - "Contains Claude Desktop configuration"
+                - "Available as NPM package"
+                - "Comprehensive documentation"
+            warning_flags:
+              type: array
+              items:
+                type: string
+              description: Warning flags identified
+              example:
+                - "No Claude Desktop configuration found"
+                - "Complex setup with many environment variables required"
+            rejection_reasons:
+              type: array
+              items:
+                type: string
+              description: Reasons for rejection (if applicable)
+              example:
+                - "No viable deployment method detected"
+                - "No clear indication this is an MCP server"
