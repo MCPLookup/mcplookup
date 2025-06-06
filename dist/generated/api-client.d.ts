@@ -1,10 +1,33 @@
-import type { paths } from './client';
-export declare const apiClient: import("openapi-fetch").Client<paths, `${string}/${string}`>;
+export type { paths } from './api-types.js';
+/**
+ * MCPLookup.org API Client
+ *
+ * Provides type-safe access to the MCPLookup.org discovery service API.
+ */
 export declare class MCPLookupAPIClient {
     private client;
+    private baseUrl;
     constructor(baseUrl?: string, apiKey?: string);
-    discover(params: paths['/discover']['post']['requestBody']['content']['application/json']): Promise<{
-        servers?: import("./client").components["schemas"]["MCPServerRecord"][];
+    /**
+     * Discover MCP servers using various search criteria
+     */
+    discover(params?: {
+        query?: string;
+        intent?: string;
+        domain?: string;
+        capability?: string;
+        category?: 'communication' | 'productivity' | 'development' | 'finance' | 'social' | 'storage' | 'other';
+        transport?: 'streamable_http' | 'sse' | 'stdio';
+        cors_required?: boolean;
+        ssl_required?: boolean;
+        verified_only?: boolean;
+        include_health?: boolean;
+        include_tools?: boolean;
+        include_resources?: boolean;
+        limit?: number;
+        offset?: number;
+    }): Promise<{
+        servers?: import("./api-types.js").components["schemas"]["MCPServerRecord"][];
         total?: number;
         query_analysis?: Record<string, never>;
         transport_summary?: {
@@ -14,8 +37,15 @@ export declare class MCPLookupAPIClient {
             cors_enabled?: number;
         };
     } | undefined>;
-    discoverSmart(params: paths['/discover/smart']['post']['requestBody']['content']['application/json']): Promise<{
-        servers?: import("./client").components["schemas"]["MCPServerRecord"][];
+    /**
+     * Smart AI-powered discovery using natural language
+     */
+    discoverSmart(params: {
+        query: string;
+        max_results?: number;
+        include_reasoning?: boolean;
+    }): Promise<{
+        servers?: import("./api-types.js").components["schemas"]["MCPServerRecord"][];
         total?: number;
         query_analysis?: {
             extracted_keywords?: string[];
@@ -24,92 +54,36 @@ export declare class MCPLookupAPIClient {
         };
         ai_reasoning?: string;
     } | undefined>;
-    register(params: paths['/register']['post']['requestBody']['content']['application/json']): Promise<{
+    /**
+     * Register a new MCP server
+     */
+    register(params: {
+        domain: string;
+        endpoint: string;
+        contact_email: string;
+        description?: string;
+    }): Promise<{
         challenge_id?: string;
         dns_record?: string;
         verification_token?: string;
         instructions?: string;
         expires_at?: string;
     } | undefined>;
-    verifyRegistration(challengeId: string): Promise<{
-        verified?: boolean;
-        server_record?: import("./client").components["schemas"]["MCPServerRecord"];
-        transport_discovery?: {
-            capabilities_discovered?: number;
-            discovery_time_ms?: number;
-            methods_tested?: string[];
-        };
-    } | undefined>;
-    getRegistrationStatus(challengeId: string): Promise<{
-        challenge_id?: string;
-        status?: "pending" | "verified" | "expired" | "failed";
-        created_at?: string;
-        expires_at?: string;
-        verified_at?: string;
-        dns_record?: string;
-    } | undefined>;
-    startDomainVerification(domain: string): Promise<{
-        success?: boolean;
-        challenge?: {
-            domain?: string;
-            slug?: string;
-            txtRecord?: string;
-            instructions?: string;
-        };
-    } | undefined>;
-    getDomainVerifications(): Promise<{
-        success?: boolean;
-        verifications?: {
-            id?: string;
-            domain?: string;
-            status?: "pending" | "verified" | "expired" | "failed";
-            created_at?: string;
-            verified_at?: string;
-            last_check_at?: string;
-            expires_at?: string;
-            failure_reason?: string;
-        }[];
-    } | undefined>;
-    checkDomainOwnership(domain: string): Promise<{
-        success?: boolean;
-        domain?: string;
-        user_id?: string;
-        can_register?: boolean;
-        verified?: boolean;
-        message?: string;
-        action_required?: string;
-        verification_url?: string;
-    } | undefined>;
+    /**
+     * Get server health metrics
+     */
     getServerHealth(domain: string, realtime?: boolean): Promise<{
         domain?: string;
         endpoint?: string;
-        health?: import("./client").components["schemas"]["HealthMetrics"];
+        health?: import("./api-types.js").components["schemas"]["HealthMetrics"];
         capabilities_working?: boolean;
         ssl_valid?: boolean;
         trust_score?: number;
     } | undefined>;
-    getOnboardingState(): Promise<{
-        success?: boolean;
-        onboarding?: {
-            current_step?: "welcome" | "domain_verify" | "server_register" | "dashboard_tour" | "training_impact" | "completed";
-            progress?: number;
-            completed_steps?: string[];
-            needs_onboarding?: boolean;
-        };
-    } | undefined>;
-    updateOnboardingProgress(step: 'welcome' | 'domain_verify' | 'server_register' | 'dashboard_tour' | 'training_impact' | 'completed', completed?: boolean): Promise<{
-        success?: boolean;
-        message?: string;
-    } | undefined>;
+    /**
+     * Set API key for authenticated requests
+     */
+    setApiKey(apiKey: string): void;
 }
-export declare const mcpLookupAPI: MCPLookupAPIClient;
-export type { paths } from './client';
-export type DiscoverRequest = paths['/discover']['post']['requestBody']['content']['application/json'];
-export type DiscoverResponse = paths['/discover']['post']['responses']['200']['content']['application/json'];
-export type SmartDiscoverRequest = paths['/discover/smart']['post']['requestBody']['content']['application/json'];
-export type SmartDiscoverResponse = paths['/discover/smart']['post']['responses']['200']['content']['application/json'];
-export type RegisterRequest = paths['/register']['post']['requestBody']['content']['application/json'];
-export type RegisterResponse = paths['/register']['post']['responses']['200']['content']['application/json'];
-export type HealthResponse = paths['/health/{domain}']['get']['responses']['200']['content']['application/json'];
-export type OnboardingResponse = paths['/onboarding']['get']['responses']['200']['content']['application/json'];
+export declare const mcpLookupClient: MCPLookupAPIClient;
 //# sourceMappingURL=api-client.d.ts.map

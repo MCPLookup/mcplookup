@@ -1,0 +1,1570 @@
+openapi: 3.0.3
+info:
+  title: MCPLookup.org API
+  version: 1.0.0
+  description: |
+    # MCPLookup.org API
+
+    The universal MCP (Model Context Protocol) server discovery service API.
+
+    ## Features
+
+    - **🔍 Smart Discovery**: Natural language queries and intent-based search
+    - **🚀 Transport Metadata**: Automated discovery of streaming HTTP capabilities  
+    - **🔐 DNS Verification**: Cryptographic proof of domain ownership
+    - **📊 Real-time Health**: Live server status and performance metrics
+    - **🌐 CORS Support**: Web-friendly with comprehensive CORS metadata
+    - **⚡ High Performance**: Edge-deployed with global CDN
+
+    ## Transport Capabilities
+
+    The API automatically discovers and provides detailed metadata about MCP server transport capabilities:
+
+    - **Protocol Support**: HTTP methods, content types, SSE streaming
+    - **Session Management**: Session ID support and requirements  
+    - **CORS Configuration**: Origins, methods, headers, credentials
+    - **Security Features**: SSL requirements, origin validation
+    - **Performance Metrics**: Response times, compression support
+
+    This enables intelligent server selection and optimal client connections.
+
+  contact:
+    name: MCPLookup.org Support
+    url: https://github.com/TSavo/mcplookup.org
+    email: support@mcplookup.org
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://mcplookup.org/api/v1
+    description: Production API
+  - url: http://localhost:3000/api/v1
+    description: Development API
+
+security:
+  - {}
+  - BearerAuth: []
+
+tags:
+  - name: Discovery
+    description: Find and search MCP servers
+  - name: Registration
+    description: Register and verify MCP servers
+  - name: Health
+    description: Server health and status monitoring
+  - name: Transport
+    description: Transport capabilities and metadata
+  - name: User Management
+    description: User onboarding and account management
+
+paths:
+  /discover:
+    get:
+      tags: [Discovery]
+      summary: Discover MCP servers
+      description: |
+        Find MCP servers using natural language queries, intent-based search, or technical filters.
+
+        **Enhanced with Transport Capabilities**: Results now include detailed transport metadata
+        for intelligent server selection and optimal client connections.
+      parameters:
+        - name: query
+          in: query
+          schema:
+            type: string
+          description: Natural language query
+          example: "file management tools for cloud storage"
+        - name: intent
+          in: query
+          schema:
+            type: string
+          description: Specific intent or use case
+          example: "data_processing"
+        - name: domain
+          in: query
+          schema:
+            type: string
+          description: Specific domain to search for
+          example: "gmail.com"
+        - name: capability
+          in: query
+          schema:
+            type: string
+          description: Specific capability to search for
+          example: "email"
+        - name: category
+          in: query
+          schema:
+            type: string
+            enum: [communication, productivity, development, finance, social, storage, other]
+          description: Server category filter
+        - name: transport
+          in: query
+          schema:
+            type: string
+            enum: [streamable_http, sse, stdio]
+          description: Required transport protocol
+        - name: cors_required
+          in: query
+          schema:
+            type: boolean
+          description: Requires CORS support
+        - name: ssl_required
+          in: query
+          schema:
+            type: boolean
+          description: Requires SSL/TLS
+        - name: verified_only
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Only return verified servers
+        - name: include_health
+          in: query
+          schema:
+            type: boolean
+            default: true
+          description: Include health metrics
+        - name: include_tools
+          in: query
+          schema:
+            type: boolean
+            default: true
+          description: Include tools list
+        - name: include_resources
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Include resources list
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+          description: Maximum number of results
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          description: Number of results to skip
+
+      responses:
+        '200':
+          description: Discovery results with transport capabilities
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  servers:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MCPServerRecord'
+                  total:
+                    type: integer
+                    description: Total number of matching servers
+                  query_analysis:
+                    type: object
+                    description: Analysis of the search query
+                  transport_summary:
+                    type: object
+                    description: Summary of transport capabilities in results
+                    properties:
+                      protocols:
+                        type: object
+                        description: Count by transport protocol
+                      sse_support:
+                        type: integer
+                        description: Number of servers with SSE support
+                      session_support:
+                        type: integer
+                        description: Number of servers with session support
+                      cors_enabled:
+                        type: integer
+                        description: Number of servers with CORS enabled
+              examples:
+                discovery_response:
+                  summary: Discovery response with transport capabilities
+                  value:
+                    servers:
+                      - domain: "example.com"
+                        endpoint: "https://api.example.com/mcp"
+                        name: "Example MCP Server"
+                        transport: "streamable_http"
+                        transport_capabilities:
+                          sse_support:
+                            supports_sse: true
+                            supports_get_streaming: true
+                            supports_post_streaming: true
+                          session_support:
+                            supports_sessions: true
+                            session_header_name: "Mcp-Session-Id"
+                          cors_details:
+                            cors_enabled: true
+                            allowed_origins: ["*"]
+                            allowed_methods: ["GET", "POST", "OPTIONS"]
+                        openapi_documentation:
+                          discovered_at: "2024-01-15T10:30:00Z"
+                          spec_url: "https://api.example.com/openapi.json"
+                          discovery_method: "endpoint_scan"
+                          openapi_version: "3.0.3"
+                          spec_format: "json"
+                          api_info:
+                            title: "Example API"
+                            version: "1.0.0"
+                            description: "RESTful API for file management"
+                          endpoints_summary:
+                            total_paths: 15
+                            total_operations: 25
+                            methods:
+                              GET: 10
+                              POST: 8
+                              PUT: 4
+                              DELETE: 3
+                            tags: ["files", "auth", "users"]
+                            has_authentication: true
+                            auth_schemes: ["bearerAuth"]
+                          validation:
+                            is_valid: true
+                            validation_errors: []
+                    total: 1
+                    transport_summary:
+                      protocols:
+                        streamable_http: 1
+                      sse_support: 1
+                      cors_enabled: 1
+        '400':
+          description: Invalid request parameters
+        '429':
+          description: Rate limit exceeded
+
+  /register:
+    post:
+      tags: [Registration]
+      summary: Register a new MCP server
+      description: |
+        Register a new MCP server with automatic transport capabilities discovery.
+
+        **Enhanced Registration Process**:
+        1. Validates MCP endpoint and protocol compliance
+        2. Initiates DNS verification challenge
+        3. **NEW**: Automatically discovers transport capabilities
+        4. Creates complete server record with metadata
+        5. Populates tools and resources
+
+        The registration now includes comprehensive transport metadata discovery.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [domain, endpoint, contact_email]
+              properties:
+                domain:
+                  type: string
+                  description: Domain name (must match endpoint domain)
+                  example: "api.example.com"
+                endpoint:
+                  type: string
+                  format: uri
+                  description: MCP endpoint URL
+                  example: "https://api.example.com/mcp"
+                contact_email:
+                  type: string
+                  format: email
+                  description: Contact email for verification
+                  example: "admin@example.com"
+                description:
+                  type: string
+                  description: Optional server description
+                  example: "File management and cloud storage tools"
+      responses:
+        '200':
+          description: Registration initiated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  challenge_id:
+                    type: string
+                    description: DNS verification challenge ID
+                  dns_record:
+                    type: string
+                    description: DNS TXT record to create
+                  verification_token:
+                    type: string
+                    description: Verification token
+                  instructions:
+                    type: string
+                    description: Verification instructions
+                  expires_at:
+                    type: string
+                    format: date-time
+                    description: Challenge expiration time
+        '400':
+          description: Invalid registration request
+        '409':
+          description: Server already registered
+        '422':
+          description: MCP endpoint validation failed
+
+  /register/github:
+    post:
+      tags: [Registration]
+      summary: Auto-register MCP server from GitHub repository
+      description: |
+        Automatically analyze and register an MCP server from a GitHub repository URL.
+
+        **Intelligent Analysis Process**:
+        1. **Repository Analysis**: Fetches repository metadata, file structure, and README content
+        2. **MCP Detection**: Searches for Claude Desktop configurations, MCP keywords, and server indicators
+        3. **Deployment Viability**: Analyzes NPM packages, Docker support, Python packages, live URLs
+        4. **Quality Assessment**: Evaluates documentation quality, installation complexity, and usability
+        5. **Smart Decision**: Accepts, warns, or rejects based on comprehensive analysis
+
+        **Rejection Logic**:
+        - Repositories without viable deployment methods (no NPM, Docker, or live URL)
+        - Missing MCP server indicators or Claude configurations
+        - Poor documentation or unclear installation process
+        - Archived or unmaintained repositories
+
+        **Quality Scoring**:
+        - **Confidence Score (0-100)**: Likelihood this is an MCP server
+        - **Usability Score (0-100)**: Ease of deployment and usage
+        - **Installation Complexity**: simple | moderate | complex | unclear
+        - **Documentation Quality**: poor | fair | good | excellent
+
+        **Force Registration**: Rejected repositories can be force-registered with explicit acknowledgment.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [github_url, contact_email]
+              properties:
+                github_url:
+                  type: string
+                  format: uri
+                  description: GitHub repository URL
+                  example: "https://github.com/modelcontextprotocol/server-filesystem"
+                  pattern: "^https://github\\.com/[^/]+/[^/]+/?$"
+                contact_email:
+                  type: string
+                  format: email
+                  description: Contact email for verification and notifications
+                  example: "developer@example.com"
+                force_register:
+                  type: boolean
+                  default: false
+                  description: Force registration despite analysis warnings or rejections
+                skip_analysis:
+                  type: boolean
+                  default: false
+                  description: Skip detailed analysis for faster processing (not recommended)
+      responses:
+        '200':
+          description: MCP server successfully registered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "MCP server successfully registered from GitHub repository"
+                  server:
+                    type: object
+                    properties:
+                      domain:
+                        type: string
+                        example: "github.com/modelcontextprotocol/server-filesystem"
+                      name:
+                        type: string
+                        example: "Filesystem MCP Server"
+                      description:
+                        type: string
+                        example: "MCP server for filesystem operations"
+                      github_url:
+                        type: string
+                        format: uri
+                      registration_type:
+                        type: string
+                        enum: [github_auto]
+                      verification_required:
+                        type: boolean
+                        example: false
+                  analysis:
+                    $ref: '#/components/schemas/GitHubAnalysisReport'
+                  next_steps:
+                    type: array
+                    items:
+                      type: string
+                    example: 
+                      - "Install the package: npm install -g @modelcontextprotocol/server-filesystem"
+                      - "Add the Claude Desktop configuration from the README"
+                      - "Your MCP server is now discoverable in the registry"
+                  recommendations:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - "Consider adding Docker support for easier deployment"
+                      - "Enhance documentation with more usage examples"
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "GitHub repository analysis failed"
+                  details:
+                    type: string
+                    example: "Could not analyze the provided GitHub repository. Please ensure it exists and is public."
+                  analysis_report:
+                    type: object
+                    properties:
+                      is_mcp_server:
+                        type: boolean
+                        example: false
+                      confidence_score:
+                        type: integer
+                        example: 0
+                      rejection_reasons:
+                        type: array
+                        items:
+                          type: string
+                        example: ["Repository not accessible or does not exist"]
+                      recommended_action:
+                        type: string
+                        enum: [reject]
+        '401':
+          description: Authentication required
+        '409':
+          description: Server already registered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Server already registered"
+                  details:
+                    type: string
+                    example: "A server for github.com/owner/repo is already registered"
+                  existing_server:
+                    type: object
+                    properties:
+                      domain:
+                        type: string
+                      name:
+                        type: string
+                      registered_at:
+                        type: string
+                        format: date-time
+                  analysis:
+                    $ref: '#/components/schemas/GitHubAnalysisReport'
+        '422':
+          description: Repository rejected for MCP server registration
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Repository rejected for MCP server registration"
+                  details:
+                    type: string
+                    example: "This repository does not appear to be a usable MCP server"
+                  analysis:
+                    $ref: '#/components/schemas/GitHubAnalysisReport'
+                  rejection_reasons:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - "No viable deployment method detected (no NPM package, Docker, or live URL)"
+                      - "No clear indication this is an MCP server"
+                      - "Missing README documentation"
+                  suggestions:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - "Add a comprehensive README.md file with installation and usage instructions"
+                      - "Include Claude Desktop configuration examples in your README"
+                      - "Publish your package to NPM for easy installation"
+                  force_register_option:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: "You can force registration by setting force_register: true"
+                      warning:
+                        type: string
+                        example: "Forced registration may result in a non-functional server listing"
+        '429':
+          description: Rate limit exceeded
+
+
+  /register/verify/{challengeId}:
+    post:
+      tags: [Registration]
+      summary: Verify DNS challenge and complete registration
+      description: |
+        Verify DNS challenge and complete server registration with transport discovery.
+
+        **Enhanced Verification**:
+        - Verifies DNS TXT record
+        - **NEW**: Discovers transport capabilities automatically
+        - Creates complete server record with metadata
+        - Populates tools and resources
+
+        After successful verification, the server is fully registered with comprehensive
+        transport capabilities metadata.
+      parameters:
+        - name: challengeId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: DNS verification challenge ID
+      responses:
+        '200':
+          description: Verification successful, server registered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  verified:
+                    type: boolean
+                    description: Verification status
+                  server_record:
+                    $ref: '#/components/schemas/MCPServerRecord'
+                    description: Complete server record with transport capabilities
+                  transport_discovery:
+                    type: object
+                    description: Transport discovery results
+                    properties:
+                      capabilities_discovered:
+                        type: integer
+                        description: Number of capabilities discovered
+                      discovery_time_ms:
+                        type: number
+                        description: Time taken for discovery
+                      methods_tested:
+                        type: array
+                        items:
+                          type: string
+                        description: HTTP methods tested
+        '400':
+          description: Invalid challenge ID
+        '404':
+          description: Challenge not found or expired
+        '422':
+          description: DNS verification failed
+
+  /register/status/{challengeId}:
+    get:
+      tags: [Registration]
+      summary: Get registration challenge status
+      description: Check the status of a DNS verification challenge
+      parameters:
+        - name: challengeId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: DNS verification challenge ID
+      responses:
+        '200':
+          description: Challenge status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  challenge_id:
+                    type: string
+                  status:
+                    type: string
+                    enum: [pending, verified, expired, failed]
+                  created_at:
+                    type: string
+                    format: date-time
+                  expires_at:
+                    type: string
+                    format: date-time
+                  verified_at:
+                    type: string
+                    format: date-time
+                  dns_record:
+                    type: string
+                    description: Required DNS TXT record
+        '404':
+          description: Challenge not found
+
+  /discover/smart:
+    post:
+      tags: [Discovery]
+      summary: Smart AI-powered discovery
+      description: |
+        Advanced discovery using AI to understand natural language queries and provide intelligent server recommendations.
+        Uses a three-step process: keywords extraction → search → AI narrowing.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                query:
+                  type: string
+                  description: Natural language query
+                  example: "I need tools for managing customer emails and scheduling meetings"
+                max_results:
+                  type: integer
+                  minimum: 1
+                  maximum: 50
+                  default: 10
+                  description: Maximum number of results
+                include_reasoning:
+                  type: boolean
+                  default: false
+                  description: Include AI reasoning in response
+      responses:
+        '200':
+          description: Smart discovery results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  servers:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MCPServerRecord'
+                  total:
+                    type: integer
+                  query_analysis:
+                    type: object
+                    properties:
+                      extracted_keywords:
+                        type: array
+                        items:
+                          type: string
+                      detected_capabilities:
+                        type: array
+                        items:
+                          type: string
+                      confidence_score:
+                        type: number
+                        minimum: 0
+                        maximum: 1
+                  ai_reasoning:
+                    type: string
+                    description: AI explanation of results (if requested)
+        '400':
+          description: Invalid request parameters
+        '429':
+          description: Rate limit exceeded
+
+  /verify:
+    post:
+      tags: [Registration]
+      summary: Start domain verification
+      description: Start domain ownership verification for authenticated user
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [domain]
+              properties:
+                domain:
+                  type: string
+                  description: Domain to verify
+                  example: "example.com"
+      responses:
+        '200':
+          description: Verification challenge created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  challenge:
+                    type: object
+                    properties:
+                      domain:
+                        type: string
+                      slug:
+                        type: string
+                      txtRecord:
+                        type: string
+                      instructions:
+                        type: string
+        '401':
+          description: Authentication required
+        '400':
+          description: Invalid domain format
+    get:
+      tags: [Registration]
+      summary: Get user's domain verifications
+      description: Get all domain verifications for authenticated user
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User's domain verifications
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  verifications:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        domain:
+                          type: string
+                        status:
+                          type: string
+                          enum: [pending, verified, expired, failed]
+                        created_at:
+                          type: string
+                          format: date-time
+                        verified_at:
+                          type: string
+                          format: date-time
+                        last_check_at:
+                          type: string
+                          format: date-time
+                        expires_at:
+                          type: string
+                          format: date-time
+                        failure_reason:
+                          type: string
+        '401':
+          description: Authentication required
+
+  /domain-check:
+    get:
+      tags: [Registration]
+      summary: Check domain ownership
+      description: Check if authenticated user can register MCP servers for a domain
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: domain
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Domain to check
+          example: "example.com"
+      responses:
+        '200':
+          description: Domain ownership status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  domain:
+                    type: string
+                  user_id:
+                    type: string
+                  can_register:
+                    type: boolean
+                  verified:
+                    type: boolean
+                  message:
+                    type: string
+                  action_required:
+                    type: string
+                  verification_url:
+                    type: string
+        '401':
+          description: Authentication required
+        '400':
+          description: Invalid domain format
+
+  /health/{domain}:
+    get:
+      tags: [Health]
+      summary: Get server health metrics
+      description: Get real-time or cached health metrics for a specific MCP server
+      parameters:
+        - name: domain
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Server domain
+          example: "example.com"
+        - name: realtime
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+          description: Perform real-time health check
+      responses:
+        '200':
+          description: Server health metrics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  domain:
+                    type: string
+                  endpoint:
+                    type: string
+                  health:
+                    $ref: '#/components/schemas/HealthMetrics'
+                  capabilities_working:
+                    type: boolean
+                  ssl_valid:
+                    type: boolean
+                  trust_score:
+                    type: integer
+                    minimum: 0
+                    maximum: 100
+        '404':
+          description: Server not found
+        '500':
+          description: Health check failed
+
+  /onboarding:
+    get:
+      tags: [User Management]
+      summary: Get user onboarding state
+      description: Get the current onboarding progress for authenticated user
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User onboarding state
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  onboarding:
+                    type: object
+                    properties:
+                      current_step:
+                        type: string
+                        enum: [welcome, domain_verify, server_register, dashboard_tour, training_impact, completed]
+                      progress:
+                        type: number
+                        minimum: 0
+                        maximum: 100
+                      completed_steps:
+                        type: array
+                        items:
+                          type: string
+                      needs_onboarding:
+                        type: boolean
+        '401':
+          description: Authentication required
+    post:
+      tags: [User Management]
+      summary: Update onboarding progress
+      description: Update the user's onboarding step progress
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [step]
+              properties:
+                step:
+                  type: string
+                  enum: [welcome, domain_verify, server_register, dashboard_tour, training_impact, completed]
+                completed:
+                  type: boolean
+                  default: false
+      responses:
+        '200':
+          description: Onboarding progress updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        '401':
+          description: Authentication required
+        '400':
+          description: Invalid step or request data
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Optional API key for enhanced features
+
+  schemas:
+    TransportCapabilities:
+      type: object
+      description: Detailed transport capabilities discovered during verification
+      properties:
+        primary_transport:
+          type: string
+          enum: [streamable_http, sse, stdio]
+          description: Primary transport protocol
+        supported_methods:
+          type: array
+          items:
+            type: string
+          description: Supported HTTP methods
+          example: [GET, POST, OPTIONS]
+        content_types:
+          type: array
+          items:
+            type: string
+          description: Supported content types
+          example: [application/json, text/event-stream]
+        sse_support:
+          type: object
+          description: Server-Sent Events capabilities
+          properties:
+            supports_sse:
+              type: boolean
+              description: Supports SSE streaming
+            supports_get_streaming:
+              type: boolean
+              description: Supports GET streaming
+            supports_post_streaming:
+              type: boolean
+              description: Supports POST streaming
+        session_support:
+          type: object
+          description: Session management capabilities
+          properties:
+            supports_sessions:
+              type: boolean
+              description: Supports session management
+            session_header_name:
+              type: string
+              description: Session header name
+            session_timeout_indicated:
+              type: boolean
+              description: Indicates session timeout
+        resumability:
+          type: object
+          description: Stream resumability capabilities
+          properties:
+            supports_event_ids:
+              type: boolean
+              description: Supports event IDs
+            supports_last_event_id:
+              type: boolean
+              description: Supports Last-Event-ID header
+            event_id_format:
+              type: string
+              description: Event ID format pattern
+        connection_limits:
+          type: object
+          description: Connection limit information
+          properties:
+            supports_multiple_connections:
+              type: boolean
+              description: Supports multiple connections
+            max_concurrent_connections:
+              type: integer
+              description: Maximum concurrent connections
+        security_features:
+          type: object
+          description: Security feature detection
+          properties:
+            origin_validation:
+              type: boolean
+              description: Validates request origins
+            ssl_required:
+              type: boolean
+              description: Requires SSL/TLS
+            custom_auth_headers:
+              type: array
+              items:
+                type: string
+              description: Custom authentication headers
+        performance:
+          type: object
+          description: Performance characteristics
+          properties:
+            avg_response_time_ms:
+              type: number
+              description: Average response time in milliseconds
+            streaming_latency_ms:
+              type: number
+              description: Streaming latency in milliseconds
+            supports_compression:
+              type: boolean
+              description: Supports response compression
+            max_message_size:
+              type: integer
+              description: Maximum message size in bytes
+        cors_details:
+          type: object
+          description: CORS configuration details
+          properties:
+            cors_enabled:
+              type: boolean
+              description: CORS is enabled
+            allowed_origins:
+              type: array
+              items:
+                type: string
+              description: Allowed origins
+            allowed_methods:
+              type: array
+              items:
+                type: string
+              description: Allowed HTTP methods
+            allowed_headers:
+              type: array
+              items:
+                type: string
+              description: Allowed headers
+            supports_credentials:
+              type: boolean
+              description: Supports credentials
+        rate_limits:
+          type: object
+          description: Rate limiting information
+          properties:
+            requests_per_minute:
+              type: integer
+              description: Requests per minute limit
+            burst_limit:
+              type: integer
+              description: Burst request limit
+            rate_limit_headers:
+              type: array
+              items:
+                type: string
+              description: Rate limit header names
+
+    MCPServerRecord:
+      type: object
+      description: Complete MCP server record with all metadata
+      properties:
+        domain:
+          type: string
+          description: Server domain
+        endpoint:
+          type: string
+          format: uri
+          description: MCP endpoint URL
+        name:
+          type: string
+          description: Server display name
+        description:
+          type: string
+          description: Server description
+        server_info:
+          $ref: '#/components/schemas/MCPServerInfo'
+        tools:
+          type: array
+          items:
+            $ref: '#/components/schemas/MCPTool'
+          description: Available tools
+        resources:
+          type: array
+          items:
+            $ref: '#/components/schemas/MCPResource'
+          description: Available resources
+        transport:
+          type: string
+          enum: [streamable_http, sse, stdio]
+          description: Primary transport protocol
+        transport_capabilities:
+          $ref: '#/components/schemas/TransportCapabilities'
+          description: Detailed transport capabilities
+        openapi_documentation:
+          $ref: '#/components/schemas/OpenAPIDocumentation'
+          description: OpenAPI/Swagger documentation exposed by the server
+        cors_enabled:
+          type: boolean
+          description: CORS enabled
+        health:
+          $ref: '#/components/schemas/HealthMetrics'
+        verification:
+          $ref: '#/components/schemas/Verification'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        trust_score:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: Trust score (0-100)
+
+    MCPServerInfo:
+      type: object
+      description: MCP server information from initialize response
+      properties:
+        name:
+          type: string
+          description: Server name
+        version:
+          type: string
+          description: Server version
+        protocolVersion:
+          type: string
+          description: Supported MCP protocol version
+        capabilities:
+          type: object
+          description: Server capabilities
+          properties:
+            tools:
+              type: boolean
+              description: Supports tools
+            resources:
+              type: boolean
+              description: Supports resources
+            prompts:
+              type: boolean
+              description: Supports prompts
+            logging:
+              type: boolean
+              description: Supports logging
+
+    MCPTool:
+      type: object
+      description: MCP tool definition
+      properties:
+        name:
+          type: string
+          description: Tool name
+        description:
+          type: string
+          description: Tool description
+        inputSchema:
+          type: object
+          description: JSON Schema for tool input parameters
+
+    MCPResource:
+      type: object
+      description: MCP resource definition
+      properties:
+        uri:
+          type: string
+          description: Resource URI
+        name:
+          type: string
+          description: Resource name
+        description:
+          type: string
+          description: Resource description
+        mimeType:
+          type: string
+          description: Resource MIME type
+
+    HealthMetrics:
+      type: object
+      description: Server health and performance metrics
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy, unknown]
+          description: Current health status
+        uptime_percentage:
+          type: number
+          description: Uptime percentage (0-100)
+        avg_response_time_ms:
+          type: number
+          description: Average response time in milliseconds
+        error_rate:
+          type: number
+          description: Error rate (0-1)
+        last_check:
+          type: string
+          format: date-time
+          description: Last health check timestamp
+        consecutive_failures:
+          type: integer
+          description: Consecutive failure count
+
+    Verification:
+      type: object
+      description: Server verification status
+      properties:
+        dns_verified:
+          type: boolean
+          description: DNS ownership verified
+        endpoint_verified:
+          type: boolean
+          description: MCP endpoint verified
+        ssl_verified:
+          type: boolean
+          description: SSL certificate verified
+        last_verification:
+          type: string
+          format: date-time
+          description: Last verification timestamp
+        verification_method:
+          type: string
+          description: Verification method used
+        verified_at:
+          type: string
+          format: date-time
+          description: Initial verification timestamp
+
+    OpenAPIDocumentation:
+      type: object
+      description: OpenAPI/Swagger documentation exposed by MCP servers
+      properties:
+        discovered_at:
+          type: string
+          format: date-time
+          description: When the OpenAPI spec was discovered
+        spec_url:
+          type: string
+          format: uri
+          description: URL where the OpenAPI spec was found
+        discovery_method:
+          type: string
+          enum: [endpoint_scan, manual, header_hint, well_known]
+          description: How the spec was discovered
+        openapi_version:
+          type: string
+          description: OpenAPI specification version
+          example: "3.0.3"
+        spec_format:
+          type: string
+          enum: [json, yaml]
+          description: Format of the specification
+        api_info:
+          type: object
+          description: API information from OpenAPI spec
+          properties:
+            title:
+              type: string
+              description: API title
+            version:
+              type: string
+              description: API version
+            description:
+              type: string
+              description: API description
+            contact:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                url:
+                  type: string
+                  format: uri
+            license:
+              type: object
+              properties:
+                name:
+                  type: string
+                url:
+                  type: string
+                  format: uri
+        servers:
+          type: array
+          items:
+            type: object
+            properties:
+              url:
+                type: string
+                description: Server URL
+              description:
+                type: string
+                description: Server description
+              variables:
+                type: object
+                description: Server variables
+          description: Server definitions from OpenAPI spec
+        endpoints_summary:
+          type: object
+          description: Summary of API endpoints and operations
+          properties:
+            total_paths:
+              type: integer
+              description: Total number of API paths
+            total_operations:
+              type: integer
+              description: Total number of operations
+            methods:
+              type: object
+              additionalProperties:
+                type: integer
+              description: Count by HTTP method
+              example:
+                GET: 10
+                POST: 5
+                PUT: 3
+            tags:
+              type: array
+              items:
+                type: string
+              description: Available tags
+            has_authentication:
+              type: boolean
+              description: Whether API requires authentication
+            auth_schemes:
+              type: array
+              items:
+                type: string
+              description: Authentication scheme types
+        spec_hash:
+          type: string
+          description: Hash of the specification for change detection
+        validation:
+          type: object
+          description: OpenAPI specification validation status
+          properties:
+            is_valid:
+              type: boolean
+              description: Whether the OpenAPI spec is valid
+            validation_errors:
+              type: array
+              items:
+                type: string
+              description: Validation error messages
+            last_validated:
+              type: string
+              format: date-time
+              description: Last validation timestamp
+
+    GitHubAnalysisReport:
+      type: object
+      description: Comprehensive GitHub repository analysis report for MCP server registration
+      properties:
+        repository:
+          type: object
+          description: Repository metadata
+          properties:
+            owner:
+              type: string
+              description: Repository owner
+              example: "modelcontextprotocol"
+            repo:
+              type: string
+              description: Repository name
+              example: "server-filesystem"
+            stars:
+              type: integer
+              description: Number of stars
+              example: 42
+            language:
+              type: string
+              description: Primary programming language
+              example: "TypeScript"
+            topics:
+              type: array
+              items:
+                type: string
+              description: Repository topics/tags
+              example: ["mcp", "filesystem", "claude"]
+            license:
+              type: string
+              description: License identifier
+              example: "MIT"
+        deployment_options:
+          type: object
+          description: Available deployment methods
+          properties:
+            npm_package:
+              type: boolean
+              description: Available as NPM package
+            docker_support:
+              type: boolean
+              description: Docker support available
+            has_dockerfile:
+              type: boolean
+              description: Contains Dockerfile
+            has_docker_compose:
+              type: boolean
+              description: Contains docker-compose configuration
+            live_url_detected:
+              type: boolean
+              description: Live URL detected in repository
+            github_actions:
+              type: boolean
+              description: GitHub Actions CI/CD configured
+            python_package:
+              type: boolean
+              description: Python package structure detected
+            rust_crate:
+              type: boolean
+              description: Rust crate structure detected
+            go_module:
+              type: boolean
+              description: Go module structure detected
+        mcp_features:
+          type: object
+          description: MCP-specific features detected
+          properties:
+            has_claude_config:
+              type: boolean
+              description: Contains Claude Desktop configuration
+            npm_package:
+              type: string
+              nullable: true
+              description: NPM package name if available
+              example: "@modelcontextprotocol/server-filesystem"
+            installation_command:
+              type: string
+              nullable: true
+              description: Installation command
+              example: "npm install -g @modelcontextprotocol/server-filesystem"
+            environment_variables:
+              type: array
+              items:
+                type: string
+              description: Required environment variables
+              example: ["API_KEY", "BASE_URL"]
+            suggested_auth_type:
+              type: string
+              enum: [none, api_key, oauth2, basic]
+              description: Suggested authentication type
+        quality_assessment:
+          type: object
+          description: Quality and usability assessment
+          properties:
+            confidence_score:
+              type: integer
+              minimum: 0
+              maximum: 100
+              description: Confidence this is an MCP server (0-100)
+              example: 85
+            usability_score:
+              type: integer
+              minimum: 0
+              maximum: 100
+              description: Ease of deployment and usage (0-100)
+              example: 90
+            installation_complexity:
+              type: string
+              enum: [simple, moderate, complex, unclear]
+              description: Installation complexity assessment
+              example: "simple"
+            documentation_quality:
+              type: string
+              enum: [poor, fair, good, excellent]
+              description: Documentation quality assessment
+              example: "excellent"
+            recommended_action:
+              type: string
+              enum: [accept, accept_with_warnings, reject, needs_review]
+              description: Recommended registration action
+              example: "accept"
+        file_analysis:
+          type: object
+          description: Repository file structure analysis
+          properties:
+            has_readme:
+              type: boolean
+              description: Contains README file
+            has_package_json:
+              type: boolean
+              description: Contains package.json
+            has_dockerfile:
+              type: boolean
+              description: Contains Dockerfile
+            has_requirements_txt:
+              type: boolean
+              description: Contains requirements.txt (Python)
+            has_cargo_toml:
+              type: boolean
+              description: Contains Cargo.toml (Rust)
+            has_go_mod:
+              type: boolean
+              description: Contains go.mod (Go)
+            has_mcp_keywords:
+              type: boolean
+              description: Filenames contain MCP-related keywords
+            config_files:
+              type: array
+              items:
+                type: string
+              description: Configuration files found
+            documentation_files:
+              type: array
+              items:
+                type: string
+              description: Documentation files found
+        feedback:
+          type: object
+          description: Analysis feedback and recommendations
+          properties:
+            positive_indicators:
+              type: array
+              items:
+                type: string
+              description: Positive aspects found
+              example:
+                - "Contains Claude Desktop configuration"
+                - "Available as NPM package"
+                - "Comprehensive documentation"
+            warning_flags:
+              type: array
+              items:
+                type: string
+              description: Warning flags identified
+              example:
+                - "No Claude Desktop configuration found"
+                - "Complex setup with many environment variables required"
+            rejection_reasons:
+              type: array
+              items:
+                type: string
+              description: Reasons for rejection (if applicable)
+              example:
+                - "No viable deployment method detected"
+                - "No clear indication this is an MCP server"

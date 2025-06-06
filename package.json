@@ -10,7 +10,10 @@
     "test": "vitest",
     "lint": "eslint src/**/*.ts",
     "clean": "rm -rf dist",
-    "prepublishOnly": "npm run clean && npm run build"
+    "prepublishOnly": "npm run clean && npm run build",
+    "generate-client": "openapi-typescript spec/openapi.yaml -o src/generated/api-types.ts && npm run build-client",
+    "build-client": "node scripts/build-client.js",
+    "update-spec": "curl -s https://mcplookup.org/api/v1/openapi.yaml > spec/openapi.yaml && npm run generate-client"
   },
   "keywords": [
     "mcp",
@@ -32,6 +35,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.15.29",
+    "openapi-typescript": "^7.4.2",
     "typescript": "^5.8.3"
   },
   "engines": {

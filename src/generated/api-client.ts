@@ -1,147 +1,125 @@
-// Generated API Client for MCPLookup.org API
-// This file provides a type-safe client for the MCPLookup.org API
+// Generated API client for MCPLookup.org
+// DO NOT EDIT - This file is auto-generated
 
 import createClient from 'openapi-fetch';
-import type { paths } from './client';
+import type { paths } from './api-types.js';
 
-// Create the API client with proper typing
-export const apiClient = createClient<paths>({
-  baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || 'https://mcplookup.org/api/v1',
-});
+export type { paths } from './api-types.js';
 
-// Type-safe API methods
+/**
+ * MCPLookup.org API Client
+ * 
+ * Provides type-safe access to the MCPLookup.org discovery service API.
+ */
 export class MCPLookupAPIClient {
-  private client = apiClient;
+  private client: ReturnType<typeof createClient<paths>>;
+  private baseUrl: string;
 
-  constructor(baseUrl?: string, apiKey?: string) {
-    if (baseUrl) {
-      this.client = createClient<paths>({ baseUrl });
-    }
-    
-    if (apiKey) {
-      this.client.use({
-        onRequest({ request }) {
-          request.headers.set('Authorization', `Bearer ${apiKey}`);
-          return request;
-        },
-      });
-    }
+  constructor(baseUrl: string = 'https://mcplookup.org/api/v1', apiKey?: string) {
+    this.baseUrl = baseUrl;
+    this.client = createClient<paths>({ 
+      baseUrl,
+      headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : {}
+    });
   }
 
-  // Discovery endpoints
-  async discover(params: paths['/discover']['post']['requestBody']['content']['application/json']) {
-    const { data, error } = await this.client.POST('/discover', {
-      body: params,
+  /**
+   * Discover MCP servers using various search criteria
+   */
+  async discover(params: {
+    query?: string;
+    intent?: string;
+    domain?: string;
+    capability?: string;
+    category?: 'communication' | 'productivity' | 'development' | 'finance' | 'social' | 'storage' | 'other';
+    transport?: 'streamable_http' | 'sse' | 'stdio';
+    cors_required?: boolean;
+    ssl_required?: boolean;
+    verified_only?: boolean;
+    include_health?: boolean;
+    include_tools?: boolean;
+    include_resources?: boolean;
+    limit?: number;
+    offset?: number;
+  } = {}) {
+    const { data, error } = await this.client.GET('/discover', {
+      params: { query: params }
     });
     
-    if (error) throw new Error(`Discovery failed: ${error}`);
+    if (error) {
+      throw new Error(`Discovery failed: ${JSON.stringify(error)}`);
+    }
+    
     return data;
   }
 
-  async discoverSmart(params: paths['/discover/smart']['post']['requestBody']['content']['application/json']) {
+  /**
+   * Smart AI-powered discovery using natural language
+   */
+  async discoverSmart(params: {
+    query: string;
+    max_results?: number;
+    include_reasoning?: boolean;
+  }) {
     const { data, error } = await this.client.POST('/discover/smart', {
-      body: params,
+      body: params
     });
     
-    if (error) throw new Error(`Smart discovery failed: ${error}`);
+    if (error) {
+      throw new Error(`Smart discovery failed: ${JSON.stringify(error)}`);
+    }
+    
     return data;
   }
 
-  // Registration endpoints
-  async register(params: paths['/register']['post']['requestBody']['content']['application/json']) {
+  /**
+   * Register a new MCP server
+   */
+  async register(params: {
+    domain: string;
+    endpoint: string;
+    contact_email: string;
+    description?: string;
+  }) {
     const { data, error } = await this.client.POST('/register', {
-      body: params,
+      body: params
     });
     
-    if (error) throw new Error(`Registration failed: ${error}`);
-    return data;
-  }
-
-  async verifyRegistration(challengeId: string) {
-    const { data, error } = await this.client.POST('/register/verify/{challengeId}', {
-      params: { path: { challengeId } },
-    });
+    if (error) {
+      throw new Error(`Registration failed: ${JSON.stringify(error)}`);
+    }
     
-    if (error) throw new Error(`Verification failed: ${error}`);
     return data;
   }
 
-  async getRegistrationStatus(challengeId: string) {
-    const { data, error } = await this.client.GET('/register/status/{challengeId}', {
-      params: { path: { challengeId } },
-    });
-    
-    if (error) throw new Error(`Status check failed: ${error}`);
-    return data;
-  }
-
-  // Domain verification endpoints
-  async startDomainVerification(domain: string) {
-    const { data, error } = await this.client.POST('/verify', {
-      body: { domain },
-    });
-    
-    if (error) throw new Error(`Domain verification start failed: ${error}`);
-    return data;
-  }
-
-  async getDomainVerifications() {
-    const { data, error } = await this.client.GET('/verify');
-    
-    if (error) throw new Error(`Get verifications failed: ${error}`);
-    return data;
-  }
-
-  async checkDomainOwnership(domain: string) {
-    const { data, error } = await this.client.GET('/domain-check', {
-      params: { query: { domain } },
-    });
-    
-    if (error) throw new Error(`Domain check failed: ${error}`);
-    return data;
-  }
-
-  // Health endpoints
-  async getServerHealth(domain: string, realtime = false) {
+  /**
+   * Get server health metrics
+   */
+  async getServerHealth(domain: string, realtime: boolean = false) {
     const { data, error } = await this.client.GET('/health/{domain}', {
       params: { 
         path: { domain },
-        query: { realtime },
-      },
+        query: { realtime }
+      }
     });
     
-    if (error) throw new Error(`Health check failed: ${error}`);
+    if (error) {
+      throw new Error(`Health check failed: ${JSON.stringify(error)}`);
+    }
+    
     return data;
   }
 
-  // Onboarding endpoints
-  async getOnboardingState() {
-    const { data, error } = await this.client.GET('/onboarding');
-    
-    if (error) throw new Error(`Get onboarding state failed: ${error}`);
-    return data;
-  }
-
-  async updateOnboardingProgress(step: 'welcome' | 'domain_verify' | 'server_register' | 'dashboard_tour' | 'training_impact' | 'completed', completed = false) {
-    const { data, error } = await this.client.POST('/onboarding', {
-      body: { step, completed },
+  /**
+   * Set API key for authenticated requests
+   */
+  setApiKey(apiKey: string) {
+    this.client = createClient<paths>({ 
+      baseUrl: this.baseUrl,
+      headers: { Authorization: `Bearer ${apiKey}` }
     });
-    
-    if (error) throw new Error(`Update onboarding failed: ${error}`);
-    return data;
   }
 }
 
-// Export a default instance
-export const mcpLookupAPI = new MCPLookupAPIClient();
-
-// Export types for external use
-export type { paths } from './client';
-export type DiscoverRequest = paths['/discover']['post']['requestBody']['content']['application/json'];
-export type DiscoverResponse = paths['/discover']['post']['responses']['200']['content']['application/json'];
-export type SmartDiscoverRequest = paths['/discover/smart']['post']['requestBody']['content']['application/json'];
-export type SmartDiscoverResponse = paths['/discover/smart']['post']['responses']['200']['content']['application/json'];
-export type RegisterRequest = paths['/register']['post']['requestBody']['content']['application/json'];
-export type RegisterResponse = paths['/register']['post']['responses']['200']['content']['application/json'];
-export type HealthResponse = paths['/health/{domain}']['get']['responses']['200']['content']['application/json'];
-export type OnboardingResponse = paths['/onboarding']['get']['responses']['200']['content']['application/json'];
+// Export default instance for convenience
+export const mcpLookupClient = new MCPLookupAPIClient();
