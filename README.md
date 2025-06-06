@@ -299,6 +299,16 @@ vercel deploy --prod
 
 🎉 **Status**: **PRODUCTION READY** - All TypeScript compilation errors fixed, ES module compatibility achieved, comprehensive testing complete!
 
+### **🔥 Bridge Repository**
+**[📖 MCPLookup Bridge →](https://github.com/MCPLookup-org/mcp-bridge)** - *The Universal MCP Client That Eliminates Hardcoded Server Lists Forever*
+
+✨ **Features a stunning README** with:
+- 🎨 Professional design and visual hierarchy
+- 🚀 Three deployment patterns (NPM, Docker, Remote)
+- 📊 Real-world use cases and examples
+- 🔧 Complete tool documentation
+- 🐳 Production-ready Docker deployment
+
 ### **Before (Hardcoded Hell)**
 ```json
 {
