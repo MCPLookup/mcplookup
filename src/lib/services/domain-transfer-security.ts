@@ -84,8 +84,12 @@ export class DomainTransferSecurityService {
     const currentRegistration = servers[0];
     
     // Check if verification has expired
+    if (!currentRegistration.verification) {
+      return true; // No verification data means re-verification required
+    }
+
     const verificationExpiry = new Date(
-      new Date(currentRegistration.verification.verified_at || currentRegistration.verification.last_verification).getTime() + this.VERIFICATION_TTL
+      new Date(currentRegistration.verification.verified_at || currentRegistration.verification.last_verification || Date.now()).getTime() + this.VERIFICATION_TTL
     );
     
     if (new Date() > verificationExpiry) {
@@ -126,7 +130,11 @@ export class DomainTransferSecurityService {
     }
 
     const registration = servers[0];
-    const verifiedAt = new Date(registration.verification.verified_at || registration.verification.last_verification);
+    if (!registration.verification) {
+      return null; // No verification data
+    }
+
+    const verifiedAt = new Date(registration.verification.verified_at || registration.verification.last_verification || Date.now());
     const expiresAt = new Date(verifiedAt.getTime() + this.VERIFICATION_TTL);
     const now = new Date();
     
@@ -249,7 +257,11 @@ export class DomainTransferSecurityService {
     const now = new Date();
 
     for (const server of allServers) {
-      const verifiedAt = new Date(server.verification.verified_at || server.verification.last_verification);
+      if (!server.verification) {
+        continue; // Skip servers without verification data
+      }
+
+      const verifiedAt = new Date(server.verification.verified_at || server.verification.last_verification || Date.now());
       const expiresAt = new Date(verifiedAt.getTime() + this.VERIFICATION_TTL);
       const gracePeriodEnd = new Date(expiresAt.getTime() + this.GRACE_PERIOD);
 

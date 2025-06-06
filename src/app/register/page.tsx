@@ -3,6 +3,10 @@
 import React, { useState } from "react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
+import { Box, Text, VStack, HStack, Badge, Button, Input, Card } from "@chakra-ui/react"
+import { RegistrationFlow, RegistrationBenefit, CodeBlock } from "@/components/mcplookup"
+import { LinkButton } from "@/components/ui/link-button"
+import Link from "next/link"
 
 interface RegistrationData {
   domain: string
@@ -95,202 +99,312 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
+    <Box minH="100vh" bg="gradient-to-br" gradientFrom="green.50" gradientTo="blue.50">
       <Header />
-      
-      <div className="max-w-4xl mx-auto py-8 px-4">
-        <div className="space-y-8">
-          {/* Header */}
-          <div className="text-center space-y-4">
-            <h1 className="text-3xl font-bold">Register MCP Server</h1>
-            <p className="text-lg text-gray-600">
-              Add your Model Context Protocol server to the global registry
-            </p>
-          </div>
 
-          {/* API Key Requirement Notice */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-            <div className="flex items-start space-x-4">
-              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-blue-600 text-lg">🔑</span>
-              </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-blue-900 mb-2">Free API Key Required</h3>
-                <p className="text-blue-800 mb-4">
+      <Box maxW="6xl" mx="auto" py={16} px={4}>
+        <VStack gap={12} textAlign="center">
+          {/* Header */}
+          <VStack gap={6}>
+            <Text fontSize={{ base: "3xl", md: "4xl" }} fontWeight="bold" color="gray.900">
+              Make Your MCP Tools Discoverable
+            </Text>
+            <Text fontSize="lg" color="gray.600" maxW="3xl" lineHeight="relaxed">
+              Join the growing MCP ecosystem by making your tools discoverable to AI agents worldwide.
+              Build the infrastructure that major services will join.
+            </Text>
+          </VStack>
+
+          {/* Registration Flow */}
+          <Box w="full" maxW="4xl">
+            <RegistrationFlow
+              steps={[
+                {
+                  number: 1,
+                  title: "Get Free API Keys",
+                  description: "Sign up and generate your free developer API keys",
+                  action: "Create Account",
+                  href: "/dashboard"
+                },
+                {
+                  number: 2,
+                  title: "Register Your Server",
+                  description: "Submit your MCP endpoint with capabilities and metadata",
+                  action: "Register Server",
+                  href: "#registration-form"
+                },
+                {
+                  number: 3,
+                  title: "Verify Domain Ownership",
+                  description: "Add a DNS TXT record to prove you own the domain",
+                  action: "Verify Domain",
+                  technical: true
+                },
+                {
+                  number: 4,
+                  title: "Go Live",
+                  description: "Your server is now discoverable by all AI agents globally",
+                  action: "Monitor Usage",
+                  href: "/dashboard"
+                }
+              ]}
+            />
+          </Box>
+
+          {/* Benefits */}
+          <Box
+            w="full"
+            maxW="4xl"
+            bg="gradient-to-r"
+            gradientFrom="green.50"
+            gradientTo="blue.50"
+            border="2px solid"
+            borderColor="green.200"
+            rounded="xl"
+            p={8}
+          >
+            <VStack gap={6}>
+              <Text fontSize="xl" fontWeight="semibold" color="gray.900">
+                Why Register Your MCP Server?
+              </Text>
+              <Box display="grid" gridTemplateColumns={{ base: "1fr", md: "repeat(3, 1fr)" }} gap={6}>
+                <RegistrationBenefit
+                  icon="🌍"
+                  title="Global Reach"
+                  description="Instantly discoverable by AI agents worldwide"
+                />
+                <RegistrationBenefit
+                  icon="📊"
+                  title="Usage Analytics"
+                  description="Monitor connections, performance, and adoption"
+                />
+                <RegistrationBenefit
+                  icon="🛡️"
+                  title="Trust & Verification"
+                  description="DNS verification builds user confidence"
+                />
+              </Box>
+            </VStack>
+          </Box>
+
+          {/* API Key Notice */}
+          <Box
+            w="full"
+            maxW="4xl"
+            bg="blue.50"
+            border="1px solid"
+            borderColor="blue.200"
+            rounded="xl"
+            p={6}
+          >
+            <HStack gap={4} align="start">
+              <Box
+                w={10}
+                h={10}
+                bg="blue.100"
+                rounded="full"
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+                flexShrink={0}
+              >
+                <Text color="blue.600" fontSize="lg">🔑</Text>
+              </Box>
+              <VStack align="start" gap={3} flex={1}>
+                <Text fontSize="lg" fontWeight="semibold" color="blue.900">
+                  Free API Key Required
+                </Text>
+                <Text color="blue.800">
                   Server registration requires a free API key. Discovery is free, but registering your own MCP servers
                   needs authentication to prevent spam and ensure quality.
-                </p>
-                <div className="flex flex-wrap gap-3">
-                  <a
+                </Text>
+                <HStack gap={3} flexWrap="wrap">
+                  <LinkButton
                     href="/dashboard"
-                    className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    colorPalette="blue"
+                    size="sm"
                   >
                     🔑 Get Free API Keys
-                  </a>
-                  <a
+                  </LinkButton>
+                  <LinkButton
                     href="/discover"
-                    className="inline-flex items-center px-4 py-2 border border-blue-300 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"
+                    variant="outline"
+                    colorPalette="blue"
+                    size="sm"
                   >
                     🔍 Discover Servers (Free)
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
+                  </LinkButton>
+                </HStack>
+              </VStack>
+            </HStack>
+          </Box>
 
           {!success ? (
             /* Registration Form */
-            <div className="bg-white rounded-lg shadow-md p-8">
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Domain *
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="example.com"
-                    value={formData.domain}
-                    onChange={(e) => handleInputChange("domain", e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
-                </div>
+            <Card.Root id="registration-form" w="full" maxW="2xl" bg="white" shadow="lg">
+              <Card.Body p={8}>
+                <form onSubmit={handleSubmit}>
+                  <VStack gap={6} align="stretch">
+                    <VStack align="stretch" gap={2}>
+                      <Text fontSize="sm" fontWeight="medium" color="gray.700">
+                        Domain *
+                      </Text>
+                      <Input
+                        placeholder="example.com"
+                        value={formData.domain}
+                        onChange={(e) => handleInputChange("domain", e.target.value)}
+                        required
+                      />
+                    </VStack>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    MCP Endpoint *
-                  </label>
-                  <input
-                    type="url"
-                    placeholder="https://example.com/mcp"
-                    value={formData.endpoint}
-                    onChange={(e) => handleInputChange("endpoint", e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
-                </div>
+                    <VStack align="stretch" gap={2}>
+                      <Text fontSize="sm" fontWeight="medium" color="gray.700">
+                        MCP Endpoint *
+                      </Text>
+                      <Input
+                        type="url"
+                        placeholder="https://example.com/mcp"
+                        value={formData.endpoint}
+                        onChange={(e) => handleInputChange("endpoint", e.target.value)}
+                        required
+                      />
+                    </VStack>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Capabilities
-                  </label>
-                  <div className="flex space-x-2">
-                    <input
-                      type="text"
-                      placeholder="Add capability (e.g., email, calendar)"
-                      value={capabilityInput}
-                      onChange={(e) => setCapabilityInput(e.target.value)}
-                      onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addCapability())}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <button
-                      type="button"
-                      onClick={addCapability}
-                      disabled={!capabilityInput.trim()}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-                    >
-                      Add
-                    </button>
-                  </div>
-                  {formData.capabilities.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {formData.capabilities.map((cap) => (
-                        <span
-                          key={cap}
-                          onClick={() => removeCapability(cap)}
-                          className="px-2 py-1 bg-blue-100 text-blue-800 rounded-md cursor-pointer hover:bg-blue-200"
+                    <VStack align="stretch" gap={2}>
+                      <Text fontSize="sm" fontWeight="medium" color="gray.700">
+                        Capabilities
+                      </Text>
+                      <HStack gap={2}>
+                        <Input
+                          placeholder="Add capability (e.g., email, calendar)"
+                          value={capabilityInput}
+                          onChange={(e) => setCapabilityInput(e.target.value)}
+                          onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addCapability())}
+                          flex={1}
+                        />
+                        <Button
+                          onClick={addCapability}
+                          disabled={!capabilityInput.trim()}
+                          colorPalette="blue"
+                          size="sm"
                         >
-                          {cap} ×
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                          Add
+                        </Button>
+                      </HStack>
+                      {formData.capabilities.length > 0 && (
+                        <HStack gap={2} flexWrap="wrap">
+                          {formData.capabilities.map((cap) => (
+                            <Badge
+                              key={cap}
+                              colorPalette="blue"
+                              cursor="pointer"
+                              onClick={() => removeCapability(cap)}
+                              _hover={{ bg: "blue.200" }}
+                            >
+                              {cap} ×
+                            </Badge>
+                          ))}
+                        </HStack>
+                      )}
+                    </VStack>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Contact Email *
-                  </label>
-                  <input
-                    type="email"
-                    value={formData.contact_email}
-                    onChange={(e) => handleInputChange("contact_email", e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  />
-                </div>
+                    <VStack align="stretch" gap={2}>
+                      <Text fontSize="sm" fontWeight="medium" color="gray.700">
+                        Contact Email *
+                      </Text>
+                      <Input
+                        type="email"
+                        value={formData.contact_email}
+                        onChange={(e) => handleInputChange("contact_email", e.target.value)}
+                        required
+                      />
+                    </VStack>
 
-                {error && (
-                  <div className="bg-red-50 border border-red-200 rounded-md p-4">
-                    <div className="text-red-800">
-                      <strong>Error:</strong> {error}
-                    </div>
-                  </div>
-                )}
+                    {error && (
+                      <Box bg="red.50" border="1px solid" borderColor="red.200" rounded="md" p={4}>
+                        <Text color="red.800">
+                          <Text as="span" fontWeight="bold">Error:</Text> {error}
+                        </Text>
+                      </Box>
+                    )}
 
-                <button
-                  type="submit"
-                  disabled={loading || !formData.domain || !formData.endpoint}
-                  className="w-full bg-green-600 text-white py-3 px-4 rounded-md hover:bg-green-700 disabled:opacity-50 font-medium"
-                >
-                  {loading ? "Registering..." : "🖥️ Register Server"}
-                </button>
-              </form>
-            </div>
+                    <Button
+                      type="submit"
+                      disabled={loading || !formData.domain || !formData.endpoint}
+                      colorPalette="green"
+                      size="lg"
+                      w="full"
+                      fontWeight="medium"
+                    >
+                      {loading ? "Registering..." : "🖥️ Register Server"}
+                    </Button>
+                  </VStack>
+                </form>
+              </Card.Body>
+            </Card.Root>
           ) : (
             /* Verification Instructions */
-            <div className="space-y-6">
-              <div className="bg-green-50 border border-green-200 rounded-md p-4">
-                <div className="text-green-800">
-                  <strong>Registration Submitted!</strong> Your server has been registered. Complete DNS verification to make it discoverable.
-                </div>
-              </div>
+            <VStack gap={6} w="full" maxW="2xl">
+              <Box bg="green.50" border="1px solid" borderColor="green.200" rounded="md" p={4} w="full">
+                <Text color="green.800">
+                  <Text as="span" fontWeight="bold">Registration Submitted!</Text> Your server has been registered. Complete DNS verification to make it discoverable.
+                </Text>
+              </Box>
 
-              <div className="bg-white rounded-lg shadow-md p-8">
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">DNS Verification Required</h3>
-                  
-                  <p>Add the following TXT record to your DNS configuration:</p>
-                  
-                  <div className="bg-gray-100 p-4 rounded-md">
-                    <div className="space-y-2">
-                      <div><strong>Record Type:</strong> TXT</div>
-                      <div><strong>Name:</strong> <code className="bg-gray-200 px-1 rounded">{verification?.dns_record}</code></div>
-                      <div><strong>Value:</strong> <code className="bg-gray-200 px-1 rounded">{verification?.token}</code></div>
-                    </div>
-                  </div>
+              <Card.Root bg="white" shadow="lg" w="full">
+                <Card.Body p={8}>
+                  <VStack gap={4} align="stretch">
+                    <Text fontSize="lg" fontWeight="semibold">DNS Verification Required</Text>
 
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center space-x-2">
-                      <span className={verification?.verified ? "text-green-500" : "text-yellow-500"}>
-                        {verification?.verified ? "✅" : "⏰"}
-                      </span>
-                      <span>Status: {verification?.verified ? "Verified" : "Pending"}</span>
-                    </div>
-                    
-                    <button
-                      onClick={checkVerification}
-                      className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
-                    >
-                      Check Status
-                    </button>
-                  </div>
+                    <Text>Add the following TXT record to your DNS configuration:</Text>
 
-                  {verification?.verified && (
-                    <div className="bg-green-50 border border-green-200 rounded-md p-4">
-                      <div className="text-green-800">
-                        <strong>Verification Complete!</strong> Your server is now discoverable in the MCP registry.
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
+                    <Box bg="gray.100" p={4} rounded="md">
+                      <VStack gap={2} align="stretch">
+                        <Text><Text as="span" fontWeight="bold">Record Type:</Text> TXT</Text>
+                        <Text>
+                          <Text as="span" fontWeight="bold">Name:</Text>{" "}
+                          <Text as="code" bg="gray.200" px={1} rounded="sm">{verification?.dns_record}</Text>
+                        </Text>
+                        <Text>
+                          <Text as="span" fontWeight="bold">Value:</Text>{" "}
+                          <Text as="code" bg="gray.200" px={1} rounded="sm">{verification?.token}</Text>
+                        </Text>
+                      </VStack>
+                    </Box>
+
+                    <HStack justify="space-between" align="center">
+                      <HStack gap={2}>
+                        <Text color={verification?.verified ? "green.500" : "yellow.500"}>
+                          {verification?.verified ? "✅" : "⏰"}
+                        </Text>
+                        <Text>Status: {verification?.verified ? "Verified" : "Pending"}</Text>
+                      </HStack>
+
+                      <Button
+                        onClick={checkVerification}
+                        variant="outline"
+                        size="sm"
+                      >
+                        Check Status
+                      </Button>
+                    </HStack>
+
+                    {verification?.verified && (
+                      <Box bg="green.50" border="1px solid" borderColor="green.200" rounded="md" p={4}>
+                        <Text color="green.800">
+                          <Text as="span" fontWeight="bold">Verification Complete!</Text> Your server is now discoverable in the MCP registry.
+                        </Text>
+                      </Box>
+                    )}
+                  </VStack>
+                </Card.Body>
+              </Card.Root>
+            </VStack>
           )}
-        </div>
-      </div>
+        </VStack>
+      </Box>
 
       <Footer />
-    </div>
+    </Box>
   )
 }

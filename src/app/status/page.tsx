@@ -2,74 +2,68 @@
 
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
+import { Box, Text, VStack, HStack, Badge, Card } from "@chakra-ui/react"
+import { TrustMetric } from "@/components/mcplookup"
 
 export default function StatusPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <Box minH="100vh" bg="gray.50">
       <Header />
-      
-      <div className="max-w-4xl mx-auto py-16 px-4">
-        <div className="space-y-8">
+
+      <Box maxW="5xl" mx="auto" py={16} px={4}>
+        <VStack gap={8} align="stretch">
           {/* Header */}
-          <div className="text-center space-y-4">
-            <h1 className="text-4xl font-bold text-gray-900">
-              Service Status
-            </h1>
-            <p className="text-xl text-gray-600">
-              Real-time status of MCPLookup.org services
-            </p>
-          </div>
+          <VStack gap={4} textAlign="center">
+            <Text fontSize={{ base: "3xl", md: "4xl" }} fontWeight="bold" color="gray.900">
+              📊 Infrastructure Status
+            </Text>
+            <Text fontSize="xl" color="gray.600">
+              Real-time status of MCPLookup.org dynamic discovery infrastructure
+            </Text>
+          </VStack>
 
           {/* Overall Status */}
-          <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <span className="text-2xl">✅</span>
-                <div>
-                  <h2 className="text-xl font-semibold text-gray-900">
-                    All Systems Operational
-                  </h2>
-                  <p className="text-gray-600">
-                    All services are running normally
-                  </p>
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-sm text-gray-500">Last updated</div>
-                <div className="text-sm font-medium">
-                  {new Date().toLocaleTimeString()}
-                </div>
-              </div>
-            </div>
-          </div>
+          <Card.Root bg="white" shadow="md" borderLeft="4px solid" borderColor="green.500">
+            <Card.Body p={6}>
+              <HStack justify="space-between" align="center">
+                <HStack gap={3}>
+                  <Text fontSize="2xl">✅</Text>
+                  <VStack align="start" gap={1}>
+                    <Text fontSize="xl" fontWeight="semibold" color="gray.900">
+                      All Systems Operational
+                    </Text>
+                    <Text color="gray.600">
+                      All infrastructure services are running normally
+                    </Text>
+                  </VStack>
+                </HStack>
+                <VStack align="end" gap={1}>
+                  <Text fontSize="sm" color="gray.500">Last updated</Text>
+                  <Text fontSize="sm" fontWeight="medium">
+                    {new Date().toLocaleTimeString()}
+                  </Text>
+                </VStack>
+              </HStack>
+            </Card.Body>
+          </Card.Root>
 
           {/* System Metrics */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-white rounded-lg shadow-md p-6 text-center">
-              <div className="text-3xl font-bold text-blue-600">~50</div>
-              <div className="text-sm text-gray-600">Registered Servers</div>
-            </div>
-            <div className="bg-white rounded-lg shadow-md p-6 text-center">
-              <div className="text-3xl font-bold text-green-600">~30</div>
-              <div className="text-sm text-gray-600">Verified Servers</div>
-            </div>
-            <div className="bg-white rounded-lg shadow-md p-6 text-center">
-              <div className="text-3xl font-bold text-orange-600">~120ms</div>
-              <div className="text-sm text-gray-600">Edge Response Time</div>
-            </div>
-            <div className="bg-white rounded-lg shadow-md p-6 text-center">
-              <div className="text-3xl font-bold text-purple-600">99.9%</div>
-              <div className="text-sm text-gray-600">Vercel Uptime</div>
-            </div>
-          </div>
+          <Box display="grid" gridTemplateColumns={{ base: "1fr", md: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" }} gap={6}>
+            <TrustMetric value="~50" label="Registered Servers" color="blue" />
+            <TrustMetric value="~30" label="Verified Servers" color="green" />
+            <TrustMetric value="~120ms" label="Edge Response Time" color="orange" />
+            <TrustMetric value="99.9%" label="Vercel Uptime" color="purple" />
+          </Box>
 
           {/* Service Status */}
-          <div className="bg-white rounded-lg shadow-md">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">Service Status</h3>
-            </div>
-            
-            <div className="divide-y divide-gray-200">
+          <Card.Root bg="white" shadow="md">
+            <Box px={6} py={4} borderBottom="1px solid" borderColor="gray.200">
+              <Text fontSize="lg" fontWeight="semibold" color="gray.900">
+                Infrastructure Components
+              </Text>
+            </Box>
+
+            <VStack gap={0}>
               {[
                 { name: "Discovery API (Next.js)", status: "operational", uptime: 99.9, responseTime: 120 },
                 { name: "Registration API (Next.js)", status: "operational", uptime: 99.8, responseTime: 95 },
@@ -78,69 +72,76 @@ export default function StatusPage() {
                 { name: "Vercel Edge Functions", status: "operational", uptime: 99.9, responseTime: 50 },
                 { name: "MCP Server Endpoint", status: "development", uptime: 0, responseTime: 0 }
               ].map((service) => (
-                <div key={service.name} className="px-6 py-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <span className="text-xl">
+                <Box key={service.name} px={6} py={4} w="full" borderBottom="1px solid" borderColor="gray.200" _last={{ borderBottom: "none" }}>
+                  <HStack justify="space-between" align="center">
+                    <HStack gap={3}>
+                      <Text fontSize="xl">
                         {service.status === "operational" ? "✅" :
                          service.status === "development" ? "🚧" : "❌"}
-                      </span>
-                      <div>
-                        <h4 className="font-medium text-gray-900">{service.name}</h4>
-                        <p className={`text-sm capitalize ${
-                          service.status === "operational" ? "text-green-600" :
-                          service.status === "development" ? "text-yellow-600" : "text-red-600"
-                        }`}>
+                      </Text>
+                      <VStack align="start" gap={1}>
+                        <Text fontWeight="medium" color="gray.900">{service.name}</Text>
+                        <Badge
+                          colorPalette={
+                            service.status === "operational" ? "green" :
+                            service.status === "development" ? "yellow" : "red"
+                          }
+                          size="sm"
+                        >
                           {service.status}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex space-x-6 text-sm text-gray-600">
-                      <div className="text-center">
-                        <div className="font-medium">
+                        </Badge>
+                      </VStack>
+                    </HStack>
+
+                    <HStack gap={6} fontSize="sm" color="gray.600">
+                      <VStack gap={1} textAlign="center">
+                        <Text fontWeight="medium">
                           {service.status === "development" ? "N/A" : `${service.uptime}%`}
-                        </div>
-                        <div>Uptime</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="font-medium">
+                        </Text>
+                        <Text>Uptime</Text>
+                      </VStack>
+                      <VStack gap={1} textAlign="center">
+                        <Text fontWeight="medium">
                           {service.status === "development" ? "N/A" : `${service.responseTime}ms`}
-                        </div>
-                        <div>Response</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="font-medium">
+                        </Text>
+                        <Text>Response</Text>
+                      </VStack>
+                      <VStack gap={1} textAlign="center">
+                        <Text fontWeight="medium">
                           {service.status === "development" ? "In Dev" : new Date().toLocaleTimeString()}
-                        </div>
-                        <div>Last Check</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                        </Text>
+                        <Text>Last Check</Text>
+                      </VStack>
+                    </HStack>
+                  </HStack>
+                </Box>
               ))}
-            </div>
-          </div>
+            </VStack>
+          </Card.Root>
 
           {/* Incident History */}
-          <div className="bg-white rounded-lg shadow-md">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">Recent Incidents</h3>
-            </div>
-            <div className="p-6">
-              <div className="text-center py-8">
-                <div className="text-4xl text-green-500 mb-4">🎉</div>
-                <h4 className="text-lg font-medium text-gray-900 mb-2">No Recent Incidents</h4>
-                <p className="text-gray-600">
-                  All services have been running smoothly. Last incident was over 30 days ago.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+          <Card.Root bg="white" shadow="md">
+            <Box px={6} py={4} borderBottom="1px solid" borderColor="gray.200">
+              <Text fontSize="lg" fontWeight="semibold" color="gray.900">
+                Recent Incidents
+              </Text>
+            </Box>
+            <Card.Body p={6}>
+              <VStack gap={4} textAlign="center" py={8}>
+                <Text fontSize="4xl" color="green.500">🎉</Text>
+                <Text fontSize="lg" fontWeight="medium" color="gray.900">
+                  No Recent Incidents
+                </Text>
+                <Text color="gray.600">
+                  All infrastructure services have been running smoothly. Last incident was over 30 days ago.
+                </Text>
+              </VStack>
+            </Card.Body>
+          </Card.Root>
+        </VStack>
+      </Box>
 
       <Footer />
-    </div>
+    </Box>
   )
 }

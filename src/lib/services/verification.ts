@@ -315,6 +315,11 @@ export class VerificationService implements IVerificationService {
    */
   private async populateServerCapabilities(server: MCPServerRecord): Promise<void> {
     try {
+      if (!server.endpoint) {
+        console.warn(`No endpoint available for ${server.domain}`);
+        return;
+      }
+
       const { safeFetch } = await import('../security/url-validation');
 
       // Get tools list
@@ -338,7 +343,7 @@ export class VerificationService implements IVerificationService {
       }
 
       // Get resources list
-      const resourcesResponse = await safeFetch(server.endpoint, {
+      const resourcesResponse = await safeFetch(server.endpoint!, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -358,13 +363,16 @@ export class VerificationService implements IVerificationService {
       }
 
       // Update the server record with populated capabilities
-      if (this.registryService && (server.tools.length > 0 || server.resources.length > 0)) {
+      const tools = server.tools || [];
+      const resources = server.resources || [];
+
+      if (this.registryService && (tools.length > 0 || resources.length > 0)) {
         await this.registryService.updateServer(server.domain, {
-          tools: server.tools,
-          resources: server.resources,
+          tools: tools,
+          resources: resources,
           updated_at: new Date().toISOString()
         });
-        console.log(`📋 Populated ${server.tools.length} tools and ${server.resources.length} resources for ${server.domain}`);
+        console.log(`📋 Populated ${tools.length} tools and ${resources.length} resources for ${server.domain}`);
       }
 
     } catch (error) {

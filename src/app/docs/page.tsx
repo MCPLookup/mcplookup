@@ -2,6 +2,8 @@
 
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
+import { Box, Text, VStack, HStack, Badge, Button, Input, Card, Select } from "@chakra-ui/react";
+import { LinkButton } from "@/components/ui/link-button";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -93,47 +95,59 @@ export default function DocsPage() {
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case "Beginner": return "bg-green-100 text-green-800";
-      case "Intermediate": return "bg-yellow-100 text-yellow-800";
-      case "Advanced": return "bg-red-100 text-red-800";
-      default: return "bg-gray-100 text-gray-800";
+      case "Beginner": return "green";
+      case "Intermediate": return "yellow";
+      case "Advanced": return "red";
+      default: return "gray";
     }
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <Box minH="100vh" bg="white">
       <Header />
-      <main className="container mx-auto px-4 py-8">
-        <div className="max-w-6xl mx-auto">
+      <Box as="main" maxW="6xl" mx="auto" px={4} py={16}>
+        <VStack gap={12} textAlign="center">
           {/* Header */}
-          <div className="text-center mb-12">
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Documentation
-            </h1>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Complete guide to dynamic MCP server discovery, from basic usage to advanced integrations and API development.
-            </p>
-          </div>
+          <VStack gap={4}>
+            <Text fontSize={{ base: "3xl", md: "4xl" }} fontWeight="bold" color="gray.900">
+              📚 Documentation Hub
+            </Text>
+            <Text fontSize="lg" color="gray.600" maxW="3xl" lineHeight="relaxed">
+              Complete guide to dynamic MCP server discovery infrastructure, from basic usage to advanced integrations and API development.
+            </Text>
+          </VStack>
 
           {/* Search and Filter */}
-          <div className="mb-8">
-            <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-              <div className="relative flex-1 max-w-md">
-                <input
-                  type="text"
+          <Box w="full" maxW="4xl">
+            <HStack gap={4} flexDir={{ base: "column", md: "row" }} align="stretch">
+              <Box position="relative" flex={1} maxW={{ base: "full", md: "md" }}>
+                <Input
                   placeholder="Search documentation..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  pl={10}
                 />
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <span className="text-gray-400">🔍</span>
-                </div>
-              </div>
+                <Box
+                  position="absolute"
+                  left={3}
+                  top="50%"
+                  transform="translateY(-50%)"
+                  pointerEvents="none"
+                  color="gray.400"
+                >
+                  🔍
+                </Box>
+              </Box>
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                style={{
+                  padding: '8px 12px',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '6px',
+                  backgroundColor: 'white',
+                  fontSize: '14px'
+                }}
               >
                 <option value="all">All Categories</option>
                 {documentationSections.map(section => (
@@ -142,104 +156,210 @@ export default function DocsPage() {
                   </option>
                 ))}
               </select>
-            </div>
-          </div>
+            </HStack>
+          </Box>
 
           {/* Quick Start Cards */}
-          <div className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">🚀 Quick Start</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Link href="/docs/introduction" className="group">
-                <div className="text-center space-y-4 p-6 border border-gray-200 rounded-lg hover:shadow-md hover:border-blue-300 transition-all group-hover:bg-blue-50">
-                  <div className="text-4xl">🤔</div>
-                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-900">Introduction</h3>
-                  <p className="text-gray-600 text-sm group-hover:text-blue-700">
-                    Learn about dynamic MCP server discovery and how it works.
-                  </p>
-                  <div className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md group-hover:bg-blue-700 transition-colors">
-                    📖 Read Introduction
-                  </div>
-                </div>
+          <VStack gap={6} w="full" maxW="5xl">
+            <Text fontSize="2xl" fontWeight="bold" color="gray.900">
+              🚀 Quick Start
+            </Text>
+            <Box display="grid" gridTemplateColumns={{ base: "1fr", md: "repeat(3, 1fr)" }} gap={6} w="full">
+              <Link href="/docs/introduction">
+                <Card.Root
+                  bg="white"
+                  borderWidth="1px"
+                  borderColor="gray.200"
+                  _hover={{
+                    shadow: "lg",
+                    borderColor: "blue.300",
+                    bg: "blue.50",
+                    transform: "translateY(-2px)"
+                  }}
+                  transition="all 0.2s"
+                  cursor="pointer"
+                >
+                <Card.Body p={6} textAlign="center">
+                  <VStack gap={4}>
+                    <Text fontSize="4xl">🤔</Text>
+                    <Text fontSize="lg" fontWeight="semibold" color="gray.900">
+                      Introduction
+                    </Text>
+                    <Text fontSize="sm" color="gray.600">
+                      Learn about dynamic MCP server discovery and how it works.
+                    </Text>
+                    <Button colorPalette="blue" size="sm">
+                      📖 Read Introduction
+                    </Button>
+                  </VStack>
+                </Card.Body>
+                </Card.Root>
               </Link>
 
-              <Link href="/docs/quickstart" className="group">
-                <div className="text-center space-y-4 p-6 border border-gray-200 rounded-lg hover:shadow-md hover:border-green-300 transition-all group-hover:bg-green-50">
-                  <div className="text-4xl">⚡</div>
-                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-green-900">Quick Start</h3>
-                  <p className="text-gray-600 text-sm group-hover:text-green-700">
-                    Get up and running in minutes with step-by-step installation instructions.
-                  </p>
-                  <div className="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md group-hover:bg-green-700 transition-colors">
-                    🚀 Quick Start
-                  </div>
-                </div>
+              <Link href="/how-to-use">
+                <Card.Root
+                  bg="white"
+                  borderWidth="1px"
+                  borderColor="gray.200"
+                  _hover={{
+                    shadow: "lg",
+                    borderColor: "green.300",
+                    bg: "green.50",
+                    transform: "translateY(-2px)"
+                  }}
+                  transition="all 0.2s"
+                  cursor="pointer"
+                >
+                <Card.Body p={6} textAlign="center">
+                  <VStack gap={4}>
+                    <Text fontSize="4xl">⚡</Text>
+                    <Text fontSize="lg" fontWeight="semibold" color="gray.900">
+                      Quick Start
+                    </Text>
+                    <Text fontSize="sm" color="gray.600">
+                      Get up and running in minutes with step-by-step installation instructions.
+                    </Text>
+                    <Button colorPalette="green" size="sm">
+                      🚀 Quick Start
+                    </Button>
+                  </VStack>
+                </Card.Body>
+                </Card.Root>
               </Link>
 
-              <Link href="/docs/api" className="group">
-                <div className="text-center space-y-4 p-6 border border-gray-200 rounded-lg hover:shadow-md hover:border-purple-300 transition-all group-hover:bg-purple-50">
-                  <div className="text-4xl">⚡</div>
-                  <h3 className="text-lg font-semibold text-gray-900 group-hover:text-purple-900">API Reference</h3>
-                  <p className="text-gray-600 text-sm group-hover:text-purple-700">
-                    Complete API documentation with examples and interactive testing tools.
-                  </p>
-                  <div className="inline-flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-md group-hover:bg-purple-700 transition-colors">
-                    🔌 API Docs
-                  </div>
-                </div>
+              <Link href="/api/docs">
+                <Card.Root
+                  bg="white"
+                  borderWidth="1px"
+                  borderColor="gray.200"
+                  _hover={{
+                    shadow: "lg",
+                    borderColor: "purple.300",
+                    bg: "purple.50",
+                    transform: "translateY(-2px)"
+                  }}
+                  transition="all 0.2s"
+                  cursor="pointer"
+                >
+                <Card.Body p={6} textAlign="center">
+                  <VStack gap={4}>
+                    <Text fontSize="4xl">🔌</Text>
+                    <Text fontSize="lg" fontWeight="semibold" color="gray.900">
+                      API Reference
+                    </Text>
+                    <Text fontSize="sm" color="gray.600">
+                      Complete API documentation with examples and interactive testing tools.
+                    </Text>
+                    <Button colorPalette="purple" size="sm">
+                      🔌 API Docs
+                    </Button>
+                  </VStack>
+                </Card.Body>
+                </Card.Root>
               </Link>
-            </div>
-          </div>
+            </Box>
+          </VStack>
 
           {/* Documentation Sections */}
-          <div className="space-y-8">
+          <VStack gap={8} w="full" align="stretch">
             {filteredSections.map((section) => (
-              <div key={section.id} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-                  <h3 className="text-xl font-semibold text-gray-900">{section.title}</h3>
-                  <p className="text-gray-600 mt-1">{section.description}</p>
-                </div>
-                <div className="p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card.Root key={section.id} bg="white" borderWidth="1px" borderColor="gray.200" overflow="hidden">
+                <Box bg="gray.50" px={6} py={4} borderBottom="1px solid" borderColor="gray.200">
+                  <Text fontSize="xl" fontWeight="semibold" color="gray.900">
+                    {section.title}
+                  </Text>
+                  <Text color="gray.600" mt={1}>
+                    {section.description}
+                  </Text>
+                </Box>
+                <Card.Body p={6}>
+                  <Box display="grid" gridTemplateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={4}>
                     {section.items.map((item) => (
-                      <Link key={item.href} href={item.href} className="group">
-                        <div className="flex items-start space-x-3 p-4 border border-gray-200 rounded-lg hover:shadow-md hover:border-blue-300 transition-all group-hover:bg-blue-50">
-                          <span className="text-2xl flex-shrink-0">{item.icon}</span>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between mb-1">
-                              <h4 className="font-medium text-gray-900 group-hover:text-blue-900">{item.title}</h4>
-                              <span className={`text-xs px-2 py-1 rounded-full ${getDifficultyColor(item.difficulty)}`}>
-                                {item.difficulty}
-                              </span>
-                            </div>
-                            <p className="text-sm text-gray-600 group-hover:text-blue-700">{item.description}</p>
-                          </div>
-                        </div>
+                      <Link key={item.href} href={item.href}>
+                        <Card.Root
+                          bg="white"
+                          borderWidth="1px"
+                          borderColor="gray.200"
+                          _hover={{
+                            shadow: "md",
+                            borderColor: "blue.300",
+                            bg: "blue.50"
+                          }}
+                          transition="all 0.2s"
+                          cursor="pointer"
+                        >
+                        <Card.Body p={4}>
+                          <HStack gap={3} align="start">
+                            <Text fontSize="2xl" flexShrink={0}>
+                              {item.icon}
+                            </Text>
+                            <VStack align="start" gap={1} flex={1} minW={0}>
+                              <HStack justify="space-between" align="center" w="full">
+                                <Text fontWeight="medium" color="gray.900" lineClamp={1}>
+                                  {item.title}
+                                </Text>
+                                <Badge
+                                  colorPalette={getDifficultyColor(item.difficulty)}
+                                  size="sm"
+                                >
+                                  {item.difficulty}
+                                </Badge>
+                              </HStack>
+                              <Text fontSize="sm" color="gray.600" lineClamp={2}>
+                                {item.description}
+                              </Text>
+                            </VStack>
+                          </HStack>
+                        </Card.Body>
+                        </Card.Root>
                       </Link>
                     ))}
-                  </div>
-                </div>
-              </div>
+                  </Box>
+                </Card.Body>
+              </Card.Root>
             ))}
-          </div>
+          </VStack>
 
           {/* Help Section */}
-          <div className="mt-12 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 text-center">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Need Help?</h3>
-            <p className="text-gray-700 mb-4">
-              Can't find what you're looking for? Check out our FAQ or reach out to the community.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link href="/docs/faq" className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors">
-                ❓ View FAQ
-              </Link>
-              <Link href="https://github.com/mcplookup/mcplookup.org" className="inline-flex items-center px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-md hover:bg-gray-700 transition-colors">
-                🐙 GitHub
-              </Link>
-            </div>
-          </div>
-        </div>
-      </main>
+          <Box
+            bg="gradient-to-r"
+            gradientFrom="blue.50"
+            gradientTo="purple.50"
+            rounded="xl"
+            p={8}
+            textAlign="center"
+            w="full"
+            maxW="4xl"
+          >
+            <VStack gap={4}>
+              <Text fontSize="lg" fontWeight="semibold" color="gray.900">
+                Need Help?
+              </Text>
+              <Text color="gray.700">
+                Can't find what you're looking for? Check out our community resources or contribute to the project.
+              </Text>
+              <HStack gap={3} flexDir={{ base: "column", sm: "row" }}>
+                <LinkButton
+                  href="/discover"
+                  colorPalette="blue"
+                  size="sm"
+                >
+                  🔍 Try Discovery
+                </LinkButton>
+                <LinkButton
+                  href="https://github.com/TSavo/mcplookup.org"
+                  external
+                  colorPalette="gray"
+                  size="sm"
+                >
+                  🐙 GitHub
+                </LinkButton>
+              </HStack>
+            </VStack>
+          </Box>
+        </VStack>
+      </Box>
       <Footer />
-    </div>
+    </Box>
   );
 }

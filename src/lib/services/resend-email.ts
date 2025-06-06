@@ -3,7 +3,14 @@
 
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+let resend: Resend | null = null
+
+function getResendClient() {
+  if (!resend && process.env.RESEND_API_KEY) {
+    resend = new Resend(process.env.RESEND_API_KEY)
+  }
+  return resend
+}
 
 export interface EmailOptions {
   to: string
@@ -21,8 +28,14 @@ export async function sendEmail(options: EmailOptions) {
     return { success: false, error: 'Email service not configured' }
   }
 
+  const resendClient = getResendClient()
+  if (!resendClient) {
+    console.warn('Failed to initialize Resend client')
+    return { success: false, error: 'Email service not available' }
+  }
+
   try {
-    const result = await resend.emails.send({
+    const result = await resendClient.emails.send({
       from: 'MCPLookup.org <noreply@mcplookup.org>',
       to: options.to,
       subject: options.subject,

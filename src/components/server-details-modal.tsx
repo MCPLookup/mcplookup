@@ -524,17 +524,17 @@ export function ServerDetailsModal({ server }: ServerDetailsModalProps) {
       )}
 
       {/* Package Information */}
-      {server.packages && server.packages.length > 0 && (
+      {(server as any).packages && (server as any).packages.length > 0 && (
         <Card.Root>
           <Card.Header>
             <HStack gap={2}>
               <Icon color="purple.500">📦</Icon>
-              <Heading size="md">Installation Packages ({server.packages.length})</Heading>
+              <Heading size="md">Installation Packages ({(server as any).packages.length})</Heading>
             </HStack>
           </Card.Header>
           <Card.Body>
             <VStack gap={4} align="stretch">
-              {server.packages.map((pkg, idx) => (
+              {(server as any).packages.map((pkg: any, idx: number) => (
                 <VStack key={idx} align="start" gap={2} p={3} bg="gray.50" _dark={{ bg: "gray.800" }} rounded="md">
                   <HStack gap={2}>
                     <Badge colorPalette="purple" variant="solid">

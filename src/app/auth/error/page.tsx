@@ -1,6 +1,9 @@
 "use client"
 
-import React from 'react'
+// Force dynamic rendering to avoid static generation issues with useSearchParams
+export const dynamic = 'force-dynamic'
+
+import React, { Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
   Box,
@@ -19,7 +22,7 @@ import { AnimatedButton } from "@/components/ui/animated-button"
 import { Alert } from "@/components/ui/alert"
 import { useColorModeValue } from "@/components/ui/color-mode"
 
-export default function AuthErrorPage() {
+function AuthErrorContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const error = searchParams.get('error')
@@ -189,5 +192,13 @@ export default function AuthErrorPage() {
 
       <Footer />
     </Box>
+  )
+}
+
+export default function AuthErrorPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <AuthErrorContent />
+    </Suspense>
   )
 }
