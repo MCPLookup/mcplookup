@@ -63,7 +63,7 @@ export default function StatusPage() {
               </Text>
             </Box>
 
-            <VStack gap={0} divider={<Box borderBottom="1px solid" borderColor="gray.200" />}>
+            <VStack gap={0}>
               {[
                 { name: "Discovery API (Next.js)", status: "operational", uptime: 99.9, responseTime: 120 },
                 { name: "Registration API (Next.js)", status: "operational", uptime: 99.8, responseTime: 95 },
@@ -72,7 +72,7 @@ export default function StatusPage() {
                 { name: "Vercel Edge Functions", status: "operational", uptime: 99.9, responseTime: 50 },
                 { name: "MCP Server Endpoint", status: "development", uptime: 0, responseTime: 0 }
               ].map((service) => (
-                <Box key={service.name} px={6} py={4} w="full">
+                <Box key={service.name} px={6} py={4} w="full" borderBottom="1px solid" borderColor="gray.200" _last={{ borderBottom: "none" }}>
                   <HStack justify="space-between" align="center">
                     <HStack gap={3}>
                       <Text fontSize="xl">

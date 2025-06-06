@@ -291,7 +291,7 @@ export default function DocsPage() {
                             </Text>
                             <VStack align="start" gap={1} flex={1} minW={0}>
                               <HStack justify="space-between" align="center" w="full">
-                                <Text fontWeight="medium" color="gray.900" noOfLines={1}>
+                                <Text fontWeight="medium" color="gray.900" lineClamp={1}>
                                   {item.title}
                                 </Text>
                                 <Badge
@@ -301,7 +301,7 @@ export default function DocsPage() {
                                   {item.difficulty}
                                 </Badge>
                               </HStack>
-                              <Text fontSize="sm" color="gray.600" noOfLines={2}>
+                              <Text fontSize="sm" color="gray.600" lineClamp={2}>
                                 {item.description}
                               </Text>
                             </VStack>

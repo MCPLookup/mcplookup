@@ -5,17 +5,38 @@ import { Box, Text, VStack } from "@chakra-ui/react"
 interface TrustMetricProps {
   value: string
   label: string
+  icon?: string
+  color?: string
+  subtitle?: string
 }
 
-export function TrustMetric({ value, label }: TrustMetricProps) {
+export function TrustMetric({ value, label, icon, color = "blue", subtitle }: TrustMetricProps) {
+  const colorMap = {
+    blue: "blue.600",
+    green: "green.600",
+    purple: "purple.600",
+    orange: "orange.600",
+    red: "red.600"
+  }
+
   return (
     <VStack gap={2} textAlign="center">
-      <Text fontSize="3xl" fontWeight="bold" color="blue.600">
+      {icon && (
+        <Text fontSize="2xl" mb={1}>
+          {icon}
+        </Text>
+      )}
+      <Text fontSize="3xl" fontWeight="bold" color={colorMap[color as keyof typeof colorMap] || "blue.600"}>
         {value}
       </Text>
       <Text fontSize="sm" color="gray.600" fontWeight="medium">
         {label}
       </Text>
+      {subtitle && (
+        <Text fontSize="xs" color="gray.500">
+          {subtitle}
+        </Text>
+      )}
     </VStack>
   )
 }

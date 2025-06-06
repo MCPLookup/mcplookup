@@ -2,7 +2,8 @@
 
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
-import { Box, Text, VStack, HStack, Badge, Button, Card, Tabs, Progress } from "@chakra-ui/react"
+import { Box, Text, VStack, HStack, Badge, Button, Card, Tabs } from "@chakra-ui/react"
+import { ProgressBar } from "@chakra-ui/react"
 import { DashboardWalkthrough } from "@/components/onboarding/dashboard-walkthrough"
 import { ApiKeysTab } from "@/components/dashboard/api-keys-tab"
 import { TrustMetric, InfrastructureFeature } from "@/components/mcplookup"
@@ -292,7 +293,7 @@ export default function DashboardPage() {
                                 <Text fontSize="xs" color="gray.500" mb={1}>Trust Score</Text>
                                 <HStack gap={2} align="center">
                                   <Text fontWeight="medium" fontSize="sm">{server.trustScore}/100</Text>
-                                  <Progress
+                                  <ProgressBar
                                     value={server.trustScore}
                                     size="sm"
                                     w={12}
