@@ -9,7 +9,7 @@ interface LinkButtonProps extends Omit<ButtonProps, 'as'> {
   external?: boolean
 }
 
-export const LinkButton = forwardRef<HTMLAnchorElement, LinkButtonProps>(
+export const LinkButton = forwardRef<HTMLButtonElement, LinkButtonProps>(
   ({ href, external = false, children, ...props }, ref) => {
     if (external) {
       return (
@@ -18,7 +18,6 @@ export const LinkButton = forwardRef<HTMLAnchorElement, LinkButtonProps>(
           href={href}
           target="_blank"
           rel="noopener noreferrer"
-          ref={ref}
           {...props}
         >
           {children}
@@ -27,8 +26,8 @@ export const LinkButton = forwardRef<HTMLAnchorElement, LinkButtonProps>(
     }
 
     return (
-      <Link href={href} passHref legacyBehavior>
-        <Button as="a" ref={ref} {...props}>
+      <Link href={href}>
+        <Button ref={ref} {...props}>
           {children}
         </Button>
       </Link>

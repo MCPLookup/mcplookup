@@ -3,6 +3,7 @@
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { Box, Text, VStack, HStack, Badge, Button, Input, Card, Select } from "@chakra-ui/react";
+import { LinkButton } from "@/components/ui/link-button";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -159,21 +160,20 @@ export default function DocsPage() {
               🚀 Quick Start
             </Text>
             <Box display="grid" gridTemplateColumns={{ base: "1fr", md: "repeat(3, 1fr)" }} gap={6} w="full">
-              <Card.Root
-                as={Link}
-                href="/docs/introduction"
-                bg="white"
-                borderWidth="1px"
-                borderColor="gray.200"
-                _hover={{
-                  shadow: "lg",
-                  borderColor: "blue.300",
-                  bg: "blue.50",
-                  transform: "translateY(-2px)"
-                }}
-                transition="all 0.2s"
-                cursor="pointer"
-              >
+              <Link href="/docs/introduction">
+                <Card.Root
+                  bg="white"
+                  borderWidth="1px"
+                  borderColor="gray.200"
+                  _hover={{
+                    shadow: "lg",
+                    borderColor: "blue.300",
+                    bg: "blue.50",
+                    transform: "translateY(-2px)"
+                  }}
+                  transition="all 0.2s"
+                  cursor="pointer"
+                >
                 <Card.Body p={6} textAlign="center">
                   <VStack gap={4}>
                     <Text fontSize="4xl">🤔</Text>
@@ -188,7 +188,8 @@ export default function DocsPage() {
                     </Button>
                   </VStack>
                 </Card.Body>
-              </Card.Root>
+                </Card.Root>
+              </Link>
 
               <Card.Root
                 as={Link}
@@ -334,22 +335,21 @@ export default function DocsPage() {
                 Can't find what you're looking for? Check out our community resources or contribute to the project.
               </Text>
               <HStack gap={3} flexDir={{ base: "column", sm: "row" }}>
-                <Button
-                  as={Link}
+                <LinkButton
                   href="/discover"
                   colorPalette="blue"
                   size="sm"
                 >
                   🔍 Try Discovery
-                </Button>
-                <Button
-                  as={Link}
+                </LinkButton>
+                <LinkButton
                   href="https://github.com/TSavo/mcplookup.org"
+                  external
                   colorPalette="gray"
                   size="sm"
                 >
                   🐙 GitHub
-                </Button>
+                </LinkButton>
               </HStack>
             </VStack>
           </Box>
