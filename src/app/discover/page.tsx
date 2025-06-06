@@ -33,6 +33,7 @@ interface MCPServer {
 export default function DiscoverPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [searchType, setSearchType] = useState<"domain" | "capability" | "smart">("smart")
+  const [includePackageOnly, setIncludePackageOnly] = useState(false)
   const [servers, setServers] = useState<MCPServer[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -53,14 +54,22 @@ export default function DiscoverPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             intent: searchQuery,
-            context: { max_results: 20 }
+            context: { max_results: 20 },
+            availability_filter: {
+              include_live: true,
+              include_package_only: includePackageOnly,
+              include_deprecated: false,
+              include_offline: false,
+              live_servers_only: false
+            }
           })
         })
       } else {
         const params = new URLSearchParams({
           q: searchQuery,
           type: searchType,
-          limit: '20'
+          limit: '20',
+          include_package_only: includePackageOnly.toString()
         })
         response = await fetch(`${endpoint}?${params}`)
       }
@@ -169,6 +178,26 @@ export default function DiscoverPage() {
                   >
                     {loading ? "Searching..." : "🔍 Search"}
                   </AnimatedButton>
+                </div>
+
+                {/* Availability Filter */}
+                <div className="p-3 bg-gray-50 rounded-lg border">
+                  <div className="flex items-center space-x-3">
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={includePackageOnly}
+                        onChange={(e) => setIncludePackageOnly(e.target.checked)}
+                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <span className="text-sm font-medium text-gray-700">
+                        📦 Include Package-Only Servers
+                      </span>
+                    </label>
+                    <div className="text-xs text-gray-500">
+                      (Deprecated servers that require local installation)
+                    </div>
+                  </div>
                 </div>
 
                 {/* Search Type Description */}

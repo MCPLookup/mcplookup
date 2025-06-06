@@ -72,26 +72,24 @@ curl -X POST https://mcplookup.org/api/v1/register \
 # 3. Your service is now discoverable by all AI agents!
 ```
 
-<<<<<<< HEAD
-### For AI Agents (The One Ring MCP Server) ✅ LIVE
-```bash
-# Connect to the master MCP server for discovery
-mcp connect https://mcplookup.org/api/mcp
-=======
 ### For AI Agents (MCP Discovery Server)
 ```bash
 # Connect to the discovery MCP server
-mcp connect https://mcplookup.org/mcp
->>>>>>> c4afad7 (feat: redesign UI with professional styling and remove 'one ring' references)
+mcp connect https://mcplookup.org/api/mcp
 ```
 
 **Available MCP Tools:**
-- `discover_mcp_servers` - Find servers by domain/capability/intent
+- `discover_mcp_servers` - Find servers by domain/capability/intent with availability filtering
 - `register_mcp_server` - Register new servers with verification
 - `verify_domain_ownership` - Check DNS verification status
 - `get_server_health` - Real-time health and performance metrics
 - `browse_capabilities` - Explore the capability taxonomy
 - `get_discovery_stats` - Analytics and usage patterns
+
+**🚀 First-Class vs 📦 Deprecated Citizens:**
+- **Live Servers** (first-class): Working endpoints, real-time discovery, health monitoring
+- **Package-Only Servers** (deprecated): Installation packages only, excluded from default discovery
+- **Backward Compatibility**: Full MCP Registry package format support
 
 ---
 
@@ -141,6 +139,31 @@ curl https://gmail.com/mcp
 # Will return: {"endpoint": "https://gmail.com/mcp", "capabilities": ["email"]}
 ```
 
+### **📦 Package Management Compatibility** - ✅ **LIVE NOW**
+
+**MCP Registry Parity**: Full compatibility with MCP Registry package format while prioritizing live servers.
+
+**🚀 First-Class Citizens (Live Servers)**:
+```bash
+# Default discovery - only live, working servers
+curl https://mcplookup.org/api/v1/discover/smart \
+  -d '{"intent": "I need email servers"}'
+# Returns: Only live servers with working endpoints
+```
+
+**📦 Deprecated Citizens (Package-Only Servers)**:
+```bash
+# Explicit inclusion of package-only servers
+curl https://mcplookup.org/api/v1/discover/smart \
+  -d '{
+    "intent": "I need email servers",
+    "availability_filter": {"include_package_only": true}
+  }'
+# Returns: Live servers + package-only servers with installation instructions
+```
+
+**Philosophy**: Live servers are the future. Package-only servers are the past. We support both, but default to the future.
+
 ### Flexible Storage Architecture
 
 **🚀 Multi-Environment Storage Abstraction**
@@ -160,7 +183,6 @@ curl https://gmail.com/mcp
 
 ## 🏗️ **ARCHITECTURE**
 
-<<<<<<< HEAD
 MCPLookup.org uses a layered serverless architecture designed for global scale:
 
 ```
@@ -213,13 +235,6 @@ MCPLookup.org uses a layered serverless architecture designed for global scale:
 - **Auto-Detection** - Automatically selects best provider based on environment
 - **Consistent Interface** - All providers implement identical `IRegistryStorage`
 - **Error Handling** - `StorageResult<T>` pattern for robust error management
-=======
-1. **MCP Server**: The central discovery service that provides tools to AI agents
-2. **REST API**: HTTP endpoints for registration and discovery (Next.js API routes)
-3. **DNS Verification**: Cryptographic proof using TXT records with Redis persistence
-4. **Storage Abstraction**: Flexible storage layer with automatic provider selection
-5. **Health Monitoring**: Comprehensive monitoring with statistics and cleanup
->>>>>>> c4afad7 (feat: redesign UI with professional styling and remove 'one ring' references)
 
 ---
 

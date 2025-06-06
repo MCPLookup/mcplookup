@@ -199,18 +199,60 @@ const Verification = z
 const MCPServerRecord = z
   .object({
     domain: z.string(),
-    endpoint: z.string().url(),
+    endpoint: z.string().url().optional(),
     name: z.string(),
     description: z.string(),
-    server_info: MCPServerInfo,
-    tools: z.array(MCPTool),
-    resources: z.array(MCPResource),
-    transport: z.enum(["streamable_http", "sse", "stdio"]),
-    transport_capabilities: TransportCapabilities,
-    openapi_documentation: OpenAPIDocumentation,
+
+    // Availability Status (FIRST-CLASS vs DEPRECATED)
+    availability: z.object({
+      status: z.enum(['live', 'package_only', 'deprecated', 'offline']),
+      live_endpoint: z.string().url().optional(),
+      endpoint_verified: z.boolean().default(false),
+      last_endpoint_check: z.string().datetime().optional(),
+      packages_available: z.boolean().default(false),
+      primary_package: z.string().optional(),
+      deprecation_reason: z.string().optional(),
+      replacement_server: z.string().optional(),
+      sunset_date: z.string().datetime().optional()
+    }).optional(),
+
+    // Package Management (MCP Registry Compatibility)
+    packages: z.array(z.object({
+      registry_name: z.enum(['npm', 'docker', 'pypi', 'github', 'manual']),
+      name: z.string(),
+      version: z.string(),
+      installation_command: z.string().optional(),
+      startup_command: z.string().optional(),
+      setup_instructions: z.string().optional(),
+      documentation_url: z.string().url().optional()
+    })).optional(),
+
+    repository: z.object({
+      url: z.string().url(),
+      source: z.enum(['github', 'gitlab', 'bitbucket', 'other']),
+      id: z.string().optional(),
+      stars: z.number().optional(),
+      forks: z.number().optional(),
+      license: z.string().optional()
+    }).optional(),
+
+    version_info: z.object({
+      version: z.string(),
+      release_date: z.string().datetime().optional(),
+      is_latest: z.boolean().default(true),
+      changelog_url: z.string().url().optional(),
+      breaking_changes: z.boolean().default(false)
+    }).optional(),
+
+    server_info: MCPServerInfo.optional(),
+    tools: z.array(MCPTool).optional(),
+    resources: z.array(MCPResource).optional(),
+    transport: z.enum(["streamable_http", "sse", "stdio"]).optional(),
+    transport_capabilities: TransportCapabilities.optional(),
+    openapi_documentation: OpenAPIDocumentation.optional(),
     cors_enabled: z.boolean(),
-    health: HealthMetrics,
-    verification: Verification,
+    health: HealthMetrics.optional(),
+    verification: Verification.optional(),
     created_at: z.string().datetime({ offset: true }),
     updated_at: z.string().datetime({ offset: true }),
     trust_score: z.number().int().gte(0).lte(100),

@@ -174,6 +174,114 @@ export const TransportCapabilitiesSchema = z.object({
 });
 
 // ============================================================================
+// PACKAGE MANAGEMENT SCHEMAS (MCP Registry Compatibility)
+// ============================================================================
+
+/**
+ * Package Argument Schema
+ * Source: MCP Registry package_arguments format
+ */
+export const PackageArgumentSchema = z.object({
+  description: z.string().describe("Argument description"),
+  is_required: z.boolean().describe("Whether argument is required"),
+  format: z.string().describe("Argument format (string, number, etc.)"),
+  value: z.string().optional().describe("Default or example value"),
+  default: z.string().optional().describe("Default value"),
+  type: z.enum(['positional', 'named', 'flag']).describe("Argument type"),
+  value_hint: z.string().optional().describe("Hint for user input")
+});
+
+/**
+ * Environment Variable Schema
+ * Source: MCP Registry environment_variables format
+ */
+export const EnvironmentVariableSchema = z.object({
+  name: z.string().describe("Environment variable name"),
+  description: z.string().describe("Variable description"),
+  is_required: z.boolean().default(false).describe("Whether variable is required"),
+  default_value: z.string().optional().describe("Default value if any"),
+  example_value: z.string().optional().describe("Example value for documentation")
+});
+
+/**
+ * Package Definition Schema
+ * Source: MCP Registry packages format - for installation instructions
+ */
+export const PackageDefinitionSchema = z.object({
+  registry_name: z.enum(['npm', 'docker', 'pypi', 'github', 'manual']).describe("Package registry type"),
+  name: z.string().describe("Package name in the registry"),
+  version: z.string().describe("Package version"),
+
+  // Installation arguments
+  package_arguments: z.array(PackageArgumentSchema).optional().describe("Package installation arguments"),
+  runtime_arguments: z.array(PackageArgumentSchema).optional().describe("Runtime execution arguments"),
+  environment_variables: z.array(EnvironmentVariableSchema).optional().describe("Required environment variables"),
+
+  // Runtime metadata
+  runtime_hint: z.string().optional().describe("Runtime environment hint (docker, node, python, etc.)"),
+  installation_command: z.string().optional().describe("Complete installation command"),
+  startup_command: z.string().optional().describe("Command to start the server"),
+
+  // Documentation
+  setup_instructions: z.string().optional().describe("Human-readable setup instructions"),
+  documentation_url: z.string().url().optional().describe("Package documentation URL")
+});
+
+/**
+ * Repository Information Schema
+ * Source: MCP Registry repository format
+ */
+export const RepositoryInfoSchema = z.object({
+  url: z.string().url().describe("Repository URL"),
+  source: z.enum(['github', 'gitlab', 'bitbucket', 'other']).describe("Repository hosting service"),
+  id: z.string().optional().describe("Repository ID on the hosting service"),
+  branch: z.string().optional().describe("Default or recommended branch"),
+  path: z.string().optional().describe("Path within repository if not root"),
+
+  // Repository metadata
+  stars: z.number().optional().describe("Repository star count"),
+  forks: z.number().optional().describe("Repository fork count"),
+  last_commit: z.string().datetime().optional().describe("Last commit timestamp"),
+  license: z.string().optional().describe("Repository license"),
+  topics: z.array(z.string()).optional().describe("Repository topics/tags")
+});
+
+/**
+ * Version Information Schema
+ * Source: MCP Registry version_detail format
+ */
+export const VersionInfoSchema = z.object({
+  version: z.string().describe("Current version"),
+  release_date: z.string().datetime().optional().describe("Version release date"),
+  is_latest: z.boolean().default(true).describe("Whether this is the latest version"),
+  changelog_url: z.string().url().optional().describe("Changelog or release notes URL"),
+  breaking_changes: z.boolean().default(false).describe("Whether version has breaking changes"),
+  deprecation_notice: z.string().optional().describe("Deprecation notice if applicable")
+});
+
+/**
+ * Server Availability Status
+ * Determines how the server can be accessed and used
+ */
+export const ServerAvailabilitySchema = z.object({
+  status: z.enum(['live', 'package_only', 'deprecated', 'offline']).describe("Server availability status"),
+
+  // Live server details
+  live_endpoint: z.string().url().optional().describe("Live endpoint URL if available"),
+  endpoint_verified: z.boolean().default(false).describe("Whether live endpoint is verified working"),
+  last_endpoint_check: z.string().datetime().optional().describe("Last time endpoint was verified"),
+
+  // Package availability
+  packages_available: z.boolean().default(false).describe("Whether installation packages are available"),
+  primary_package: z.string().optional().describe("Primary package registry (npm, docker, etc.)"),
+
+  // Deprecation info
+  deprecation_reason: z.string().optional().describe("Reason for deprecation if applicable"),
+  replacement_server: z.string().optional().describe("Recommended replacement server domain"),
+  sunset_date: z.string().datetime().optional().describe("Planned sunset date if applicable")
+});
+
+// ============================================================================
 // AUTHENTICATION SCHEMAS (Based on MCP Auth Specification)
 // ============================================================================
 
@@ -273,22 +381,31 @@ export const CapabilitySchema = z.object({
 /**
  * Complete MCP Server Record
  * Justified: All data needed for agent connection in single call
+ * Extended: Package management compatibility with MCP Registry
  */
 export const MCPServerRecordSchema = z.object({
   // ---- IDENTITY ----
   domain: z.string().describe("Verified domain name (e.g., 'gmail.com')"),
-  endpoint: z.string().url().describe("Full MCP HTTP endpoint URL"),
+  endpoint: z.string().url().optional().describe("Full MCP HTTP endpoint URL (optional for package-only servers)"),
   name: z.string().describe("Human-readable server name"),
   description: z.string().describe("Server description and primary purpose"),
-  
-  // ---- MCP PROTOCOL DATA ----
-  server_info: MCPServerInfoSchema.describe("MCP server information from initialize"),
-  tools: z.array(MCPToolSchema).describe("Available tools from tools/list"),
-  resources: z.array(MCPResourceSchema).describe("Available resources from resources/list"),
-  transport: z.enum(['streamable_http', 'sse', 'stdio']).describe("Supported transport protocol"),
+
+  // ---- AVAILABILITY STATUS (FIRST-CLASS vs DEPRECATED) ----
+  availability: ServerAvailabilitySchema.describe("Server availability and access method"),
+
+  // ---- PACKAGE MANAGEMENT (MCP Registry Compatibility) ----
+  packages: z.array(PackageDefinitionSchema).optional().describe("Installation packages available"),
+  repository: RepositoryInfoSchema.optional().describe("Source code repository information"),
+  version_info: VersionInfoSchema.optional().describe("Version and release information"),
+
+  // ---- MCP PROTOCOL DATA (Live servers only) ----
+  server_info: MCPServerInfoSchema.optional().describe("MCP server information from initialize (live servers only)"),
+  tools: z.array(MCPToolSchema).optional().describe("Available tools from tools/list (live servers only)"),
+  resources: z.array(MCPResourceSchema).optional().describe("Available resources from resources/list (live servers only)"),
+  transport: z.enum(['streamable_http', 'sse', 'stdio']).optional().describe("Supported transport protocol (live servers only)"),
   transport_capabilities: TransportCapabilitiesSchema.optional().describe("Detailed transport capabilities discovered during verification"),
   openapi_documentation: OpenAPIDocumentationSchema.optional().describe("OpenAPI/Swagger documentation exposed by the server"),
-  
+
   // ---- SEMANTIC ORGANIZATION ----
   capabilities: CapabilitySchema.describe("Capability classification for discovery"),
   
@@ -301,9 +418,9 @@ export const MCPServerRecordSchema = z.object({
     burst_limit: z.number().optional()
   }).optional().describe("Rate limiting information if known"),
   
-  // ---- OPERATIONAL STATUS ----
-  health: HealthMetricsSchema.describe("Current operational health metrics"),
-  verification: VerificationSchema.describe("Trust and verification status"),
+  // ---- OPERATIONAL STATUS (Live servers only) ----
+  health: HealthMetricsSchema.optional().describe("Current operational health metrics (live servers only)"),
+  verification: VerificationSchema.optional().describe("Trust and verification status"),
   
   // ---- METADATA ----
   created_at: z.string().datetime().describe("Registration timestamp"),
@@ -403,6 +520,15 @@ export const DiscoveryRequestSchema = z.object({
   performance: PerformanceConstraintsSchema.optional().describe("Performance requirements"),
   technical: TechnicalRequirementsSchema.optional().describe("Technical requirements"),
 
+  // Availability filtering (FIRST-CLASS vs DEPRECATED)
+  availability_filter: z.object({
+    include_live: z.boolean().default(true).describe("Include live servers with working endpoints"),
+    include_package_only: z.boolean().default(false).describe("Include package-only servers (deprecated citizens)"),
+    include_deprecated: z.boolean().default(false).describe("Include explicitly deprecated servers"),
+    include_offline: z.boolean().default(false).describe("Include offline servers"),
+    live_servers_only: z.boolean().default(false).describe("Shortcut: only live servers (overrides other flags)")
+  }).optional().describe("Server availability filtering"),
+
   // Geographic and temporal
   regions: z.array(z.string()).optional().describe("Preferred geographic regions"),
   exclude_domains: z.array(z.string()).optional().describe("Domains to exclude"),
@@ -484,6 +610,12 @@ export const VerificationChallengeSchema = z.object({
 // TYPE EXPORTS
 // ============================================================================
 
+export type PackageArgument = z.infer<typeof PackageArgumentSchema>;
+export type EnvironmentVariable = z.infer<typeof EnvironmentVariableSchema>;
+export type PackageDefinition = z.infer<typeof PackageDefinitionSchema>;
+export type RepositoryInfo = z.infer<typeof RepositoryInfoSchema>;
+export type VersionInfo = z.infer<typeof VersionInfoSchema>;
+export type ServerAvailability = z.infer<typeof ServerAvailabilitySchema>;
 export type MCPTool = z.infer<typeof MCPToolSchema>;
 export type MCPResource = z.infer<typeof MCPResourceSchema>;
 export type MCPServerInfo = z.infer<typeof MCPServerInfoSchema>;

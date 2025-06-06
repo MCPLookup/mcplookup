@@ -232,6 +232,15 @@ export class VerificationService implements IVerificationService {
       name: mcpServerInfo.name || challenge.domain,
       description: challenge.description || `MCP server for ${challenge.domain}`,
 
+      // Availability Status (FIRST-CLASS CITIZEN)
+      availability: {
+        status: 'live',
+        live_endpoint: challenge.endpoint,
+        endpoint_verified: true,
+        last_endpoint_check: new Date().toISOString(),
+        packages_available: false
+      },
+
       // MCP Protocol Data
       server_info: mcpServerInfo,
       tools: [], // Will be populated later via tools/list

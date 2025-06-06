@@ -55,6 +55,15 @@ function createAuthenticatedMcpHandler() {
           healthy_only: z.boolean().default(true).describe('Only healthy servers')
         }).optional().describe('Performance requirements'),
 
+        // Availability filtering (FIRST-CLASS vs DEPRECATED)
+        availability_filter: z.object({
+          include_live: z.boolean().default(true).describe('Include live servers with working endpoints'),
+          include_package_only: z.boolean().default(false).describe('Include package-only servers (deprecated citizens)'),
+          include_deprecated: z.boolean().default(false).describe('Include explicitly deprecated servers'),
+          include_offline: z.boolean().default(false).describe('Include offline servers'),
+          live_servers_only: z.boolean().default(false).describe('Shortcut: only live servers (overrides other flags)')
+        }).optional().describe('Server availability filtering'),
+
         // Technical requirements
         technical: z.object({
           auth_types: z.array(z.string()).optional().describe('Acceptable auth methods'),
@@ -122,6 +131,20 @@ function createAuthenticatedMcpHandler() {
           // Performance constraints
           if (args.performance) {
             discoveryRequest.performance = args.performance;
+          }
+
+          // Availability filtering (FIRST-CLASS vs DEPRECATED)
+          if (args.availability_filter) {
+            discoveryRequest.availability_filter = args.availability_filter;
+          } else {
+            // Default: live servers only (first-class citizens)
+            discoveryRequest.availability_filter = {
+              include_live: true,
+              include_package_only: false,
+              include_deprecated: false,
+              include_offline: false,
+              live_servers_only: false
+            };
           }
 
           // Technical requirements
@@ -449,7 +472,7 @@ function createAuthenticatedMcpHandler() {
                   };
                 }
 
-                const health = await services.health.checkServerHealth(server.endpoint);
+                const health = await services.health.checkServerHealth(server.endpoint || server.availability?.live_endpoint || '');
 
                 return {
                   domain,
@@ -733,13 +756,15 @@ function createAuthenticatedMcpHandler() {
           const tools = [
             {
               name: 'discover_mcp_servers',
-              description: 'Flexible MCP server discovery with natural language queries, similarity search, complex capability matching, and performance constraints.',
+              description: 'Flexible MCP server discovery with natural language queries, similarity search, complex capability matching, performance constraints, and availability filtering (live vs package-only servers).',
               category: 'discovery',
-              parameters: ['query', 'domain', 'domains', 'capabilities', 'similar_to', 'categories', 'keywords', 'performance', 'technical', 'limit', 'include_alternatives', 'include_similar', 'sort_by'],
+              parameters: ['query', 'domain', 'domains', 'capabilities', 'similar_to', 'categories', 'keywords', 'performance', 'availability_filter', 'technical', 'limit', 'include_alternatives', 'include_similar', 'sort_by'],
               examples: [
                 'Find email servers like Gmail but faster',
                 'Show me document collaboration tools',
-                'Find servers with OAuth2 authentication'
+                'Find servers with OAuth2 authentication',
+                'Find live email servers only (exclude package-only)',
+                'Include package-only servers for local development'
               ]
             },
             {

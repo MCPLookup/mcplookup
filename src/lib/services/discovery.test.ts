@@ -16,7 +16,16 @@ function createMockServer(overrides: Partial<MCPServerRecord> = {}): MCPServerRe
     endpoint: 'https://test.example.com/.well-known/mcp',
     name: 'Test Server',
     description: 'A test MCP server',
-    
+
+    // Availability Status (FIRST-CLASS)
+    availability: {
+      status: 'live',
+      live_endpoint: 'https://test.example.com/.well-known/mcp',
+      endpoint_verified: true,
+      last_endpoint_check: new Date().toISOString(),
+      packages_available: false
+    },
+
     server_info: {
       name: 'Test Server',
       version: '1.0.0',
@@ -31,7 +40,7 @@ function createMockServer(overrides: Partial<MCPServerRecord> = {}): MCPServerRe
     tools: [],
     resources: [],
     transport: 'streamable_http',
-    
+
     capabilities: {
       category: 'productivity',
       subcategories: ['testing'],

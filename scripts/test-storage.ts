@@ -39,6 +39,15 @@ async function testStorageProvider(providerName: string, backend: 'memory' | 're
       name: 'Test Server',
       description: 'A test MCP server for storage testing',
 
+      // Availability Status (FIRST-CLASS)
+      availability: {
+        status: 'live',
+        live_endpoint: 'https://test-example.com/.well-known/mcp',
+        endpoint_verified: true,
+        last_endpoint_check: new Date().toISOString(),
+        packages_available: false
+      },
+
       // MCP Protocol Data
       server_info: {
         name: 'Test Server',
