@@ -138,19 +138,24 @@ export default function DocsPage() {
                   🔍
                 </Box>
               </Box>
-              <Select.Root value={selectedCategory} onValueChange={(e) => setSelectedCategory(e.value)}>
-                <Select.Trigger>
-                  <Select.ValueText placeholder="All Categories" />
-                </Select.Trigger>
-                <Select.Content>
-                  <Select.Item value="all">All Categories</Select.Item>
-                  {documentationSections.map(section => (
-                    <Select.Item key={section.id} value={section.id}>
-                      {section.title}
-                    </Select.Item>
-                  ))}
-                </Select.Content>
-              </Select.Root>
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                style={{
+                  padding: '8px 12px',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '6px',
+                  backgroundColor: 'white',
+                  fontSize: '14px'
+                }}
+              >
+                <option value="all">All Categories</option>
+                {documentationSections.map(section => (
+                  <option key={section.id} value={section.id}>
+                    {section.title}
+                  </option>
+                ))}
+              </select>
             </HStack>
           </Box>
 
