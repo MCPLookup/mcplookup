@@ -36,7 +36,7 @@ function extractApiKey(request: NextRequest): string | null {
     return apiKeyParam;
   }
 
-  return undefined;
+  return null;
 }
 
 /**

@@ -79,7 +79,7 @@ export function EmailSignInForm({ callbackUrl = '/', onToggleMode }: EmailSignIn
 
   return (
     <Box as="form" onSubmit={handleSubmit}>
-      <VStack spacing={4}>
+      <VStack gap={4}>
         {error && (
           <Alert.Root status="error">
             <Alert.Indicator />
@@ -112,12 +112,13 @@ export function EmailSignInForm({ callbackUrl = '/', onToggleMode }: EmailSignIn
             <InputRightElement>
               <IconButton
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
-                icon={showPassword ? <FaEyeSlash /> : <FaEye />}
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowPassword(!showPassword)}
                 disabled={isLoading}
-              />
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </IconButton>
             </InputRightElement>
           </InputGroup>
           <FormErrorMessage>{passwordError}</FormErrorMessage>
@@ -128,13 +129,13 @@ export function EmailSignInForm({ callbackUrl = '/', onToggleMode }: EmailSignIn
           colorScheme="orange"
           width="full"
           size="lg"
-          isLoading={isLoading}
+          loading={isLoading}
           loadingText="Signing in..."
         >
           Sign In
         </Button>
 
-        <VStack spacing={2} width="full">
+        <VStack gap={2} width="full">
           <Link href="/auth/forgot-password">
             <Text 
               fontSize="sm" 

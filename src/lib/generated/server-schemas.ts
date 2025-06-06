@@ -261,7 +261,7 @@ export const schemas = {
   postOnboarding_Body,
 };
 
-const endpoints = makeApi([
+const endpoints: any = makeApi([
   {
     method: "get",
     path: "/discover",
@@ -792,7 +792,7 @@ transport capabilities metadata.
   },
 ]);
 
-export const api = new Zodios(endpoints);
+export const api: any = new Zodios(endpoints);
 
 export function createApiClient(baseUrl: string, options?: ZodiosOptions) {
   return new Zodios(baseUrl, endpoints, options);

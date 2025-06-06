@@ -72,12 +72,20 @@ export class DiscoveryService implements IDiscoveryService {
 
       const queryTime = Date.now() - startTime;
 
-      // Return simple format for backward compatibility with tests
+      // Return format matching DiscoveryResponseSchema
       return {
         servers: enhancedServers,
-        total: totalCount,
-        has_more: offset + limit < totalCount,
-        query_time_ms: queryTime
+        pagination: {
+          total_count: totalCount,
+          returned_count: enhancedServers.length,
+          offset: offset,
+          has_more: offset + limit < totalCount
+        },
+        query_metadata: {
+          query_time_ms: queryTime,
+          cache_hit: false,
+          filters_applied: filtersApplied
+        }
       };
 
     } catch (error) {

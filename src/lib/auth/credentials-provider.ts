@@ -25,7 +25,7 @@ export const credentialsProvider = CredentialsProvider({
 
     try {
       // Get user by email
-      const user = await getUserByEmail(credentials.email)
+      const user = await getUserByEmail(credentials.email as string)
       
       if (!user) {
         throw new Error("No user found with this email")
@@ -42,7 +42,7 @@ export const credentialsProvider = CredentialsProvider({
       }
 
       // Verify password
-      const isValidPassword = await verifyPassword(credentials.password, user.password)
+      const isValidPassword = await verifyPassword(credentials.password as string, user.password)
       
       if (!isValidPassword) {
         throw new Error("Invalid password")

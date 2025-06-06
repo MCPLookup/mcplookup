@@ -92,12 +92,11 @@ export default function DashboardPage() {
       <Header />
 
       {/* Onboarding Walkthrough */}
-      {showOnboarding && (
-        <DashboardWalkthrough
-          onComplete={handleOnboardingComplete}
-          onSkip={handleOnboardingSkip}
-        />
-      )}
+      <DashboardWalkthrough
+        isOpen={showOnboarding}
+        onClose={handleOnboardingSkip}
+        onComplete={handleOnboardingComplete}
+      />
 
       <div className="max-w-7xl mx-auto py-20 px-4">
         {/* EMERGENCY BANNER */}

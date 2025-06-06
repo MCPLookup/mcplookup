@@ -150,7 +150,7 @@ export class AIStorageService implements IAIStorageService {
   // Model state management
   async getModelState(modelId: string): Promise<StorageResult<ModelState | null>> {
     try {
-      const result = await this.storage.get(`ai:model:${modelId}`);
+      const result = await this.storage.get('ai_models', `model:${modelId}`);
       if (!result.success) {
         return result;
       }

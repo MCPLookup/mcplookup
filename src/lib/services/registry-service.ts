@@ -1,25 +1,18 @@
 // Registry Service - Handles MCP server registration and discovery
 // Uses the generic storage layer and knows about domain types
 
-import { IUnifiedStorage, StorageResult, PaginatedResult, SearchOptions } from './storage/unified-storage';
+import { IStorage, StorageResult, PaginatedResult, QueryOptions } from './storage/unified-storage';
 import { MCPServerRecord, CapabilityCategory } from '../schemas/discovery';
 
 export class RegistryService {
-  constructor(private storage: IUnifiedStorage) {}
+  constructor(private storage: IStorage) {}
 
   /**
    * Store or update a server record
    */
   async storeServer(domain: string, server: MCPServerRecord): Promise<StorageResult<void>> {
     const key = `server:${domain}`;
-    return this.storage.set(key, server, {
-      tags: ['server', 'registry'],
-      metadata: {
-        domain,
-        category: server.capabilities.category,
-        updated_at: server.updated_at
-      }
-    });
+    return this.storage.set('servers', key, server);
   }
 
   /**
@@ -27,7 +20,7 @@ export class RegistryService {
    */
   async getServer(domain: string): Promise<StorageResult<MCPServerRecord | null>> {
     const key = `server:${domain}`;
-    return this.storage.get<MCPServerRecord>(key);
+    return this.storage.get<MCPServerRecord>('servers', key);
   }
 
   /**
@@ -35,29 +28,14 @@ export class RegistryService {
    */
   async deleteServer(domain: string): Promise<StorageResult<void>> {
     const key = `server:${domain}`;
-    return this.storage.delete(key);
+    return this.storage.delete('servers', key);
   }
 
   /**
    * Get all servers with pagination support
    */
-  async getAllServers(options?: SearchOptions): Promise<StorageResult<PaginatedResult<MCPServerRecord>>> {
-    const pattern = 'server:*';
-    const result = await this.storage.scan(pattern, options);
-    
-    if (!result.success) {
-      return result;
-    }
-
-    return {
-      success: true,
-      data: {
-        items: result.data.items.map(item => item.value as MCPServerRecord),
-        total: result.data.total,
-        hasMore: result.data.hasMore,
-        nextCursor: result.data.nextCursor
-      }
-    };
+  async getAllServers(options?: QueryOptions): Promise<StorageResult<PaginatedResult<MCPServerRecord>>> {
+    return this.storage.getAll<MCPServerRecord>('servers', options);
   }
 
   /**
@@ -65,24 +43,13 @@ export class RegistryService {
    */
   async getServersByCategory(
     category: CapabilityCategory,
-    options?: SearchOptions
+    options?: QueryOptions
   ): Promise<StorageResult<PaginatedResult<MCPServerRecord>>> {
-    const criteria = { 'capabilities.category': category };
-    const result = await this.storage.filter(criteria, options);
-    
-    if (!result.success) {
-      return result;
-    }
-
-    return {
-      success: true,
-      data: {
-        items: result.data.items.map(item => item.value as MCPServerRecord),
-        total: result.data.total,
-        hasMore: result.data.hasMore,
-        nextCursor: result.data.nextCursor
-      }
+    const queryOptions = {
+      ...options,
+      filters: { 'capabilities.category': category }
     };
+    return this.storage.query<MCPServerRecord>('servers', queryOptions);
   }
 
   /**
@@ -90,24 +57,13 @@ export class RegistryService {
    */
   async getServersByCapability(
     capability: string,
-    options?: SearchOptions
+    options?: QueryOptions
   ): Promise<StorageResult<PaginatedResult<MCPServerRecord>>> {
-    const criteria = { 'capabilities.subcategories': capability };
-    const result = await this.storage.filter(criteria, options);
-    
-    if (!result.success) {
-      return result;
-    }
-
-    return {
-      success: true,
-      data: {
-        items: result.data.items.map(item => item.value as MCPServerRecord),
-        total: result.data.total,
-        hasMore: result.data.hasMore,
-        nextCursor: result.data.nextCursor
-      }
+    const queryOptions = {
+      ...options,
+      filters: { 'capabilities.subcategories': capability }
     };
+    return this.storage.query<MCPServerRecord>('servers', queryOptions);
   }
 
   /**
@@ -115,23 +71,9 @@ export class RegistryService {
    */
   async searchServers(
     query: string,
-    options?: SearchOptions
+    options?: QueryOptions
   ): Promise<StorageResult<PaginatedResult<MCPServerRecord>>> {
-    const result = await this.storage.search(query, options);
-    
-    if (!result.success) {
-      return result;
-    }
-
-    return {
-      success: true,
-      data: {
-        items: result.data.items.map(item => item.value as MCPServerRecord),
-        total: result.data.total,
-        hasMore: result.data.hasMore,
-        nextCursor: result.data.nextCursor
-      }
-    };
+    return this.storage.search<MCPServerRecord>('servers', query, options);
   }
 
   /**
