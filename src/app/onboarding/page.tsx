@@ -2,8 +2,8 @@
 
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
-import { AnimatedButton } from "@/components/ui/animated-button"
-import AnimatedCard, { AnimatedList } from "@/components/ui/animated-card"
+import { Box, Text, VStack, HStack, Badge, Button, Card } from "@chakra-ui/react"
+import { WorkflowStep, InfrastructureFeature } from "@/components/mcplookup"
 import Link from "next/link"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
@@ -49,196 +49,227 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <Box minH="100vh" bg="white">
       <Header />
 
-      <div className="max-w-5xl mx-auto py-20 px-4">
-        {/* EMERGENCY WELCOME */}
-        <div className="bg-gradient-to-r from-red-600 to-red-800 text-white text-center py-8 mb-12 rounded-lg animate-pulse">
-          <div className="flex items-center justify-center space-x-4 mb-4">
-            <div className="text-4xl animate-bounce">🚨</div>
-            <h1 className="text-3xl font-bold">WELCOME TO THE REACT MOMENT</h1>
-            <div className="text-4xl animate-bounce">🚨</div>
-          </div>
-          <p className="text-xl font-medium mb-2">
-            <strong>6 MONTHS TO SAVE THE OPEN WEB</strong>
-          </p>
-          <p className="text-sm">
-            Your participation in the next 5 minutes could influence AI development for the next decade
-          </p>
-        </div>
+      <Box maxW="6xl" mx="auto" py={20} px={4}>
+        <VStack gap={16} textAlign="center">
+          {/* Professional Welcome */}
+          <Box
+            bg="gradient-to-r"
+            gradientFrom="blue.600"
+            gradientTo="purple.600"
+            color="white"
+            textAlign="center"
+            py={8}
+            rounded="xl"
+            border="2px solid"
+            borderColor="blue.400"
+            w="full"
+            maxW="4xl"
+          >
+            <HStack justify="center" gap={4} mb={4}>
+              <Text fontSize="4xl">⚡</Text>
+              <Text fontSize="3xl" fontWeight="bold">
+                Welcome to MCPLookup
+              </Text>
+              <Text fontSize="4xl">⚡</Text>
+            </HStack>
+            <Text fontSize="xl" fontWeight="medium" mb={2}>
+              <Text as="span" fontWeight="bold">Join the Dynamic Discovery Infrastructure</Text>
+            </Text>
+            <Text fontSize="sm" opacity={0.9}>
+              Your contribution helps build the infrastructure that makes AI tools discoverable
+            </Text>
+          </Box>
 
-        {/* Welcome Content */}
-        <div className="text-center mb-16 space-y-6">
-          <h2 className="text-4xl font-bold text-gray-900">
-            🎯 Ready to Join the Fight?
-          </h2>
-          <p className="text-xl text-gray-600 max-w-4xl mx-auto">
-            <strong>You're about to contribute to the most important moment in AI development.</strong><br/>
-            Let's get you set up to register your MCP servers and strengthen open standards.
-          </p>
-        </div>
+          {/* Welcome Content */}
+          <VStack gap={6} maxW="4xl">
+            <Text fontSize={{ base: "3xl", md: "4xl" }} fontWeight="bold" color="gray.900">
+              🎯 Ready to Get Started?
+            </Text>
+            <Text fontSize="xl" color="gray.600" lineHeight="relaxed">
+              <Text as="span" fontWeight="bold">You're about to contribute to the future of AI tool discovery.</Text>
+              <br />Let's get you set up to register your MCP servers and join the growing ecosystem.
+            </Text>
+          </VStack>
 
-        {/* Two Paths */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
-          {/* Guided Setup */}
-          <AnimatedCard.Root hoverScale={1.02} borderOnHover>
-            <AnimatedCard.Body>
-              <div className="p-8 text-center">
-                <div className="text-6xl mb-6">🎯</div>
-                <h3 className="text-2xl font-bold text-green-600 mb-4">
-                  Guided Setup (Recommended)
-                </h3>
-                <p className="text-gray-600 mb-6">
-                  <strong>5-minute walkthrough</strong> to verify your domain, register your first MCP server, 
-                  and understand your impact on AI training data.
-                </p>
-                
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-                  <h4 className="font-bold text-green-800 mb-2">🚀 What You'll Do:</h4>
-                  <ul className="text-sm text-green-700 text-left space-y-1">
-                    <li>• ⚡ Learn why this matters (30 seconds)</li>
-                    <li>• 🔐 Verify domain ownership (2 minutes)</li>
-                    <li>• 📡 Register your MCP server (2 minutes)</li>
-                    <li>• 🎯 See your training data impact (30 seconds)</li>
-                  </ul>
-                </div>
+          {/* Two Paths */}
+          <Box display="grid" gridTemplateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={8} w="full" maxW="5xl">
+            {/* Guided Setup */}
+            <Card.Root
+              bg="white"
+              borderWidth="2px"
+              borderColor="green.200"
+              _hover={{
+                borderColor: "green.400",
+                transform: "translateY(-4px)",
+                shadow: "xl"
+              }}
+              transition="all 0.3s"
+            >
+              <Card.Body p={8} textAlign="center">
+                <VStack gap={6}>
+                  <Text fontSize="6xl">🎯</Text>
+                  <Text fontSize="2xl" fontWeight="bold" color="green.600">
+                    Guided Setup (Recommended)
+                  </Text>
+                  <Text color="gray.600">
+                    <Text as="span" fontWeight="bold">5-minute walkthrough</Text> to get your API keys,
+                    register your first MCP server, and understand your infrastructure contribution.
+                  </Text>
 
-                <AnimatedButton
-                  variant="solid"
-                  size="lg"
-                  className="w-full bg-green-600 hover:bg-green-700"
-                  hoverScale={1.05}
-                  onClick={handleStartOnboarding}
-                  disabled={loading}
-                >
-                  🚀 Start 5-Minute Setup
-                </AnimatedButton>
-              </div>
-            </AnimatedCard.Body>
-          </AnimatedCard.Root>
+                  <Box bg="green.50" border="1px solid" borderColor="green.200" rounded="lg" p={4} w="full">
+                    <Text fontWeight="bold" color="green.800" mb={2}>🚀 What You'll Do:</Text>
+                    <VStack align="start" gap={1} fontSize="sm" color="green.700">
+                      <Text>• ⚡ Get free API keys (1 minute)</Text>
+                      <Text>• 📡 Register your MCP server (2 minutes)</Text>
+                      <Text>• 🔐 Verify domain ownership (2 minutes)</Text>
+                      <Text>• 🎯 See your infrastructure impact (30 seconds)</Text>
+                    </VStack>
+                  </Box>
 
-          {/* Skip to Dashboard */}
-          <AnimatedCard.Root hoverScale={1.02} borderOnHover>
-            <AnimatedCard.Body>
-              <div className="p-8 text-center">
-                <div className="text-6xl mb-6">⚡</div>
-                <h3 className="text-2xl font-bold text-blue-600 mb-4">
-                  Skip to Dashboard
-                </h3>
-                <p className="text-gray-600 mb-6">
-                  <strong>I know what I'm doing.</strong> Take me straight to the dashboard 
-                  where I can manage my servers and domain verifications.
-                </p>
-                
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-                  <h4 className="font-bold text-yellow-800 mb-2">⚠️ Remember:</h4>
-                  <ul className="text-sm text-yellow-700 text-left space-y-1">
-                    <li>• You must verify domain ownership first</li>
-                    <li>• Then register MCP servers for verified domains</li>
-                    <li>• Every server strengthens open standards</li>
-                    <li>• 6 months left to influence AI training</li>
-                  </ul>
-                </div>
+                  <Button
+                    colorPalette="green"
+                    size="lg"
+                    w="full"
+                    onClick={handleStartOnboarding}
+                    disabled={loading}
+                    _hover={{ transform: "scale(1.02)" }}
+                    transition="all 0.2s"
+                  >
+                    🚀 Start 5-Minute Setup
+                  </Button>
+                </VStack>
+              </Card.Body>
+            </Card.Root>
 
-                <AnimatedButton
-                  variant="outline"
-                  size="lg"
-                  className="w-full border-blue-300 text-blue-700 hover:bg-blue-50"
-                  hoverScale={1.05}
-                  onClick={handleSkipOnboarding}
-                  disabled={loading}
-                >
-                  ⚡ Skip to Dashboard
-                </AnimatedButton>
-              </div>
-            </AnimatedCard.Body>
-          </AnimatedCard.Root>
-        </div>
+            {/* Skip to Dashboard */}
+            <Card.Root
+              bg="white"
+              borderWidth="2px"
+              borderColor="blue.200"
+              _hover={{
+                borderColor: "blue.400",
+                transform: "translateY(-4px)",
+                shadow: "xl"
+              }}
+              transition="all 0.3s"
+            >
+              <Card.Body p={8} textAlign="center">
+                <VStack gap={6}>
+                  <Text fontSize="6xl">⚡</Text>
+                  <Text fontSize="2xl" fontWeight="bold" color="blue.600">
+                    Skip to Dashboard
+                  </Text>
+                  <Text color="gray.600">
+                    <Text as="span" fontWeight="bold">I know what I'm doing.</Text> Take me straight to the dashboard
+                    where I can manage my servers and infrastructure contributions.
+                  </Text>
 
-        {/* Crisis Context */}
-        <AnimatedCard.Root hoverScale={1.01} borderOnHover>
-          <AnimatedCard.Body>
-            <div className="p-8">
-              <h3 className="text-2xl font-bold text-red-900 mb-6 text-center">
-                ⏰ Why This Matters Right Now
-              </h3>
+                  <Box bg="blue.50" border="1px solid" borderColor="blue.200" rounded="lg" p={4} w="full">
+                    <Text fontWeight="bold" color="blue.800" mb={2}>💡 Remember:</Text>
+                    <VStack align="start" gap={1} fontSize="sm" color="blue.700">
+                      <Text>• Get free API keys for server registration</Text>
+                      <Text>• Register MCP servers to join the ecosystem</Text>
+                      <Text>• Verify domains for higher trust scores</Text>
+                      <Text>• Monitor your infrastructure contribution</Text>
+                    </VStack>
+                  </Box>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <div className="bg-red-50 p-4 rounded-lg border border-red-200">
-                  <h4 className="font-bold text-red-800 mb-2">🕐 6 Months Left</h4>
-                  <p className="text-red-700 text-sm">
-                    GPT-5, Claude 4, and Gemini 2.0 are training NOW. 
-                    Whatever discovery patterns exist in 6 months become permanent.
-                  </p>
-                </div>
-                
-                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                  <h4 className="font-bold text-blue-800 mb-2">🎯 Your Impact</h4>
-                  <p className="text-blue-700 text-sm">
-                    Every MCP server you register creates training signals for open discovery. 
-                    Your servers help teach AI to use open standards.
-                  </p>
-                </div>
-                
-                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                  <h4 className="font-bold text-green-800 mb-2">🌍 The Stakes</h4>
-                  <p className="text-green-700 text-sm">
-                    Open discovery vs. corporate silos. 
-                    The patterns we establish now will define AI tool use for a decade.
-                  </p>
-                </div>
-              </div>
+                  <Button
+                    variant="outline"
+                    colorPalette="blue"
+                    size="lg"
+                    w="full"
+                    onClick={handleSkipOnboarding}
+                    disabled={loading}
+                    _hover={{ transform: "scale(1.02)" }}
+                    transition="all 0.2s"
+                  >
+                    ⚡ Skip to Dashboard
+                  </Button>
+                </VStack>
+              </Card.Body>
+            </Card.Root>
+          </Box>
 
-              <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-4 text-center">
-                <p className="text-yellow-800 font-medium">
-                  <strong>This is the React moment for AI tool discovery.</strong><br/>
-                  Just like React defined UI development for a generation, 
-                  the patterns we create now will define AI tool discovery for a generation.
-                </p>
-              </div>
-            </div>
-          </AnimatedCard.Body>
-        </AnimatedCard.Root>
+          {/* Infrastructure Context */}
+          <Card.Root bg="white" borderWidth="1px" borderColor="gray.200" w="full" maxW="5xl">
+            <Card.Body p={8}>
+              <VStack gap={6}>
+                <Text fontSize="2xl" fontWeight="bold" color="gray.900" textAlign="center">
+                  ⚡ Why This Infrastructure Matters
+                </Text>
 
-        {/* Quick Links */}
-        <div className="text-center mt-12">
-          <p className="text-gray-600 mb-4">
-            Want to learn more before starting?
-          </p>
-          <div className="flex flex-wrap gap-4 justify-center">
-            <Link href="/open-standards">
-              <AnimatedButton
+                <Box display="grid" gridTemplateColumns={{ base: "1fr", md: "repeat(3, 1fr)" }} gap={6} w="full">
+                  <InfrastructureFeature
+                    icon="🌍"
+                    title="Global Impact"
+                    description="Your servers become instantly discoverable by AI agents worldwide, strengthening the open ecosystem."
+                    color="blue"
+                  />
+                  <InfrastructureFeature
+                    icon="🎯"
+                    title="Dynamic Discovery"
+                    description="Replace hardcoded server lists with intelligent discovery that adapts as the ecosystem grows."
+                    color="green"
+                  />
+                  <InfrastructureFeature
+                    icon="🚀"
+                    title="Future Ready"
+                    description="When major services adopt MCP, they'll be instantly discoverable through your infrastructure contribution."
+                    color="purple"
+                  />
+                </Box>
+
+                <Box bg="blue.50" border="1px solid" borderColor="blue.300" rounded="lg" p={4} textAlign="center" w="full">
+                  <Text color="blue.800" fontWeight="medium">
+                    <Text as="span" fontWeight="bold">This is the infrastructure moment for AI tool discovery.</Text>
+                    <br />Just like DNS made the web scalable, dynamic discovery makes AI tools scalable.
+                    <br />The infrastructure we build now will serve the AI ecosystem for years to come.
+                  </Text>
+                </Box>
+              </VStack>
+            </Card.Body>
+          </Card.Root>
+
+          {/* Quick Links */}
+          <VStack gap={4} textAlign="center">
+            <Text color="gray.600">
+              Want to learn more before starting?
+            </Text>
+            <HStack gap={4} flexWrap="wrap" justify="center">
+              <Button
+                as={Link}
+                href="/open-standards"
                 variant="outline"
                 size="sm"
-                hoverScale={1.05}
               >
-                🌍 Read About Open Standards
-              </AnimatedButton>
-            </Link>
-            <Link href="/how-to-use">
-              <AnimatedButton
+                🌍 Open Standards
+              </Button>
+              <Button
+                as={Link}
+                href="/how-to-use"
                 variant="outline"
                 size="sm"
-                hoverScale={1.05}
               >
-                📖 How to Use Guide
-              </AnimatedButton>
-            </Link>
-            <Link href="/discover">
-              <AnimatedButton
+                📖 Setup Guide
+              </Button>
+              <Button
+                as={Link}
+                href="/discover"
                 variant="outline"
                 size="sm"
-                hoverScale={1.05}
               >
-                🔍 Explore Existing Servers
-              </AnimatedButton>
-            </Link>
-          </div>
-        </div>
-      </div>
+                🔍 Explore Ecosystem
+              </Button>
+            </HStack>
+          </VStack>
+        </VStack>
+      </Box>
 
       <Footer />
-    </div>
+    </Box>
   )
 }

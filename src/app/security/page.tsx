@@ -2,163 +2,178 @@
 
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
+import { Box, Text, VStack, HStack, Badge, Button, Card } from "@chakra-ui/react"
+import { InfrastructureFeature } from "@/components/mcplookup"
 
 export default function SecurityPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <Box minH="100vh" bg="gray.50">
       <Header />
-      
-      <div className="max-w-4xl mx-auto py-16 px-4">
-        <div className="space-y-8">
+
+      <Box maxW="5xl" mx="auto" py={16} px={4}>
+        <VStack gap={8} align="stretch">
           {/* Header */}
-          <div className="text-center space-y-4">
-            <h1 className="text-4xl font-bold text-gray-900">
-              Security
-            </h1>
-            <p className="text-xl text-gray-600">
-              Our commitment to keeping MCPLookup.org secure and trustworthy
-            </p>
-          </div>
+          <VStack gap={4} textAlign="center">
+            <Text fontSize={{ base: "3xl", md: "4xl" }} fontWeight="bold" color="gray.900">
+              🔒 Security & Trust
+            </Text>
+            <Text fontSize="xl" color="gray.600" maxW="2xl">
+              Our commitment to keeping MCPLookup.org secure and trustworthy for the entire AI ecosystem
+            </Text>
+          </VStack>
 
           {/* Security Overview */}
-          <div className="bg-white rounded-lg shadow-md p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Security Overview</h2>
-            <p className="text-gray-700 leading-relaxed mb-4">
-              Security is fundamental to MCPLookup.org's mission of providing a trusted discovery 
-              service for Model Context Protocol servers. We implement multiple layers of security 
-              to protect our users and the integrity of the MCP ecosystem.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-              <div className="text-center p-4 bg-green-50 rounded-lg">
-                <div className="text-3xl text-green-600 mb-2">🔒</div>
-                <h3 className="font-semibold text-green-900">Encryption</h3>
-                <p className="text-sm text-green-700">All data encrypted in transit</p>
-              </div>
-              <div className="text-center p-4 bg-blue-50 rounded-lg">
-                <div className="text-3xl text-blue-600 mb-2">🛡️</div>
-                <h3 className="font-semibold text-blue-900">Verification</h3>
-                <p className="text-sm text-blue-700">DNS-based domain ownership</p>
-              </div>
-              <div className="text-center p-4 bg-purple-50 rounded-lg">
-                <div className="text-3xl text-purple-600 mb-2">🔍</div>
-                <h3 className="font-semibold text-purple-900">Monitoring</h3>
-                <p className="text-sm text-purple-700">24/7 security monitoring</p>
-              </div>
-            </div>
-          </div>
+          <Card.Root bg="white" shadow="md">
+            <Card.Body p={8}>
+              <VStack gap={6} align="stretch">
+                <Text fontSize="2xl" fontWeight="bold" color="gray.900">
+                  Security Overview
+                </Text>
+                <Text color="gray.700" lineHeight="relaxed">
+                  Security is fundamental to MCPLookup.org's mission of providing a trusted discovery
+                  service for Model Context Protocol servers. We implement multiple layers of security
+                  to protect our users and the integrity of the MCP ecosystem.
+                </Text>
+                <Box display="grid" gridTemplateColumns={{ base: "1fr", md: "repeat(3, 1fr)" }} gap={6}>
+                  <InfrastructureFeature
+                    icon="🔒"
+                    title="Encryption"
+                    description="All data encrypted in transit"
+                    color="green"
+                  />
+                  <InfrastructureFeature
+                    icon="🛡️"
+                    title="Verification"
+                    description="DNS-based domain ownership"
+                    color="blue"
+                  />
+                  <InfrastructureFeature
+                    icon="🔍"
+                    title="Monitoring"
+                    description="24/7 security monitoring"
+                    color="purple"
+                  />
+                </Box>
+              </VStack>
+            </Card.Body>
+          </Card.Root>
 
           {/* Infrastructure Security */}
-          <div className="bg-white rounded-lg shadow-md p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Infrastructure Security</h2>
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Serverless Architecture</h3>
-                <p className="text-gray-700">
-                  Our serverless design eliminates many traditional attack vectors by having no 
-                  persistent servers to compromise. Each request is handled by isolated functions 
-                  that automatically scale and terminate.
-                </p>
-              </div>
-              
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Minimal Data Storage</h3>
-                <p className="text-gray-700">
-                  We use Upstash Redis (serverless) for registered server metadata only.
-                  All data has automatic TTL expiration. No traditional databases,
-                  no file system storage, minimal attack surface.
-                </p>
-              </div>
+          <Card.Root bg="white" shadow="md">
+            <Card.Body p={8}>
+              <VStack gap={6} align="stretch">
+                <Text fontSize="2xl" fontWeight="bold" color="gray.900">
+                  Infrastructure Security
+                </Text>
+                <VStack gap={4} align="stretch">
+                  <Box>
+                    <Text fontSize="lg" fontWeight="semibold" color="gray.900" mb={2}>
+                      Serverless Architecture
+                    </Text>
+                    <Text color="gray.700">
+                      Our serverless design eliminates many traditional attack vectors by having no
+                      persistent servers to compromise. Each request is handled by isolated functions
+                      that automatically scale and terminate.
+                    </Text>
+                  </Box>
 
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Edge Network</h3>
-                <p className="text-gray-700">
-                  Deployed on Vercel's global edge network with built-in DDoS protection, 
-                  automatic SSL/TLS certificates, and geographic distribution for resilience.
-                </p>
-              </div>
-            </div>
-          </div>
+                  <Box>
+                    <Text fontSize="lg" fontWeight="semibold" color="gray.900" mb={2}>
+                      Minimal Data Storage
+                    </Text>
+                    <Text color="gray.700">
+                      We use Upstash Redis (serverless) for registered server metadata only.
+                      All data has automatic TTL expiration. No traditional databases,
+                      no file system storage, minimal attack surface.
+                    </Text>
+                  </Box>
+
+                  <Box>
+                    <Text fontSize="lg" fontWeight="semibold" color="gray.900" mb={2}>
+                      Edge Network
+                    </Text>
+                    <Text color="gray.700">
+                      Deployed on Vercel's global edge network with built-in DDoS protection,
+                      automatic SSL/TLS certificates, and geographic distribution for resilience.
+                    </Text>
+                  </Box>
+                </VStack>
+              </VStack>
+            </Card.Body>
+          </Card.Root>
 
           {/* Domain Verification */}
-          <div className="bg-white rounded-lg shadow-md p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Domain Verification</h2>
-            <div className="space-y-4">
-              <p className="text-gray-700 leading-relaxed">
-                We use cryptographic DNS verification to ensure only legitimate domain owners 
-                can register MCP servers:
-              </p>
-              
-              <div className="bg-gray-50 rounded-md p-4">
-                <h4 className="font-semibold text-gray-900 mb-2">Verification Process:</h4>
-                <ol className="list-decimal list-inside text-gray-700 space-y-2">
-                  <li>Generate unique cryptographic challenge for each registration</li>
-                  <li>Require TXT record addition to domain's DNS</li>
-                  <li>Verify record exists and matches expected value</li>
-                  <li>Only then allow server to be discoverable</li>
-                </ol>
-              </div>
+          <Card.Root bg="white" shadow="md">
+            <Card.Body p={8}>
+              <VStack gap={6} align="stretch">
+                <Text fontSize="2xl" fontWeight="bold" color="gray.900">
+                  Domain Verification
+                </Text>
+                <Text color="gray.700" lineHeight="relaxed">
+                  We use cryptographic DNS verification to ensure only legitimate domain owners
+                  can register MCP servers:
+                </Text>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-                <p className="text-blue-800">
-                  <strong>Security Benefit:</strong> This prevents unauthorized users from 
-                  registering servers for domains they don't control, maintaining trust in 
-                  the discovery service.
-                </p>
-              </div>
-            </div>
-          </div>
+                <Box bg="gray.50" rounded="md" p={4}>
+                  <Text fontWeight="semibold" color="gray.900" mb={2}>
+                    Verification Process:
+                  </Text>
+                  <VStack align="start" gap={2} color="gray.700">
+                    <Text>1. Generate unique cryptographic challenge for each registration</Text>
+                    <Text>2. Require TXT record addition to domain's DNS</Text>
+                    <Text>3. Verify record exists and matches expected value</Text>
+                    <Text>4. Only then allow server to be discoverable</Text>
+                  </VStack>
+                </Box>
 
-          {/* Responsible Disclosure */}
-          <div className="bg-white rounded-lg shadow-md p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Responsible Disclosure</h2>
-            <div className="space-y-4">
-              <p className="text-gray-700 leading-relaxed">
-                We welcome security researchers and encourage responsible disclosure of 
-                security vulnerabilities. If you discover a security issue:
-              </p>
-
-              <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
-                <h4 className="font-semibold text-yellow-800 mb-2">Reporting Guidelines:</h4>
-                <ol className="list-decimal list-inside text-yellow-700 space-y-2">
-                  <li>Email security@mcplookup.org with details</li>
-                  <li>Include steps to reproduce the vulnerability</li>
-                  <li>Allow reasonable time for investigation and fix</li>
-                  <li>Avoid accessing or modifying user data</li>
-                  <li>Don't publicly disclose until we've addressed the issue</li>
-                </ol>
-              </div>
-            </div>
-          </div>
+                <Box bg="blue.50" border="1px solid" borderColor="blue.200" rounded="md" p={4}>
+                  <Text color="blue.800">
+                    <Text as="span" fontWeight="bold">Security Benefit:</Text> This prevents unauthorized users from
+                    registering servers for domains they don't control, maintaining trust in
+                    the discovery service.
+                  </Text>
+                </Box>
+              </VStack>
+            </Card.Body>
+          </Card.Root>
 
           {/* Contact */}
-          <div className="bg-blue-50 rounded-lg p-6 text-center">
-            <h3 className="text-lg font-semibold text-blue-900 mb-2">
-              Security Questions?
-            </h3>
-            <p className="text-blue-700 mb-4">
-              Have questions about our security practices or need to report a security issue?
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <a
-                href="mailto:security@mcplookup.org"
-                className="inline-flex items-center px-4 py-2 border border-blue-300 text-blue-700 bg-white rounded-md hover:bg-blue-50 transition-colors"
-              >
-                📧 security@mcplookup.org
-              </a>
-              <a
-                href="https://github.com/TSavo/mcplookup.org/security"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center px-4 py-2 border border-blue-300 text-blue-700 bg-white rounded-md hover:bg-blue-50 transition-colors"
-              >
-                🔒 Security Policy
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
+          <Box bg="blue.50" rounded="lg" p={6} textAlign="center">
+            <VStack gap={4}>
+              <Text fontSize="lg" fontWeight="semibold" color="blue.900">
+                Security Questions?
+              </Text>
+              <Text color="blue.700">
+                Have questions about our security practices or need to report a security issue?
+              </Text>
+              <HStack gap={3} flexDir={{ base: "column", sm: "row" }}>
+                <Button
+                  as="a"
+                  href="mailto:security@mcplookup.org"
+                  variant="outline"
+                  colorPalette="blue"
+                  bg="white"
+                >
+                  📧 security@mcplookup.org
+                </Button>
+                <Button
+                  as="a"
+                  href="https://github.com/TSavo/mcplookup.org/security"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  variant="outline"
+                  colorPalette="blue"
+                  bg="white"
+                >
+                  🔒 Security Policy
+                </Button>
+              </HStack>
+            </VStack>
+          </Box>
+        </VStack>
+      </Box>
 
       <Footer />
-    </div>
+    </Box>
   )
 }

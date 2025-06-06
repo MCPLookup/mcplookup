@@ -2,529 +2,331 @@
 
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
-import { AnimatedButton } from "@/components/ui/animated-button"
-import AnimatedCard from "@/components/ui/animated-card"
+import { Box, Text, VStack, HStack, Badge, Button } from "@chakra-ui/react"
+import { WorkflowStep, CodeBlock } from "@/components/mcplookup"
 import Link from "next/link"
 
 export default function HowToUsePage() {
   return (
-    <div className="min-h-screen bg-white">
+    <Box minH="100vh" bg="white">
       <Header />
 
-      <div className="max-w-5xl mx-auto py-16 px-4">
-
+      <Box maxW="6xl" mx="auto" py={16} px={4}>
         {/* Hero Section */}
-        <div className="text-center mb-12 space-y-6">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
-            How to Use MCPLookup.org
-          </h1>
-          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Get started with dynamic MCP server discovery in minutes. Choose the installation method that works best for you.
-          </p>
-        </div>
+        <VStack gap={12} textAlign="center">
+          <VStack gap={6}>
+            <Text fontSize={{ base: "3xl", md: "4xl" }} fontWeight="bold" color="gray.900">
+              Enable Dynamic Discovery
+            </Text>
+            <Text fontSize="lg" color="gray.600" maxW="4xl" lineHeight="relaxed">
+              Transform your AI workflow from static configuration to dynamic discovery in minutes.
+              Choose the setup method that works best for you.
+            </Text>
+          </VStack>
 
-        {/* Installation Options */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-          <AnimatedCard.Root hoverScale={1.01} borderOnHover>
-            <AnimatedCard.Body>
-              <div className="text-center p-6">
-                <div className="text-3xl mb-4">🐳</div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Docker (Recommended)</h3>
-                <p className="text-sm text-gray-600 mb-4">
+          {/* The 3-Step Revolution */}
+          <VStack gap={4}>
+            <Text fontSize={{ base: "2xl", md: "3xl" }} fontWeight="bold" color="gray.900">
+              Join the Revolution in 3 Steps
+            </Text>
+            <Text fontSize="lg" color="gray.600" maxW="2xl">
+              Transform your AI workflow from static to dynamic in minutes
+            </Text>
+          </VStack>
+
+          <Box display="grid" gridTemplateColumns={{ base: "1fr", md: "repeat(3, 1fr)" }} gap={8} w="full" maxW="5xl">
+            <WorkflowStep
+              number="1"
+              title="Install the Bridge"
+              description="One command replaces all hardcoded server lists"
+              cta="🐳 Get Started"
+              ctaLink="#docker-setup"
+            />
+            <WorkflowStep
+              number="2"
+              title="Configure Once"
+              description="Replace your entire MCP server config with one universal bridge"
+              cta="⚙️ Configure"
+              ctaLink="#configuration"
+            />
+            <WorkflowStep
+              number="3"
+              title="Discover Everything"
+              description="Ask for any tool and watch the magic happen"
+              cta="🚀 Discover"
+              ctaLink="/discover"
+            />
+          </Box>
+
+          {/* Installation Methods */}
+          <VStack gap={4} w="full" maxW="4xl">
+            <Text fontSize="xl" fontWeight="semibold" color="gray.900">
+              Choose Your Installation Method
+            </Text>
+            <Box display="grid" gridTemplateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={6} w="full">
+              <Box
+                bg="blue.50"
+                border="2px solid"
+                borderColor="blue.200"
+                rounded="xl"
+                p={6}
+                textAlign="center"
+                _hover={{ borderColor: "blue.400", transform: "translateY(-2px)" }}
+                transition="all 0.2s"
+              >
+                <Text fontSize="3xl" mb={4}>🐳</Text>
+                <Text fontSize="lg" fontWeight="semibold" color="gray.900" mb={3}>
+                  Docker (Recommended)
+                </Text>
+                <Text fontSize="sm" color="gray.600" mb={4}>
                   Run the MCP bridge in a container. No local dependencies needed.
-                </p>
-                <div className="bg-blue-50 p-3 rounded text-xs text-blue-700 mb-4">
-                  ✅ Isolated environment<br/>
-                  ✅ Easy deployment<br/>
-                  ✅ No dependency conflicts<br/>
-                  ✅ Production ready
-                </div>
-                <Link href="#docker-setup">
-                  <AnimatedButton
-                    variant="solid"
-                    size="sm"
-                    className="bg-slate-700 hover:bg-slate-800 text-white"
-                    hoverScale={1.02}
-                  >
-                    🐳 Docker Setup
-                  </AnimatedButton>
-                </Link>
-              </div>
-            </AnimatedCard.Body>
-          </AnimatedCard.Root>
+                </Text>
+                <VStack gap={1} mb={4} fontSize="xs" color="blue.700">
+                  <Text>✅ Isolated environment</Text>
+                  <Text>✅ Easy deployment</Text>
+                  <Text>✅ No dependency conflicts</Text>
+                  <Text>✅ Production ready</Text>
+                </VStack>
+                <Button
+                  as={Link}
+                  href="#docker-setup"
+                  colorPalette="blue"
+                  size="sm"
+                  w="full"
+                >
+                  🐳 Docker Setup
+                </Button>
+              </Box>
 
-          <AnimatedCard.Root hoverScale={1.01} borderOnHover>
-            <AnimatedCard.Body>
-              <div className="text-center p-6">
-                <div className="text-3xl mb-4">📦</div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">NPM Package</h3>
-                <p className="text-sm text-gray-600 mb-4">
+              <Box
+                bg="green.50"
+                border="2px solid"
+                borderColor="green.200"
+                rounded="xl"
+                p={6}
+                textAlign="center"
+                _hover={{ borderColor: "green.400", transform: "translateY(-2px)" }}
+                transition="all 0.2s"
+              >
+                <Text fontSize="3xl" mb={4}>📦</Text>
+                <Text fontSize="lg" fontWeight="semibold" color="gray.900" mb={3}>
+                  NPM Package
+                </Text>
+                <Text fontSize="sm" color="gray.600" mb={4}>
                   Install as a Node.js package for direct integration.
-                </p>
-                <div className="bg-green-50 p-3 rounded text-xs text-green-700 mb-4">
-                  ✅ Direct integration<br/>
-                  ✅ Customizable<br/>
-                  ✅ TypeScript support<br/>
-                  ✅ Local development
-                </div>
-                <Link href="#npm-setup">
-                  <AnimatedButton
-                    variant="solid"
-                    size="sm"
-                    className="bg-slate-700 hover:bg-slate-800 text-white"
-                    hoverScale={1.02}
-                  >
-                    📦 NPM Setup
-                  </AnimatedButton>
-                </Link>
-              </div>
-            </AnimatedCard.Body>
-          </AnimatedCard.Root>
+                </Text>
+                <VStack gap={1} mb={4} fontSize="xs" color="green.700">
+                  <Text>✅ Direct integration</Text>
+                  <Text>✅ Customizable</Text>
+                  <Text>✅ TypeScript support</Text>
+                  <Text>✅ Local development</Text>
+                </VStack>
+                <Button
+                  as={Link}
+                  href="#npm-setup"
+                  colorPalette="green"
+                  size="sm"
+                  w="full"
+                >
+                  📦 NPM Setup
+                </Button>
+              </Box>
+            </Box>
+          </VStack>
 
-          <AnimatedCard.Root hoverScale={1.01} borderOnHover>
-            <AnimatedCard.Body>
-              <div className="text-center p-6">
-                <div className="text-3xl mb-4">⚡</div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Quick Start</h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  Clone and run directly from source code.
-                </p>
-                <div className="bg-purple-50 p-3 rounded text-xs text-purple-700 mb-4">
-                  ✅ Latest features<br/>
-                  ✅ Easy debugging<br/>
-                  ✅ Contribution ready<br/>
-                  ✅ Full source access
-                </div>
-                <Link href="#source-setup">
-                  <AnimatedButton
-                    variant="solid"
-                    size="sm"
-                    className="bg-slate-700 hover:bg-slate-800 text-white"
-                    hoverScale={1.02}
-                  >
-                    ⚡ Source Setup
-                  </AnimatedButton>
-                </Link>
-              </div>
-            </AnimatedCard.Body>
-          </AnimatedCard.Root>
+          {/* Docker Setup */}
+          <Box id="docker-setup" w="full" maxW="5xl">
+            <VStack gap={8} align="stretch">
+              <HStack gap={4} align="center">
+                <Text fontSize="3xl">🐳</Text>
+                <Text fontSize={{ base: "xl", md: "2xl" }} fontWeight="bold" color="gray.900">
+                  Docker Setup (Recommended)
+                </Text>
+              </HStack>
 
-          <AnimatedCard.Root hoverScale={1.01} borderOnHover>
-            <AnimatedCard.Body>
-              <div className="text-center p-6">
-                <div className="text-3xl mb-4">☁️</div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Cloud Deployment</h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  Deploy on VPS or cloud for team/organizational use.
-                </p>
-                <div className="bg-orange-50 p-3 rounded text-xs text-orange-700 mb-4">
-                  ✅ Team sharing<br/>
-                  ✅ Centralized management<br/>
-                  ✅ HTTP streaming support<br/>
-                  ✅ Enterprise ready
-                </div>
-                <Link href="#cloud-setup">
-                  <AnimatedButton
-                    variant="solid"
-                    size="sm"
-                    className="bg-slate-700 hover:bg-slate-800 text-white"
-                    hoverScale={1.02}
-                  >
-                    ☁️ Cloud Setup
-                  </AnimatedButton>
-                </Link>
-              </div>
-            </AnimatedCard.Body>
-          </AnimatedCard.Root>
-        </div>
+              <Box
+                bg="blue.50"
+                borderLeft="4px solid"
+                borderColor="blue.400"
+                p={4}
+                rounded="md"
+              >
+                <Text color="blue.800" fontWeight="medium">
+                  <Text as="span" fontWeight="bold">Easiest way to get started:</Text> Run the MCP bridge in a Docker container with zero local dependencies.
+                </Text>
+              </Box>
 
-        {/* Docker Setup */}
-        <AnimatedCard.Root id="docker-setup" hoverScale={1.01} borderOnHover>
-          <AnimatedCard.Body>
-            <div className="p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                <span className="text-3xl mr-3">🐳</span>
-                Docker Setup (Recommended)
-              </h2>
+              <Box display="grid" gridTemplateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={6}>
+                <VStack align="stretch" gap={3}>
+                  <Text fontWeight="semibold" color="gray.800">📋 Step 1: Get the Bridge</Text>
+                  <CodeBlock
+                    language="bash"
+                    code={`# Clone the repository
+git clone https://github.com/TSavo/mcplookup.org
+cd mcplookup.org
 
-              <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
-                <p className="text-blue-800 font-medium">
-                  <strong>Easiest way to get started:</strong> Run the MCP bridge in a Docker container with zero local dependencies.
-                </p>
-              </div>
+# Run with Docker Compose
+docker-compose -f docker-compose.bridge.yml up -d`}
+                    theme="dark"
+                  />
+                </VStack>
 
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h3 className="font-semibold text-gray-800 mb-3">📋 Step 1: Get the Bridge</h3>
-                    <div className="bg-gray-900 text-green-400 p-4 rounded-lg text-sm font-mono">
-                      <div className="text-gray-400"># Clone the repository</div>
-                      <div>git clone https://github.com/TSavo/mcplookup.org</div>
-                      <div>cd mcplookup.org</div>
-                      <div className="mt-2 text-gray-400"># Run with Docker Compose</div>
-                      <div>docker-compose -f docker-compose.bridge.yml up -d</div>
-                    </div>
-                  </div>
+                <VStack align="stretch" gap={3}>
+                  <Text fontWeight="semibold" color="gray.800">⚙️ Step 2: Configure Claude Desktop</Text>
+                  <CodeBlock
+                    language="json"
+                    code={`// ~/.config/claude-desktop/config.json
+{
+  "mcpServers": {
+    "universal-bridge": {
+      "command": "docker",
+      "args": ["exec", "-i", "mcp-universal-bridge", "tsx", "scripts/mcp-bridge.ts"]
+    }
+  }
+}`}
+                    theme="dark"
+                  />
+                </VStack>
+              </Box>
 
-                  <div>
-                    <h3 className="font-semibold text-gray-800 mb-3">⚙️ Step 2: Configure Claude Desktop</h3>
-                    <div className="bg-gray-900 text-green-400 p-4 rounded-lg text-sm font-mono">
-                      <div className="text-gray-400">// ~/.config/claude-desktop/config.json</div>
-                      <div className="text-yellow-400">{`{`}</div>
-                      <div className="text-yellow-400">  "mcpServers": {`{`}</div>
-                      <div className="text-green-400">    "universal-bridge": {`{`}</div>
-                      <div className="text-green-400">      "command": "docker",</div>
-                      <div className="text-green-400">      "args": ["exec", "-i", "mcp-universal-bridge", "tsx", "scripts/mcp-bridge.ts"]</div>
-                      <div className="text-green-400">    {`}`}</div>
-                      <div className="text-yellow-400">  {`}`}</div>
-                      <div className="text-yellow-400">{`}`}</div>
-                    </div>
-                  </div>
-                </div>
+              <VStack align="stretch" gap={3}>
+                <Text fontWeight="semibold" color="gray.800">🎯 Step 3: Test It Works</Text>
+                <Box bg="blue.50" p={4} rounded="lg">
+                  <Text color="blue.800" mb={2} fontWeight="medium">
+                    In Claude Desktop, try these commands:
+                  </Text>
+                  <VStack align="start" gap={1} fontSize="sm" color="blue.700">
+                    <Text>• "Find filesystem tools"</Text>
+                    <Text>• "What development tools are available?"</Text>
+                    <Text>• "Show me database connectors"</Text>
+                  </VStack>
+                </Box>
+              </VStack>
 
-                <div>
-                  <h3 className="font-semibold text-gray-800 mb-3">🎯 Step 3: Test It Works</h3>
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <p className="text-blue-800 mb-2"><strong>In Claude Desktop, try these commands:</strong></p>
-                    <ul className="text-sm text-blue-700 space-y-1">
-                      <li>• <code className="bg-blue-100 px-2 py-1 rounded">"Find email servers"</code></li>
-                      <li>• <code className="bg-blue-100 px-2 py-1 rounded">"What document tools are available?"</code></li>
-                      <li>• <code className="bg-blue-100 px-2 py-1 rounded">"Connect to Gmail's MCP server"</code></li>
-                    </ul>
-                  </div>
-                </div>
+              <Box bg="green.50" border="1px solid" borderColor="green.200" rounded="lg" p={4}>
+                <Text fontWeight="semibold" color="green.800" mb={2}>✅ Success!</Text>
+                <Text color="green.700" fontSize="sm">
+                  You now have dynamic access to all MCP servers through the universal bridge running in Docker.
+                </Text>
+              </Box>
+            </VStack>
+          </Box>
 
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <h4 className="font-semibold text-green-800 mb-2">✅ Success!</h4>
-                  <p className="text-green-700 text-sm">
-                    You now have dynamic access to all MCP servers through the universal bridge running in Docker.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </AnimatedCard.Body>
-        </AnimatedCard.Root>
+          {/* NPM Setup */}
+          <Box id="npm-setup" w="full" maxW="5xl">
+            <VStack gap={8} align="stretch">
+              <HStack gap={4} align="center">
+                <Text fontSize="3xl">📦</Text>
+                <Text fontSize={{ base: "xl", md: "2xl" }} fontWeight="bold" color="gray.900">
+                  NPM Package Setup
+                </Text>
+              </HStack>
 
-        {/* NPM Setup */}
-        <AnimatedCard.Root id="npm-setup" hoverScale={1.01} borderOnHover>
-          <AnimatedCard.Body>
-            <div className="p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                <span className="text-3xl mr-3">📦</span>
-                NPM Package Setup
-              </h2>
+              <Box
+                bg="green.50"
+                borderLeft="4px solid"
+                borderColor="green.400"
+                p={4}
+                rounded="md"
+              >
+                <Text color="green.800" fontWeight="medium">
+                  <Text as="span" fontWeight="bold">For developers:</Text> Install the MCP bridge as a Node.js package for direct integration.
+                </Text>
+              </Box>
 
-              <div className="bg-green-50 border-l-4 border-green-400 p-4 mb-6">
-                <p className="text-green-800 font-medium">
-                  <strong>For developers:</strong> Install the MCP bridge as a Node.js package for direct integration.
-                </p>
-              </div>
+              <Box display="grid" gridTemplateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={6}>
+                <VStack align="stretch" gap={3}>
+                  <Text fontWeight="semibold" color="gray.800">📋 Step 1: Install Package</Text>
+                  <CodeBlock
+                    language="bash"
+                    code={`# Install globally
+npm install -g @mcplookup/bridge
 
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h3 className="font-semibold text-gray-800 mb-3">📋 Step 1: Install Package</h3>
-                    <div className="bg-gray-900 text-green-400 p-4 rounded-lg text-sm font-mono">
-                      <div className="text-gray-400"># Install globally</div>
-                      <div>npm install -g @mcplookup/bridge</div>
-                      <div className="mt-2 text-gray-400"># Or install locally</div>
-                      <div>npm install @mcplookup/bridge</div>
-                      <div className="mt-2 text-gray-400"># Or use npx (no install)</div>
-                      <div>npx @mcplookup/bridge</div>
-                    </div>
-                  </div>
+# Or install locally
+npm install @mcplookup/bridge
 
-                  <div>
-                    <h3 className="font-semibold text-gray-800 mb-3">⚙️ Step 2: Configure Claude Desktop</h3>
-                    <div className="bg-gray-900 text-green-400 p-4 rounded-lg text-sm font-mono">
-                      <div className="text-gray-400">// ~/.config/claude-desktop/config.json</div>
-                      <div className="text-yellow-400">{`{`}</div>
-                      <div className="text-yellow-400">  "mcpServers": {`{`}</div>
-                      <div className="text-green-400">    "universal-bridge": {`{`}</div>
-                      <div className="text-green-400">      "command": "npx",</div>
-                      <div className="text-green-400">      "args": ["@mcplookup/bridge"]</div>
-                      <div className="text-green-400">    {`}`}</div>
-                      <div className="text-yellow-400">  {`}`}</div>
-                      <div className="text-yellow-400">{`}`}</div>
-                    </div>
-                  </div>
-                </div>
+# Or use npx (no install)
+npx @mcplookup/bridge`}
+                    theme="dark"
+                  />
+                </VStack>
 
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h4 className="font-semibold text-blue-800 mb-2">💡 Pro Tip</h4>
-                  <p className="text-blue-700 text-sm">
-                    The NPM package is perfect for development and custom integrations. You can also import the bridge
-                    programmatically in your own Node.js applications.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </AnimatedCard.Body>
-        </AnimatedCard.Root>
+                <VStack align="stretch" gap={3}>
+                  <Text fontWeight="semibold" color="gray.800">⚙️ Step 2: Configure Claude Desktop</Text>
+                  <CodeBlock
+                    language="json"
+                    code={`// ~/.config/claude-desktop/config.json
+{
+  "mcpServers": {
+    "universal-bridge": {
+      "command": "npx",
+      "args": ["@mcplookup/bridge"]
+    }
+  }
+}`}
+                    theme="dark"
+                  />
+                </VStack>
+              </Box>
 
-        {/* Source Setup */}
-        <AnimatedCard.Root id="source-setup" hoverScale={1.01} borderOnHover>
-          <AnimatedCard.Body>
-            <div className="p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                <span className="text-3xl mr-3">⚡</span>
-                Source Code Setup
-              </h2>
+              <Box bg="blue.50" border="1px solid" borderColor="blue.200" rounded="lg" p={4}>
+                <Text fontWeight="semibold" color="blue.800" mb={2}>💡 Pro Tip</Text>
+                <Text color="blue.700" fontSize="sm">
+                  The NPM package is perfect for development and custom integrations. You can also import the bridge
+                  programmatically in your own Node.js applications.
+                </Text>
+              </Box>
+            </VStack>
+          </Box>
 
-              <div className="bg-purple-50 border-l-4 border-purple-400 p-4 mb-6">
-                <p className="text-purple-800 font-medium">
-                  <strong>For contributors:</strong> Run directly from source code for the latest features and easy debugging.
-                </p>
-              </div>
-
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h3 className="font-semibold text-gray-800 mb-3">📋 Step 1: Clone & Install</h3>
-                    <div className="bg-gray-900 text-green-400 p-4 rounded-lg text-sm font-mono">
-                      <div className="text-gray-400"># Clone the repository</div>
-                      <div>git clone https://github.com/TSavo/mcplookup.org</div>
-                      <div>cd mcplookup.org</div>
-                      <div className="mt-2 text-gray-400"># Install dependencies</div>
-                      <div>npm install</div>
-                      <div className="mt-2 text-gray-400"># Build the project</div>
-                      <div>npm run build</div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h3 className="font-semibold text-gray-800 mb-3">⚙️ Step 2: Configure Claude Desktop</h3>
-                    <div className="bg-gray-900 text-green-400 p-4 rounded-lg text-sm font-mono">
-                      <div className="text-gray-400">// ~/.config/claude-desktop/config.json</div>
-                      <div className="text-yellow-400">{`{`}</div>
-                      <div className="text-yellow-400">  "mcpServers": {`{`}</div>
-                      <div className="text-green-400">    "universal-bridge": {`{`}</div>
-                      <div className="text-green-400">      "command": "tsx",</div>
-                      <div className="text-green-400">      "args": ["/path/to/mcplookup.org/scripts/mcp-bridge.ts"]</div>
-                      <div className="text-green-400">    {`}`}</div>
-                      <div className="text-yellow-400">  {`}`}</div>
-                      <div className="text-yellow-400">{`}`}</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                  <h4 className="font-semibold text-orange-800 mb-2">🔧 Development Mode</h4>
-                  <p className="text-orange-700 text-sm">
-                    Running from source gives you access to the latest features and makes it easy to contribute back to the project.
-                    You can modify the bridge behavior and test changes immediately.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </AnimatedCard.Body>
-        </AnimatedCard.Root>
-
-        {/* Cloud Deployment */}
-        <AnimatedCard.Root id="cloud-setup" hoverScale={1.01} borderOnHover>
-          <AnimatedCard.Body>
-            <div className="p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                <span className="text-3xl mr-3">☁️</span>
-                Cloud Deployment
-              </h2>
-
-              <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
-                <p className="text-blue-800 font-medium">
-                  <strong>For teams & organizations:</strong> Deploy the MCP bridge on a VPS or cloud server for centralized access.
-                  Supports both HTTP streaming and SSE protocols for maximum compatibility.
-                </p>
-              </div>
-
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h3 className="font-semibold text-gray-800 mb-3">🚀 VPS Deployment</h3>
-                    <div className="bg-gray-900 text-green-400 p-4 rounded-lg text-sm font-mono">
-                      <div className="text-gray-400"># On your VPS (Ubuntu/Debian)</div>
-                      <div>git clone https://github.com/TSavo/mcplookup.org</div>
-                      <div>cd mcplookup.org</div>
-                      <div className="mt-2 text-gray-400"># Simple Docker deployment</div>
-                      <div>docker-compose -f docker-compose.cloud.yml up -d</div>
-                      <div className="mt-2 text-gray-400"># Bridge runs on port 3001</div>
-                      <div>curl http://your-server.com:3001/health</div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h3 className="font-semibold text-gray-800 mb-3">🌐 Team Access</h3>
-                    <div className="bg-gray-900 text-green-400 p-4 rounded-lg text-sm font-mono">
-                      <div className="text-gray-400">// Team members configure Claude Desktop:</div>
-                      <div className="text-yellow-400">{`{`}</div>
-                      <div className="text-yellow-400">  "mcpServers": {`{`}</div>
-                      <div className="text-green-400">    "team-bridge": {`{`}</div>
-                      <div className="text-green-400">      "command": "curl",</div>
-                      <div className="text-green-400">      "args": ["-X", "POST", "http://your-server.com:3001/mcp"]</div>
-                      <div className="text-green-400">    {`}`}</div>
-                      <div className="text-yellow-400">  {`}`}</div>
-                      <div className="text-yellow-400">{`}`}</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-green-50 p-4 rounded-lg">
-                    <h4 className="font-semibold text-green-800 mb-2">✅ Benefits</h4>
-                    <ul className="text-sm text-green-700 space-y-1">
-                      <li>• Centralized management</li>
-                      <li>• Team sharing</li>
-                      <li>• Consistent configuration</li>
-                      <li>• Better monitoring</li>
-                    </ul>
-                  </div>
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <h4 className="font-semibold text-blue-800 mb-2">🔧 Use Cases</h4>
-                    <ul className="text-sm text-blue-700 space-y-1">
-                      <li>• Enterprise deployments</li>
-                      <li>• Development teams</li>
-                      <li>• Internal tools</li>
-                      <li>• Shared environments</li>
-                    </ul>
-                  </div>
-                  <div className="bg-purple-50 p-4 rounded-lg">
-                    <h4 className="font-semibold text-purple-800 mb-2">🛡️ Security</h4>
-                    <ul className="text-sm text-purple-700 space-y-1">
-                      <li>• Firewall port 3001 access</li>
-                      <li>• VPN for internal access</li>
-                      <li>• Environment variables</li>
-                      <li>• Regular updates</li>
-                    </ul>
-                  </div>
-                </div>
-
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <h4 className="font-semibold text-yellow-800 mb-2">💡 Pro Tips</h4>
-                  <ul className="text-yellow-700 text-sm space-y-1">
-                    <li>• Use <code>docker-compose.cloud.yml</code> for production deployment</li>
-                    <li>• Monitor with health checks on <code>http://server:3001/health</code></li>
-                    <li>• Set up log rotation for <code>./logs</code> directory</li>
-                    <li>• Consider using a VPN for secure team access</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </AnimatedCard.Body>
-        </AnimatedCard.Root>
-
-        {/* API Keys for Developers */}
-        <AnimatedCard.Root hoverScale={1.01} borderOnHover>
-          <AnimatedCard.Body>
-            <div className="p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                <span className="text-3xl mr-3">🔑</span>
-                API Keys for Developers
-              </h2>
-
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-6 mb-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">Discovery is Free, Registration Needs Free API Keys</h3>
-                <p className="text-gray-700 mb-4">
-                  The MCP bridge works immediately for discovery - no API keys needed! But if you're building MCP tools
-                  or want to register servers, you'll need free API keys for authentication.
-                </p>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h4 className="font-semibold text-green-800 mb-2">✅ Free Discovery Features</h4>
-                    <ul className="text-sm text-green-700 space-y-1">
-                      <li>• Find any MCP server</li>
-                      <li>• AI-powered search</li>
-                      <li>• Domain and capability lookup</li>
-                      <li>• Connect to discovered servers</li>
-                      <li>• Real-time health monitoring</li>
-                    </ul>
-                  </div>
-
-                  <div>
-                    <h4 className="font-semibold text-blue-800 mb-2">🔑 Free API Key Features</h4>
-                    <ul className="text-sm text-blue-700 space-y-1">
-                      <li>• Register your MCP servers</li>
-                      <li>• Usage analytics and monitoring</li>
-                      <li>• Higher rate limits</li>
-                      <li>• Developer tools and endpoints</li>
-                      <li>• Spam prevention and security</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <h3 className="font-semibold text-gray-800 mb-3">🚀 Getting Started with Free API Keys</h3>
-
-                <div className="bg-gray-900 text-green-400 p-4 rounded-lg text-sm font-mono">
-                  <div className="text-gray-400"># 1. Get your free API key from the dashboard</div>
-                  <div className="text-blue-400">export</div> <div className="text-yellow-300">MCP_API_KEY</div>=<div className="text-orange-300">"mcp_your_api_key_here"</div>
-                  <div className="mt-2 text-gray-400"># 2. Bridge automatically uses environment variables</div>
-                  <div>npx @mcplookup/bridge</div>
-                  <div className="mt-2 text-gray-400"># 3. Now you can register servers and access developer features!</div>
-                </div>
-
-                <div className="flex flex-wrap gap-3 justify-center">
-                  <Link href="/dashboard">
-                    <AnimatedButton
-                      variant="solid"
-                      size="lg"
-                      className="bg-blue-600 hover:bg-blue-700 text-white"
-                      hoverScale={1.02}
-                    >
-                      🔑 Get API Keys
-                    </AnimatedButton>
-                  </Link>
-                  <Link href="/register">
-                    <AnimatedButton
-                      variant="outline"
-                      size="lg"
-                      className="border-blue-300 text-blue-700 hover:bg-blue-100"
-                      hoverScale={1.02}
-                    >
-                      📡 Register Your Server
-                    </AnimatedButton>
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </AnimatedCard.Body>
-        </AnimatedCard.Root>
-
-        {/* Next Steps */}
-        <div className="text-center mt-12 space-y-6">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-4xl mx-auto">
-            <h2 className="text-2xl font-bold text-blue-900 mb-3">What's Next?</h2>
-            <p className="text-blue-800 mb-6">
+          {/* Call to Action */}
+          <Box
+            w="full"
+            maxW="4xl"
+            bg="gradient-to-r"
+            gradientFrom="blue.50"
+            gradientTo="purple.50"
+            border="2px solid"
+            borderColor="blue.200"
+            rounded="xl"
+            p={8}
+            textAlign="center"
+          >
+            <Text fontSize="2xl" mb={3}>🎉</Text>
+            <Text fontSize="xl" fontWeight="semibold" color="gray.900" mb={3}>
+              Ready to Enable Dynamic Discovery?
+            </Text>
+            <Text color="gray.700" mb={6} lineHeight="relaxed">
               Once you have the bridge running, you can discover and connect to any MCP server dynamically.
               No more maintaining hardcoded lists!
-            </p>
-            <div className="flex flex-wrap gap-4 justify-center">
-              <Link href="/discover">
-                <AnimatedButton
-                  variant="solid"
-                  size="lg"
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                  hoverScale={1.02}
-                >
-                  🔍 Discover Servers
-                </AnimatedButton>
-              </Link>
-              <Link href="/dashboard">
-                <AnimatedButton
-                  variant="outline"
-                  size="lg"
-                  className="border-blue-300 text-blue-700 hover:bg-blue-100"
-                  hoverScale={1.02}
-                >
-                  🔑 Get API Keys
-                </AnimatedButton>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
+            </Text>
+            <HStack gap={4} justify="center" flexDir={{ base: "column", sm: "row" }}>
+              <Button
+                as={Link}
+                href="/discover"
+                colorPalette="blue"
+                size="lg"
+                px={8}
+              >
+                🔍 Start Discovering
+              </Button>
+              <Button
+                as={Link}
+                href="/register"
+                variant="outline"
+                colorPalette="blue"
+                size="lg"
+                px={8}
+              >
+                📡 Register Your Tools
+              </Button>
+            </HStack>
+          </Box>
+        </VStack>
+      </Box>
 
       <Footer />
-    </div>
+    </Box>
+
   )
 }

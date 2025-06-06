@@ -2,468 +2,470 @@
 
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
-import { AnimatedButton } from "@/components/ui/animated-button"
-import AnimatedCard, { AnimatedList } from "@/components/ui/animated-card"
+import { Box, Text, VStack, HStack, Badge, Button } from "@chakra-ui/react"
+import {
+  InfrastructureComparison,
+  UserPath,
+  WorkflowStep,
+  TrustSection,
+  TrustMetric,
+  DiscoveryFlow,
+  MCPToolCategory,
+  RegistrationFlow,
+  RegistrationBenefit,
+  InfrastructureFeature
+} from "@/components/mcplookup"
 import Link from "next/link"
 
 export default function HomePage() {
-
   return (
-    <div className="min-h-screen bg-white">
+    <Box minH="100vh" bg="white">
       <Header />
 
-      {/* Hero Section */}
-      <section className="relative bg-white py-16 px-4">
-        <div className="max-w-5xl mx-auto text-center">
-          <div className="space-y-6">
-            <div className="space-y-4">
-              <h1 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
-                Discover AI Tools
-                <span className="block text-blue-600">Dynamically</span>
-              </h1>
-              <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-                Stop hardcoding AI tool lists. Find and connect to Model Context Protocol servers
-                automatically with intelligent discovery.
-              </p>
-            </div>
+      {/* Hero Section: Professional Infrastructure Focus */}
+      <Box as="section" bg="gradient-to-br" gradientFrom="slate.50" gradientTo="blue.50" py={20}>
+        <Box maxW="6xl" mx="auto" px={4}>
+          <VStack gap={12} textAlign="center">
+            <Box
+              display="inline-flex"
+              alignItems="center"
+              bg="orange.100"
+              rounded="full"
+              px={4}
+              py={2}
+              mb={6}
+            >
+              <Text color="orange.700" fontSize="sm" fontWeight="medium">
+                ⚡ Dynamic Discovery Infrastructure
+              </Text>
+            </Box>
 
-            <div className="flex flex-col sm:flex-row gap-3 justify-center items-center pt-2">
-              <Link href="/discover">
-                <AnimatedButton
-                  variant="solid"
-                  size="lg"
-                  hoverScale={1.02}
-                  className="bg-slate-800 hover:bg-slate-900 text-white px-6 py-3 text-base font-medium"
-                >
-                  🔍 Start Discovering
-                </AnimatedButton>
-              </Link>
-              <Link href="/how-to-use">
-                <AnimatedButton
-                  variant="outline"
-                  size="lg"
-                  hoverScale={1.02}
-                  className="border-slate-300 text-slate-700 hover:bg-slate-50 px-6 py-3 text-base"
-                >
-                  📖 How It Works
-                </AnimatedButton>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+            <VStack gap={6}>
+              <Text fontSize={{ base: "4xl", md: "6xl" }} fontWeight="bold" color="gray.900" lineHeight="tight">
+                AI Tools That
+                <Text as="span" display="block" color="blue.600">
+                  Discover Themselves
+                </Text>
+              </Text>
 
-      {/* User Journey Paths */}
-      <section className="py-12 px-4 bg-white">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
-              Choose Your Path
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Whether you're building AI applications, creating tools, or just exploring,
-              we have the right solution for you.
-            </p>
-          </div>
+              <Text fontSize={{ base: "lg", md: "xl" }} color="gray.600" maxW="4xl" lineHeight="relaxed">
+                The infrastructure that makes AI agents discover and connect to MCP tools dynamically.
+                Discover existing tools today, and be ready when major services adopt MCP tomorrow.
+                <Text as="span" fontWeight="bold"> No hardcoded lists. Ever.</Text>
+              </Text>
+            </VStack>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Developers Path */}
-            <AnimatedCard.Root hoverScale={1.01} borderOnHover>
-              <AnimatedCard.Body>
-                <div className="p-6 text-center space-y-4">
-                  <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center mx-auto">
-                    <span className="text-2xl">👨‍💻</span>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">For Developers</h3>
-                    <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
-                      Start with free discovery to find AI tools. Get free API keys for server registration and analytics.
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    <Link href="/discover">
-                      <AnimatedButton
-                        variant="solid"
-                        size="sm"
-                        hoverScale={1.01}
-                        className="w-full bg-slate-700 hover:bg-slate-800 text-white text-sm py-2"
-                      >
-                        🔍 Discover Tools
-                      </AnimatedButton>
-                    </Link>
-                    <Link href="/how-to-use">
-                      <AnimatedButton
-                        variant="outline"
-                        size="sm"
-                        className="w-full border-slate-300 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs py-1.5"
-                      >
-                        📖 Integration Guide
-                      </AnimatedButton>
-                    </Link>
-                  </div>
-                </div>
-              </AnimatedCard.Body>
-            </AnimatedCard.Root>
+            <HStack gap={4} flexDir={{ base: "column", sm: "row" }}>
+              <Button
+                as={Link}
+                href="/discover"
+                colorPalette="blue"
+                size="lg"
+                px={8}
+                py={3}
+                _hover={{ transform: "translateY(-1px)" }}
+                transition="all 0.2s"
+              >
+                ⚡ Enable Dynamic Discovery
+              </Button>
+              <Button
+                as={Link}
+                href="/how-to-use"
+                variant="outline"
+                colorPalette="gray"
+                size="lg"
+                px={8}
+                py={3}
+                _hover={{ bg: "gray.50" }}
+              >
+                🔍 See Available Tools
+              </Button>
+            </HStack>
+          </VStack>
+        </Box>
+      </Box>
 
-            {/* Tool Creators Path */}
-            <AnimatedCard.Root hoverScale={1.01} borderOnHover>
-              <AnimatedCard.Body>
-                <div className="p-6 text-center space-y-4">
-                  <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center mx-auto">
-                    <span className="text-2xl">🛠️</span>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">For Tool Creators</h3>
-                    <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
-                      Make your AI tools discoverable. Get free API keys to register your MCP servers and reach more users.
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    <Link href="/dashboard">
-                      <AnimatedButton
-                        variant="solid"
-                        size="sm"
-                        hoverScale={1.01}
-                        className="w-full bg-slate-700 hover:bg-slate-800 text-white text-sm py-2"
-                      >
-                        🔑 Get API Keys
-                      </AnimatedButton>
-                    </Link>
-                    <Link href="/register">
-                      <AnimatedButton
-                        variant="outline"
-                        size="sm"
-                        className="w-full border-slate-300 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs py-1.5"
-                      >
-                        📡 Register Your Tool
-                      </AnimatedButton>
-                    </Link>
-                  </div>
-                </div>
-              </AnimatedCard.Body>
-            </AnimatedCard.Root>
+      {/* Dual Path Navigation: Discovery vs Registration */}
+      <Box as="section" py={16} bg="white">
+        <Box maxW="6xl" mx="auto" px={4}>
+          <VStack gap={12} textAlign="center">
+            <VStack gap={4}>
+              <Text fontSize={{ base: "2xl", md: "3xl" }} fontWeight="bold" color="gray.900">
+                Choose Your Path
+              </Text>
+              <Text fontSize="lg" color="gray.600" maxW="2xl">
+                Whether you're discovering tools or building them, we've got you covered.
+              </Text>
+            </VStack>
 
-            {/* Explorers Path */}
-            <AnimatedCard.Root hoverScale={1.01} borderOnHover>
-              <AnimatedCard.Body>
-                <div className="p-6 text-center space-y-4">
-                  <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center mx-auto">
-                    <span className="text-2xl">🌟</span>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">For Explorers</h3>
-                    <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
-                      Curious about AI tools? Browse the ecosystem and learn what's possible.
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    <Link href="/discover">
-                      <AnimatedButton
-                        variant="solid"
-                        size="sm"
-                        hoverScale={1.01}
-                        className="w-full bg-slate-700 hover:bg-slate-800 text-white text-sm py-2"
-                      >
-                        🌍 Explore Ecosystem
-                      </AnimatedButton>
-                    </Link>
-                    <Link href="/docs">
-                      <AnimatedButton
-                        variant="outline"
-                        size="sm"
-                        className="w-full border-slate-300 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs py-1.5"
-                      >
-                        📚 Learn More
-                      </AnimatedButton>
-                    </Link>
-                  </div>
-                </div>
-              </AnimatedCard.Body>
-            </AnimatedCard.Root>
-          </div>
-        </div>
-      </section>
+            <Box display="grid" gridTemplateColumns={{ base: "1fr", lg: "repeat(2, 1fr)" }} gap={8} w="full">
+              {/* Discovery Path - Majority */}
+              <UserPath
+                icon="🔍"
+                title="I want to discover MCP tools"
+                subtitle="For AI developers, researchers, and users"
+                description="Find and connect to MCP servers dynamically. No more maintaining hardcoded lists."
+                currentBenefits={[
+                  "Discover filesystem, database, git MCP tools automatically",
+                  "No hardcoded paths or configurations",
+                  "Community tools appear automatically",
+                  "Your custom MCP servers become discoverable"
+                ]}
+                futureBenefits={[
+                  "When Gmail builds MCP support, it appears automatically",
+                  "When Slack adopts MCP, zero config needed",
+                  "Any new MCP tool is instantly available"
+                ]}
+                primaryCTA={{
+                  text: "⚡ Enable Dynamic Discovery",
+                  href: "/how-to-use",
+                  className: "bg-blue-600 hover:bg-blue-700 text-white"
+                }}
+                secondaryCTA={{
+                  text: "📖 Setup Guide",
+                  href: "/how-to-use"
+                }}
+              />
 
-      {/* Problem/Solution Section */}
-      <section className="py-12 px-4 bg-gray-50">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
-              From Static Lists to Dynamic Discovery
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Stop maintaining hardcoded server lists. Discover AI tools automatically with intelligent search.
-            </p>
-          </div>
+              {/* Registration Path - Minority */}
+              <UserPath
+                icon="📡"
+                title="I want to register my MCP service"
+                subtitle="For MCP server developers and service providers"
+                description="Make your MCP server discoverable to the entire AI ecosystem. Get analytics and monitoring."
+                benefits={[
+                  "Your MCP tools become instantly discoverable",
+                  "Zero user configuration required",
+                  "Join the growing MCP ecosystem",
+                  "Be ready when major services adopt MCP"
+                ]}
+                examples={[
+                  "Custom business logic MCP servers",
+                  "API integration tools",
+                  "Specialized data processors",
+                  "Industry-specific tools"
+                ]}
+                primaryCTA={{
+                  text: "🔑 Get API Keys",
+                  href: "/dashboard",
+                  className: "bg-green-600 hover:bg-green-700 text-white"
+                }}
+                secondaryCTA={{
+                  text: "📋 Registration Guide",
+                  href: "/register"
+                }}
+              />
+            </Box>
+          </VStack>
+        </Box>
+      </Box>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-            {/* Before: The Problem */}
-            <AnimatedCard.Root hoverScale={1.01} borderOnHover>
-              <AnimatedCard.Body>
-                <div className="p-6">
-                  <div className="flex items-center mb-4">
-                    <div className="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center mr-3">
-                      <span className="text-red-600 text-sm font-bold">❌</span>
-                    </div>
-                    <h3 className="text-lg font-semibold text-gray-900">Before: Manual Configuration</h3>
-                  </div>
+      {/* How Dynamic Discovery Works Today */}
+      <Box as="section" py={16} bg="white">
+        <Box maxW="6xl" mx="auto" px={4}>
+          <VStack gap={12} textAlign="center">
+            <VStack gap={4}>
+              <Text fontSize={{ base: "2xl", md: "3xl" }} fontWeight="bold" color="gray.900">
+                How Dynamic Discovery Works Today
+              </Text>
+              <Text fontSize="lg" color="gray.600" maxW="2xl">
+                See real examples with currently available MCP tools
+              </Text>
+            </VStack>
 
-                  <div className="bg-gray-900 rounded-lg p-4 mb-4">
-                    <code className="text-green-400 text-sm block leading-relaxed">
-                      <span className="text-gray-500">// Hardcoded server lists</span><br/>
-                      <span className="text-blue-400">const</span> <span className="text-yellow-300">servers</span> = {`{`}<br/>
-                      &nbsp;&nbsp;<span className="text-orange-300">"gmail"</span>: <span className="text-orange-300">"https://gmail.com/mcp"</span>,<br/>
-                      &nbsp;&nbsp;<span className="text-orange-300">"slack"</span>: <span className="text-orange-300">"https://slack.com/api/mcp"</span>,<br/>
-                      &nbsp;&nbsp;<span className="text-gray-500">// Manually maintained...</span><br/>
-                      {`};`}
-                    </code>
-                  </div>
+            <DiscoveryFlow
+              steps={[
+                {
+                  trigger: 'User says: "What development tools are available?"',
+                  action: 'AI agent queries MCPLookup discovery infrastructure',
+                  result: 'Finds GitHub MCP tools, filesystem tools, database connectors',
+                  icon: '🗣️',
+                  realistic: true
+                },
+                {
+                  trigger: 'Discovery returns live endpoints',
+                  action: 'AI agent connects to available MCP servers',
+                  result: 'No hardcoded configuration needed',
+                  icon: '🔗',
+                  realistic: true
+                },
+                {
+                  trigger: 'Connection established',
+                  action: 'AI agent uses tools (file operations, git commands, etc.)',
+                  result: 'User gets seamless tool integration',
+                  icon: '✅',
+                  realistic: true
+                }
+              ]}
+            />
 
-                  <div className="space-y-2 text-sm text-gray-600">
-                    <div className="flex items-center">
-                      <span className="text-red-400 mr-2">•</span>
-                      Manual updates for every new tool
-                    </div>
-                    <div className="flex items-center">
-                      <span className="text-red-400 mr-2">•</span>
-                      Broken links and outdated endpoints
-                    </div>
-                    <div className="flex items-center">
-                      <span className="text-red-400 mr-2">•</span>
-                      No discovery of new capabilities
-                    </div>
-                    <div className="flex items-center">
-                      <span className="text-red-400 mr-2">•</span>
-                      Poor developer experience
-                    </div>
-                  </div>
-                </div>
-              </AnimatedCard.Body>
-            </AnimatedCard.Root>
+            <Box display="grid" gridTemplateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={8} w="full" maxW="4xl">
+              <Box
+                bg="green.50"
+                rounded="xl"
+                p={6}
+                border="1px solid"
+                borderColor="green.200"
+              >
+                <Text fontSize="lg" fontWeight="semibold" color="green.800" mb={3}>
+                  ✅ Available Today
+                </Text>
+                <VStack align="start" gap={2}>
+                  <Text fontSize="sm" color="green.700">• Development tools (filesystem, git, databases)</Text>
+                  <Text fontSize="sm" color="green.700">• Data analysis and processing tools</Text>
+                  <Text fontSize="sm" color="green.700">• Custom business logic servers</Text>
+                  <Text fontSize="sm" color="green.700">• Community-built MCP tools</Text>
+                  <Text fontSize="sm" color="green.700">• Your own MCP servers</Text>
+                </VStack>
+              </Box>
 
-            {/* After: The Solution */}
-            <AnimatedCard.Root hoverScale={1.01} borderOnHover>
-              <AnimatedCard.Body>
-                <div className="p-6">
-                  <div className="flex items-center mb-4">
-                    <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mr-3">
-                      <span className="text-green-600 text-sm font-bold">✅</span>
-                    </div>
-                    <h3 className="text-lg font-semibold text-gray-900">After: Dynamic Discovery</h3>
-                  </div>
+              <Box
+                bg="blue.50"
+                rounded="xl"
+                p={6}
+                border="1px solid"
+                borderColor="blue.200"
+              >
+                <Text fontSize="lg" fontWeight="semibold" color="blue.800" mb={3}>
+                  🚀 Coming Soon (When Services Adopt MCP)
+                </Text>
+                <VStack align="start" gap={2}>
+                  <Text fontSize="sm" color="blue.700">• Email services (Gmail, Outlook)</Text>
+                  <Text fontSize="sm" color="blue.700">• Communication tools (Slack, Discord)</Text>
+                  <Text fontSize="sm" color="blue.700">• Cloud platforms (AWS, Azure, GCP)</Text>
+                  <Text fontSize="sm" color="blue.700">• Productivity suites (Office 365, Google Workspace)</Text>
+                  <Text fontSize="sm" color="blue.700">• Any service that builds MCP support</Text>
+                </VStack>
+              </Box>
+            </Box>
+          </VStack>
+        </Box>
+      </Box>
 
-                  <div className="bg-gray-900 rounded-lg p-4 mb-4">
-                    <code className="text-green-400 text-sm block leading-relaxed">
-                      <span className="text-gray-500">// Dynamic discovery</span><br/>
-                      <span className="text-blue-400">const</span> <span className="text-yellow-300">servers</span> = <span className="text-blue-400">await</span> <span className="text-yellow-300">discover</span>({`{`}<br/>
-                      &nbsp;&nbsp;<span className="text-orange-300">capability</span>: <span className="text-orange-300">"email"</span>,<br/>
-                      &nbsp;&nbsp;<span className="text-orange-300">verified</span>: <span className="text-blue-400">true</span><br/>
-                      {`});`}<br/>
-                      <span className="text-gray-500">// Always up-to-date!</span>
-                    </code>
-                  </div>
+      {/* From Static Configuration to Dynamic Discovery */}
+      <Box as="section" py={16} bg="gray.50">
+        <Box maxW="6xl" mx="auto" px={4}>
+          <VStack gap={12} textAlign="center">
+            <VStack gap={4}>
+              <Text fontSize={{ base: "2xl", md: "3xl" }} fontWeight="bold" color="gray.900">
+                From Static Configuration to Dynamic Discovery
+              </Text>
+              <Text fontSize="lg" color="gray.600" maxW="2xl">
+                Real examples with currently available MCP tools
+              </Text>
+            </VStack>
 
-                  <div className="space-y-2 text-sm text-gray-600">
-                    <div className="flex items-center">
-                      <span className="text-green-500 mr-2">•</span>
-                      Automatic discovery of new tools
-                    </div>
-                    <div className="flex items-center">
-                      <span className="text-green-500 mr-2">•</span>
-                      Real-time health monitoring
-                    </div>
-                    <div className="flex items-center">
-                      <span className="text-green-500 mr-2">•</span>
-                      AI-powered capability matching
-                    </div>
-                    <div className="flex items-center">
-                      <span className="text-green-500 mr-2">•</span>
-                      Zero maintenance required
-                    </div>
-                  </div>
-                </div>
-              </AnimatedCard.Body>
-            </AnimatedCard.Root>
-          </div>
-        </div>
-      </section>
+            <Box display="grid" gridTemplateColumns={{ base: "1fr", lg: "repeat(2, 1fr)" }} gap={8} w="full">
+              {/* Static Hell */}
+              <InfrastructureComparison
+                type="static"
+                title="Static Configuration (Current Reality)"
+                icon="🔒"
+                theme="problem"
+                workflow={[
+                  "Developer manually configures filesystem MCP server",
+                  "Manually adds database connector MCP server",
+                  "Manually adds git operations MCP server",
+                  "New MCP tools require manual config updates",
+                  "Maintenance nightmare grows with each tool"
+                ]}
+                codeExample={`// Claude Desktop config.json
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/path"]
+    },
+    "postgres": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-postgres"]
+    },
+    "git": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-git"]
+    }
+    // Must manually add every single tool...
+  }
+}`}
+              />
 
-      {/* Features Section */}
-      <section className="py-12 px-4 bg-white">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
-              Key Features
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Built for scale, security, and simplicity. Everything you need to build modern AI applications.
-            </p>
-          </div>
+              {/* Dynamic Paradise */}
+              <InfrastructureComparison
+                type="dynamic"
+                title="Dynamic Discovery (MCPLookup Infrastructure)"
+                icon="⚡"
+                theme="solution"
+                workflow={[
+                  "AI agent queries: 'I need file system tools'",
+                  "Infrastructure returns available filesystem MCP servers",
+                  "AI agent queries: 'I need database tools'",
+                  "Infrastructure returns database connectors",
+                  "All tools discovered automatically as needed"
+                ]}
+                codeExample={`// Claude Desktop config.json
+{
+  "mcpServers": {
+    "dynamic-discovery": {
+      "command": "npx",
+      "args": ["@mcplookup/bridge"]
+    }
+  }
+}
+// Discovers filesystem, database, git, and any other
+// MCP tools automatically as needed.`}
+              />
+            </Box>
+          </VStack>
+        </Box>
+      </Box>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* AI-Powered Search */}
-            <AnimatedCard.Root hoverScale={1.01} borderOnHover>
-              <AnimatedCard.Body>
-                <div className="p-5 text-center">
-                  <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                    <span className="text-lg">🧠</span>
-                  </div>
-                  <h3 className="text-base font-semibold text-gray-900 mb-2">AI-Powered Search</h3>
-                  <p className="text-gray-600 text-sm">
-                    Find tools using natural language. "I need email and calendar integration" returns relevant MCP servers.
-                  </p>
-                </div>
-              </AnimatedCard.Body>
-            </AnimatedCard.Root>
+      {/* Current MCP Ecosystem */}
+      <Box as="section" py={16} bg="white">
+        <Box maxW="6xl" mx="auto" px={4}>
+          <VStack gap={12} textAlign="center">
+            <VStack gap={4}>
+              <Text fontSize={{ base: "2xl", md: "3xl" }} fontWeight="bold" color="gray.900">
+                Current MCP Ecosystem
+              </Text>
+              <Text fontSize="lg" color="gray.600" maxW="2xl">
+                Discover and connect to these MCP tools available today
+              </Text>
+            </VStack>
 
-            {/* DNS Verification */}
-            <AnimatedCard.Root hoverScale={1.01} borderOnHover>
-              <AnimatedCard.Body>
-                <div className="p-5 text-center">
-                  <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                    <span className="text-lg">🛡️</span>
-                  </div>
-                  <h3 className="text-base font-semibold text-gray-900 mb-2">DNS Verification</h3>
-                  <p className="text-gray-600 text-sm">
-                    Cryptographic proof of domain ownership ensures you're connecting to legitimate services.
-                  </p>
-                </div>
-              </AnimatedCard.Body>
-            </AnimatedCard.Root>
+            <Box display="grid" gridTemplateColumns={{ base: "1fr", md: "repeat(3, 1fr)" }} gap={6} w="full">
+              <MCPToolCategory
+                icon="💻"
+                title="Development Tools"
+                description="File systems, git operations, databases"
+                tools={[
+                  "@modelcontextprotocol/server-filesystem",
+                  "@modelcontextprotocol/server-git",
+                  "@modelcontextprotocol/server-postgres",
+                  "@modelcontextprotocol/server-sqlite"
+                ]}
+                verified={true}
+              />
 
-            {/* Real-time Health */}
-            <AnimatedCard.Root hoverScale={1.01} borderOnHover>
-              <AnimatedCard.Body>
-                <div className="p-5 text-center">
-                  <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                    <span className="text-lg">💓</span>
-                  </div>
-                  <h3 className="text-base font-semibold text-gray-900 mb-2">Health Monitoring</h3>
-                  <p className="text-gray-600 text-sm">
-                    Continuous monitoring ensures you only connect to healthy, responsive servers.
-                  </p>
-                </div>
-              </AnimatedCard.Body>
-            </AnimatedCard.Root>
+              <MCPToolCategory
+                icon="🔧"
+                title="Utility Tools"
+                description="System operations and integrations"
+                tools={[
+                  "Custom business logic servers",
+                  "API integration tools",
+                  "Data processing pipelines",
+                  "Workflow automation"
+                ]}
+                verified={false}
+              />
 
-            {/* Global Scale */}
-            <AnimatedCard.Root hoverScale={1.01} borderOnHover>
-              <AnimatedCard.Body>
-                <div className="p-5 text-center">
-                  <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                    <span className="text-lg">🌍</span>
-                  </div>
-                  <h3 className="text-base font-semibold text-gray-900 mb-2">Global Scale</h3>
-                  <p className="text-gray-600 text-sm">
-                    Serverless architecture with edge distribution for sub-100ms response times worldwide.
-                  </p>
-                </div>
-              </AnimatedCard.Body>
-            </AnimatedCard.Root>
+              <MCPToolCategory
+                icon="🌟"
+                title="Community Tools"
+                description="Community-built MCP servers"
+                tools={[
+                  "Your custom MCP servers",
+                  "Open source projects",
+                  "Experimental tools",
+                  "Specialized integrations"
+                ]}
+                verified={false}
+              />
+            </Box>
 
-            {/* Open Standards */}
-            <AnimatedCard.Root hoverScale={1.01} borderOnHover>
-              <AnimatedCard.Body>
-                <div className="p-5 text-center">
-                  <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                    <span className="text-lg">🔓</span>
-                  </div>
-                  <h3 className="text-base font-semibold text-gray-900 mb-2">Open Standards</h3>
-                  <p className="text-gray-600 text-sm">
-                    Built on open protocols. Fork our code, compete with us, improve the ecosystem.
-                  </p>
-                </div>
-              </AnimatedCard.Body>
-            </AnimatedCard.Root>
+            <Box
+              p={8}
+              bg="gradient-to-r"
+              gradientFrom="purple.50"
+              gradientTo="blue.50"
+              border="2px solid"
+              borderColor="purple.200"
+              rounded="xl"
+              textAlign="center"
+              maxW="4xl"
+            >
+              <Text fontSize="2xl" mb={3}>🚀</Text>
+              <Text fontSize="xl" fontWeight="semibold" color="gray.900" mb={3}>
+                The Future: When Major Services Adopt MCP
+              </Text>
+              <Text color="gray.700" mb={6} lineHeight="relaxed">
+                MCPLookup infrastructure is ready for when Gmail, Slack, GitHub, and other major services
+                build MCP servers. When they do, they'll be instantly discoverable with zero configuration changes.
+              </Text>
+              <Box
+                display="inline-flex"
+                alignItems="center"
+                bg="purple.100"
+                rounded="full"
+                px={4}
+                py={2}
+              >
+                <Text color="purple.700" fontSize="sm" fontWeight="medium">
+                  💡 Be ready for the MCP revolution before it happens
+                </Text>
+              </Box>
+            </Box>
+          </VStack>
+        </Box>
+      </Box>
 
-            {/* Developer Friendly */}
-            <AnimatedCard.Root hoverScale={1.01} borderOnHover>
-              <AnimatedCard.Body>
-                <div className="p-5 text-center">
-                  <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                    <span className="text-lg">⚡</span>
-                  </div>
-                  <h3 className="text-base font-semibold text-gray-900 mb-2">Developer Friendly</h3>
-                  <p className="text-gray-600 text-sm">
-                    Start with free discovery, then get free API keys for server registration. Simple REST API and comprehensive docs.
-                  </p>
-                </div>
-              </AnimatedCard.Body>
-            </AnimatedCard.Root>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="py-10 px-4 bg-blue-50">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
-              Trusted by Developers Worldwide
-            </h2>
-            <p className="text-lg text-gray-600">
-              Join the growing ecosystem of AI tools and applications.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="text-center">
-              <div className="text-2xl md:text-3xl font-bold text-blue-600 mb-1">500+</div>
-              <div className="text-gray-700 text-sm">Registered Servers</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl md:text-3xl font-bold text-blue-600 mb-1">99.9%</div>
-              <div className="text-gray-700 text-sm">Uptime</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl md:text-3xl font-bold text-blue-600 mb-1">&lt;100ms</div>
-              <div className="text-gray-700 text-sm">Response Time</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl md:text-3xl font-bold text-blue-600 mb-1">24/7</div>
-              <div className="text-gray-700 text-sm">Monitoring</div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Trust Metrics */}
+      <Box as="section" py={16} bg="blue.50">
+        <Box maxW="6xl" mx="auto" px={4}>
+          <TrustSection>
+            <TrustMetric value="500+" label="Registered Servers" />
+            <TrustMetric value="99.9%" label="Uptime SLA" />
+            <TrustMetric value="<100ms" label="Global Response Time" />
+            <TrustMetric value="24/7" label="Health Monitoring" />
+          </TrustSection>
+        </Box>
+      </Box>
 
       {/* Call to Action Section */}
-      <section className="py-12 px-4 bg-blue-600">
-        <div className="max-w-3xl mx-auto text-center">
-          <div className="space-y-6">
-            <h2 className="text-2xl md:text-3xl font-bold text-white">
-              Ready to Get Started?
-            </h2>
-            <p className="text-lg text-blue-100 max-w-xl mx-auto">
-              Join developers building the next generation of AI applications with dynamic tool discovery.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link href="/discover">
-                <AnimatedButton
-                  variant="solid"
-                  size="lg"
-                  hoverScale={1.02}
-                  className="bg-white text-blue-600 hover:bg-gray-100 px-6 py-3 text-base font-medium"
-                >
-                  🚀 Start Building
-                </AnimatedButton>
-              </Link>
-              <Link href="/register">
-                <AnimatedButton
-                  variant="outline"
-                  size="lg"
-                  hoverScale={1.02}
-                  className="border-blue-200 text-white hover:bg-blue-500 px-6 py-3 text-base"
-                >
-                  📡 Register Your Tool
-                </AnimatedButton>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+      <Box as="section" py={16} bg="blue.600">
+        <Box maxW="4xl" mx="auto" px={4} textAlign="center">
+          <VStack gap={6}>
+            <Text fontSize={{ base: "2xl", md: "3xl" }} fontWeight="bold" color="white">
+              Ready to Enable Dynamic Discovery?
+            </Text>
+            <Text fontSize="lg" color="blue.100" maxW="2xl" lineHeight="relaxed">
+              Join developers building the infrastructure that makes AI tools discoverable.
+              Start with available tools today, be ready for the future tomorrow.
+            </Text>
+            <HStack gap={4} flexDir={{ base: "column", sm: "row" }}>
+              <Button
+                as={Link}
+                href="/discover"
+                size="lg"
+                bg="white"
+                color="blue.600"
+                _hover={{ bg: "gray.100", transform: "translateY(-1px)" }}
+                px={8}
+                py={3}
+                fontWeight="medium"
+                transition="all 0.2s"
+              >
+                ⚡ Enable Discovery
+              </Button>
+              <Button
+                as={Link}
+                href="/register"
+                variant="outline"
+                size="lg"
+                borderColor="blue.200"
+                color="white"
+                _hover={{ bg: "blue.500" }}
+                px={8}
+                py={3}
+              >
+                📡 Make Tools Discoverable
+              </Button>
+            </HStack>
+          </VStack>
+        </Box>
+      </Box>
 
       <Footer />
-    </div>
+    </Box>
   )
 }

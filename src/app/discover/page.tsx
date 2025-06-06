@@ -3,8 +3,9 @@
 import React, { useState } from "react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
-import { AnimatedButton } from "@/components/ui/animated-button"
-import AnimatedCard from "@/components/ui/animated-card"
+import { Box, Text, VStack, HStack, Badge, Button, Input, Card } from "@chakra-ui/react"
+import { DiscoveryInterface } from "@/components/mcplookup"
+import Link from "next/link"
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
@@ -99,262 +100,246 @@ export default function DiscoverPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <Box minH="100vh" bg="white">
       <Header />
-      
-      <div className="max-w-5xl mx-auto py-16 px-4">
+
+      <Box maxW="6xl" mx="auto" py={16} px={4}>
         {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Discover MCP Servers
-          </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Find Model Context Protocol servers using AI-powered search, domain lookup, or capability matching.
-          </p>
-        </div>
+        <VStack gap={12} textAlign="center">
+          <VStack gap={4}>
+            <Text fontSize={{ base: "3xl", md: "4xl" }} fontWeight="bold" color="gray.900">
+              MCP Server Discovery Engine
+            </Text>
+            <Text fontSize="lg" color="gray.600" maxW="3xl" lineHeight="relaxed">
+              Find Model Context Protocol servers using AI-powered search, domain lookup, or capability matching.
+              Discover available tools today and be ready for tomorrow's ecosystem.
+            </Text>
+          </VStack>
 
-        {/* Search Interface */}
-        <AnimatedCard.Root hoverScale={1.01} borderOnHover>
-          <AnimatedCard.Body>
-            <div className="p-6">
-              <div className="space-y-4">
-                {/* Search Type Tabs */}
-                <div className="flex gap-2 justify-center">
-                  <button
-                    onClick={() => setSearchType("smart")}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      searchType === "smart"
-                        ? "bg-slate-700 text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
+          {/* Enhanced Search Interface */}
+          <Box
+            w="full"
+            maxW="4xl"
+            bg="gradient-to-r"
+            gradientFrom="blue.50"
+            gradientTo="purple.50"
+            rounded="2xl"
+            p={8}
+            border="1px solid"
+            borderColor="blue.200"
+          >
+            <DiscoveryInterface
+              searchModes={[
+                { id: 'smart', label: '🧠 AI Search', placeholder: 'Find development tools with git support' },
+                { id: 'domain', label: '🌐 Domain', placeholder: 'github.com' },
+                { id: 'capability', label: '🔧 Capability', placeholder: 'filesystem, database, git' }
+              ]}
+              quickSearches={[
+                'Find filesystem and file management tools',
+                'Show me database connectors',
+                'What git and version control tools are available?',
+                'Find development and coding utilities'
+              ]}
+            />
+          </Box>
+
+          {/* API Integration Banner */}
+          <Box
+            w="full"
+            maxW="4xl"
+            bg="blue.50"
+            border="1px solid"
+            borderColor="blue.200"
+            rounded="xl"
+            p={6}
+          >
+            <HStack justify="space-between" align="center">
+              <HStack gap={3}>
+                <Box
+                  w={10}
+                  h={10}
+                  bg="blue.100"
+                  rounded="full"
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                >
+                  <Text color="blue.600" fontSize="lg">⚡</Text>
+                </Box>
+                <VStack align="start" gap={1}>
+                  <Text fontSize="md" fontWeight="medium" color="blue.900">
+                    Free Discovery API
+                  </Text>
+                  <Text fontSize="sm" color="blue.700">
+                    Integrate discovery into your applications. No API key required for basic discovery.
+                  </Text>
+                </VStack>
+              </HStack>
+              <Button
+                as={Link}
+                href="/api/docs"
+                variant="outline"
+                colorPalette="blue"
+                size="sm"
+              >
+                View API Docs →
+              </Button>
+            </HStack>
+          </Box>
+
+          {/* Error Display */}
+          {error && (
+            <Box
+              w="full"
+              maxW="4xl"
+              bg="red.50"
+              border="1px solid"
+              borderColor="red.200"
+              rounded="lg"
+              p={4}
+              textAlign="center"
+            >
+              <Text color="red.800">{error}</Text>
+            </Box>
+          )}
+
+          {/* Results */}
+          {servers.length > 0 && (
+            <VStack gap={6} w="full" align="stretch">
+              <Text textAlign="center" color="gray.600">
+                Found {servers.length} MCP servers
+              </Text>
+
+              <Box
+                display="grid"
+                gridTemplateColumns={{ base: "1fr", md: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" }}
+                gap={6}
+                w="full"
+              >
+                {servers.map((server, index) => (
+                  <Card.Root
+                    key={server.domain}
+                    bg="white"
+                    borderWidth="1px"
+                    borderColor="gray.200"
+                    _hover={{
+                      borderColor: "blue.300",
+                      shadow: "lg",
+                      transform: "translateY(-2px)"
+                    }}
+                    transition="all 0.2s"
                   >
-                    🧠 AI Search
-                  </button>
-                  <button
-                    onClick={() => setSearchType("domain")}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      searchType === "domain"
-                        ? "bg-slate-700 text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
-                  >
-                    🌐 Domain
-                  </button>
-                  <button
-                    onClick={() => setSearchType("capability")}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      searchType === "capability"
-                        ? "bg-slate-700 text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
-                  >
-                    🔧 Capability
-                  </button>
-                </div>
+                    <Card.Body p={6}>
+                      <VStack align="stretch" gap={4}>
+                        {/* Server Header */}
+                        <VStack align="stretch" gap={2}>
+                          <HStack justify="space-between" align="start">
+                            <Text fontSize="md" fontWeight="semibold" color="gray.900" noOfLines={1}>
+                              {server.name || server.domain}
+                            </Text>
+                            {server.verified && (
+                              <Badge colorPalette="green" size="sm">✓ Verified</Badge>
+                            )}
+                          </HStack>
+                          <Text fontSize="sm" color="gray.600">{server.domain}</Text>
+                        </VStack>
 
-                {/* Search Input */}
-                <div className="flex gap-3">
-                  <input
-                    type="text"
-                    placeholder={
-                      searchType === "smart"
-                        ? "Ask in natural language: 'Find email servers like Gmail'"
-                        : searchType === "domain"
-                        ? "Enter domain: gmail.com"
-                        : "Enter capability: email, calendar, etc."
-                    }
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-                    className="flex-1 px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent"
-                  />
-                  <AnimatedButton
-                    onClick={handleSearch}
-                    disabled={loading || !searchQuery.trim()}
-                    variant="solid"
-                    size="lg"
-                    hoverScale={1.02}
-                    className="bg-slate-700 hover:bg-slate-800 text-white px-6"
-                  >
-                    {loading ? "Searching..." : "🔍 Search"}
-                  </AnimatedButton>
-                </div>
-
-                {/* Availability Filter */}
-                <div className="p-3 bg-gray-50 rounded-lg border">
-                  <div className="flex items-center space-x-3">
-                    <label className="flex items-center space-x-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={includePackageOnly}
-                        onChange={(e) => setIncludePackageOnly(e.target.checked)}
-                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                      />
-                      <span className="text-sm font-medium text-gray-700">
-                        📦 Include Package-Only Servers
-                      </span>
-                    </label>
-                    <div className="text-xs text-gray-500">
-                      (Deprecated servers that require local installation)
-                    </div>
-                  </div>
-                </div>
-
-                {/* Search Type Description */}
-                <div className="text-center">
-                  <p className="text-sm text-slate-600">
-                    {searchType === "smart" && "AI-powered search understands natural language queries"}
-                    {searchType === "domain" && "Find servers by their domain name"}
-                    {searchType === "capability" && "Search by what the server can do"}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </AnimatedCard.Body>
-        </AnimatedCard.Root>
-
-        {/* API Key Info Banner */}
-        <AnimatedCard.Root>
-          <AnimatedCard.Body>
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                    <span className="text-blue-600 text-sm">🔑</span>
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-blue-900">Building MCP Applications?</h3>
-                    <p className="text-xs text-blue-700">
-                      Discovery is free! Get free API keys for server registration, analytics, and developer features.
-                    </p>
-                  </div>
-                </div>
-                <div className="flex space-x-2">
-                  <a href="/dashboard" className="text-xs text-blue-600 hover:text-blue-800 font-medium">
-                    Get API Keys →
-                  </a>
-                </div>
-              </div>
-            </div>
-          </AnimatedCard.Body>
-        </AnimatedCard.Root>
-
-        {/* Error Display */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
-            <p className="text-red-800">{error}</p>
-          </div>
-        )}
-
-        {/* Results */}
-        {servers.length > 0 && (
-          <div className="space-y-4">
-            <div className="text-center">
-              <p className="text-slate-600">Found {servers.length} MCP servers</p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {servers.map((server, index) => (
-                <AnimatedCard.Root key={server.domain} hoverScale={1.02} borderOnHover>
-                  <AnimatedCard.Body>
-                    <div className="p-6 space-y-4">
-                      {/* Server Header */}
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <h3 className="font-semibold text-gray-900 truncate">
-                            {server.name || server.domain}
-                          </h3>
-                          {server.verified && (
-                            <span className="text-green-600 text-sm">✓ Verified</span>
-                          )}
-                        </div>
-                        <p className="text-sm text-slate-600">{server.domain}</p>
-                      </div>
-
-                      {/* Description */}
-                      {server.description && (
-                        <p className="text-sm text-gray-600 line-clamp-2">
-                          {server.description}
-                        </p>
-                      )}
-
-                      {/* Health Status */}
-                      <div className="flex items-center gap-2">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getHealthColor(server.health)}`}>
-                          {server.health || 'unknown'}
-                        </span>
-                        {server.response_time_ms && (
-                          <span className="text-xs text-slate-500">
-                            {server.response_time_ms}ms
-                          </span>
+                        {/* Description */}
+                        {server.description && (
+                          <Text fontSize="sm" color="gray.600" noOfLines={2}>
+                            {server.description}
+                          </Text>
                         )}
-                      </div>
 
-                      {/* Capabilities */}
-                      {server.capabilities && server.capabilities.length > 0 && (
-                        <div className="space-y-2">
-                          <p className="text-xs font-medium text-slate-700">Capabilities:</p>
-                          <div className="flex flex-wrap gap-1">
-                            {server.capabilities.slice(0, 3).map((cap) => (
-                              <span
-                                key={cap}
-                                className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs"
-                              >
-                                {cap}
-                              </span>
-                            ))}
-                            {server.capabilities.length > 3 && (
-                              <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">
-                                +{server.capabilities.length - 3} more
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      )}
+                        {/* Health Status */}
+                        <HStack gap={2}>
+                          <Badge
+                            colorPalette={
+                              server.health === "healthy" ? "green" :
+                              server.health === "degraded" ? "yellow" : "red"
+                            }
+                            size="sm"
+                          >
+                            {server.health || 'unknown'}
+                          </Badge>
+                          {server.response_time_ms && (
+                            <Text fontSize="xs" color="gray.500">
+                              {server.response_time_ms}ms
+                            </Text>
+                          )}
+                        </HStack>
 
-                      {/* Tools */}
-                      {server.tools && server.tools.length > 0 && (
-                        <div className="space-y-2">
-                          <p className="text-xs font-medium text-slate-700">Tools:</p>
-                          <div className="space-y-1">
-                            {server.tools.slice(0, 2).map((tool) => (
-                              <div key={tool.name} className="text-xs">
-                                <span className="font-medium">{tool.name}</span>
-                                {tool.description && (
-                                  <span className="text-slate-500 ml-1">- {tool.description}</span>
-                                )}
-                              </div>
-                            ))}
-                            {server.tools.length > 2 && (
-                              <p className="text-xs text-slate-500">+{server.tools.length - 2} more tools</p>
-                            )}
-                          </div>
-                        </div>
-                      )}
+                        {/* Capabilities */}
+                        {server.capabilities && server.capabilities.length > 0 && (
+                          <VStack align="stretch" gap={2}>
+                            <Text fontSize="xs" fontWeight="medium" color="gray.700">
+                              Capabilities:
+                            </Text>
+                            <HStack gap={1} flexWrap="wrap">
+                              {server.capabilities.slice(0, 3).map((cap) => (
+                                <Badge key={cap} colorPalette="blue" size="sm">
+                                  {cap}
+                                </Badge>
+                              ))}
+                              {server.capabilities.length > 3 && (
+                                <Badge colorPalette="blue" size="sm">
+                                  +{server.capabilities.length - 3} more
+                                </Badge>
+                              )}
+                            </HStack>
+                          </VStack>
+                        )}
 
-                      {/* Endpoint */}
-                      <div className="pt-2 border-t border-slate-200">
-                        <p className="text-xs text-slate-500 font-mono truncate">
-                          {server.endpoint}
-                        </p>
-                      </div>
-                    </div>
-                  </AnimatedCard.Body>
-                </AnimatedCard.Root>
-              ))}
-            </div>
-          </div>
-        )}
+                        {/* Tools */}
+                        {server.tools && server.tools.length > 0 && (
+                          <VStack align="stretch" gap={2}>
+                            <Text fontSize="xs" fontWeight="medium" color="gray.700">
+                              Tools:
+                            </Text>
+                            <VStack align="stretch" gap={1}>
+                              {server.tools.slice(0, 2).map((tool) => (
+                                <Box key={tool.name}>
+                                  <Text fontSize="xs" fontWeight="medium">{tool.name}</Text>
+                                  {tool.description && (
+                                    <Text fontSize="xs" color="gray.500">
+                                      {tool.description}
+                                    </Text>
+                                  )}
+                                </Box>
+                              ))}
+                              {server.tools.length > 2 && (
+                                <Text fontSize="xs" color="gray.500">
+                                  +{server.tools.length - 2} more tools
+                                </Text>
+                              )}
+                            </VStack>
+                          </VStack>
+                        )}
 
-        {/* No Results */}
-        {!loading && servers.length === 0 && searchQuery && (
-          <div className="text-center py-12">
-            <p className="text-slate-600">No servers found. Try a different search term.</p>
-          </div>
-        )}
-      </div>
+                        {/* Endpoint */}
+                        <Box pt={2} borderTop="1px solid" borderColor="gray.200">
+                          <Text fontSize="xs" color="gray.500" fontFamily="mono" noOfLines={1}>
+                            {server.endpoint}
+                          </Text>
+                        </Box>
+                      </VStack>
+                    </Card.Body>
+                  </Card.Root>
+                ))}
+              </Box>
+            </VStack>
+          )}
+
+          {/* No Results */}
+          {!loading && servers.length === 0 && searchQuery && (
+            <Box textAlign="center" py={12}>
+              <Text color="gray.600">No servers found. Try a different search term.</Text>
+            </Box>
+          )}
+        </VStack>
+      </Box>
 
       <Footer />
-    </div>
+    </Box>
   )
 }
