@@ -8,10 +8,13 @@ import { ApiKeysTab } from "@/components/dashboard/api-keys-tab"
 import { TrustMetric, InfrastructureFeature } from "@/components/mcplookup"
 import { LinkButton } from "@/components/ui/link-button"
 import Link from "next/link"
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 
-export default function DashboardPage() {
+// Force dynamic rendering to avoid static generation issues with useSearchParams
+export const dynamic = 'force-dynamic'
+
+function DashboardContent() {
   const [activeTab, setActiveTab] = useState('servers')
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [needsOnboarding, setNeedsOnboarding] = useState(false)
@@ -563,5 +566,13 @@ export default function DashboardPage() {
 
       <Footer />
     </Box>
+  )
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <DashboardContent />
+    </Suspense>
   )
 }
