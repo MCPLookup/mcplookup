@@ -3,10 +3,10 @@
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Box, Text, VStack, HStack, Badge, Button, Card, Tabs } from "@chakra-ui/react"
-import { ProgressBar } from "@chakra-ui/react"
 import { DashboardWalkthrough } from "@/components/onboarding/dashboard-walkthrough"
 import { ApiKeysTab } from "@/components/dashboard/api-keys-tab"
 import { TrustMetric, InfrastructureFeature } from "@/components/mcplookup"
+import { LinkButton } from "@/components/ui/link-button"
 import Link from "next/link"
 import { useState, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
@@ -199,14 +199,13 @@ export default function DashboardPage() {
                       >
                         🔄 Refresh Status
                       </Button>
-                      <Button
-                        as={Link}
+                      <LinkButton
                         href="/register"
                         colorPalette="blue"
                         size="sm"
                       >
                         ➕ Add New Server
-                      </Button>
+                      </LinkButton>
                     </HStack>
                   </HStack>
 
@@ -293,15 +292,23 @@ export default function DashboardPage() {
                                 <Text fontSize="xs" color="gray.500" mb={1}>Trust Score</Text>
                                 <HStack gap={2} align="center">
                                   <Text fontWeight="medium" fontSize="sm">{server.trustScore}/100</Text>
-                                  <ProgressBar
-                                    value={server.trustScore}
-                                    size="sm"
+                                  <Box
                                     w={12}
-                                    colorPalette={
-                                      server.trustScore >= 90 ? 'green' :
-                                      server.trustScore >= 70 ? 'yellow' : 'red'
-                                    }
-                                  />
+                                    h={2}
+                                    bg="gray.200"
+                                    rounded="full"
+                                    overflow="hidden"
+                                  >
+                                    <Box
+                                      w={`${server.trustScore}%`}
+                                      h="full"
+                                      bg={
+                                        server.trustScore >= 90 ? 'green.500' :
+                                        server.trustScore >= 70 ? 'yellow.500' : 'red.500'
+                                      }
+                                      transition="width 0.3s"
+                                    />
+                                  </Box>
                                 </HStack>
                               </Box>
                               <Box bg="gray.50" p={3} rounded="lg">
@@ -378,14 +385,13 @@ export default function DashboardPage() {
                         <Text color="gray.600">
                           Every additional server strengthens the dynamic discovery infrastructure.
                         </Text>
-                        <Button
-                          as={Link}
+                        <LinkButton
                           href="/register"
                           colorPalette="blue"
                           size="lg"
                         >
                           📡 Register Another Server
-                        </Button>
+                        </LinkButton>
                       </VStack>
                     </Card.Body>
                   </Card.Root>
@@ -527,32 +533,29 @@ export default function DashboardPage() {
               </Box>
             </Box>
             <HStack gap={4} justify="center" flexWrap="wrap">
-              <Button
-                as={Link}
+              <LinkButton
                 href="/register"
                 colorPalette="blue"
                 size="lg"
               >
                 📡 Register More Servers
-              </Button>
-              <Button
-                as={Link}
+              </LinkButton>
+              <LinkButton
                 href="/how-to-use"
                 variant="outline"
                 colorPalette="blue"
                 size="lg"
               >
                 🌉 Setup Bridge
-              </Button>
-              <Button
-                as={Link}
+              </LinkButton>
+              <LinkButton
                 href="/open-standards"
                 variant="outline"
                 colorPalette="purple"
                 size="lg"
               >
                 🌍 Learn More
-              </Button>
+              </LinkButton>
             </HStack>
           </Box>
         </VStack>

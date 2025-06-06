@@ -64,7 +64,7 @@ export async function GET(
       health: healthMetrics,
       capabilities_working: capabilitiesWorking,
       ssl_valid: sslValid,
-      trust_score: calculateTrustScore(healthMetrics, capabilitiesWorking, sslValid, server.verification.dns_verified)
+      trust_score: calculateTrustScore(healthMetrics, capabilitiesWorking, sslValid, server.verification?.dns_verified || false)
     };
 
     const nextResponse = NextResponse.json(response, {

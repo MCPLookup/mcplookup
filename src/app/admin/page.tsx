@@ -4,6 +4,7 @@ import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { Box, Text, VStack, HStack, Badge, Button, Card } from "@chakra-ui/react"
 import { TrustMetric } from "@/components/mcplookup"
+import { LinkButton } from "@/components/ui/link-button"
 import Link from "next/link"
 import { useState, useEffect } from "react"
 
@@ -104,20 +105,19 @@ export default function AdminDashboardPage() {
 
           {/* Admin Actions Grid */}
           <Box display="grid" gridTemplateColumns={{ base: "1fr", md: "repeat(2, 1fr)", lg: "repeat(4, 1fr)" }} gap={6}>
-            <Card.Root
-              as={Link}
-              href="/admin/users"
-              bg="white"
-              borderWidth="1px"
-              borderColor="gray.200"
-              _hover={{
-                borderColor: "blue.300",
-                transform: "translateY(-2px)",
-                shadow: "lg"
-              }}
-              transition="all 0.2s"
-              cursor="pointer"
-            >
+            <Link href="/admin/users">
+              <Card.Root
+                bg="white"
+                borderWidth="1px"
+                borderColor="gray.200"
+                _hover={{
+                  borderColor: "blue.300",
+                  transform: "translateY(-2px)",
+                  shadow: "lg"
+                }}
+                transition="all 0.2s"
+                cursor="pointer"
+              >
               <Card.Body p={6} textAlign="center">
                 <VStack gap={4}>
                   <Text fontSize="4xl">👥</Text>
@@ -132,7 +132,8 @@ export default function AdminDashboardPage() {
                   </Badge>
                 </VStack>
               </Card.Body>
-            </Card.Root>
+              </Card.Root>
+            </Link>
 
             <Card.Root
               bg="white"
@@ -259,14 +260,13 @@ export default function AdminDashboardPage() {
                 </Box>
               </Box>
               <HStack gap={4} flexWrap="wrap" justify="center">
-                <Button
-                  as={Link}
+                <LinkButton
                   href="/admin/users"
                   colorPalette="blue"
                   size="lg"
                 >
                   👥 Manage Users
-                </Button>
+                </LinkButton>
                 <Button
                   variant="outline"
                   colorPalette="blue"

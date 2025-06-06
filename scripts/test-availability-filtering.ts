@@ -228,7 +228,13 @@ function testBackwardCompatibility() {
     auth: { type: 'none' },
     cors_enabled: true,
     created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
+    updated_at: new Date().toISOString(),
+    availability: {
+      status: 'live',
+      live_endpoint: 'https://legacy-server.com/mcp',
+      endpoint_verified: true,
+      packages_available: false
+    }
   };
 
   // Test that legacy server defaults to 'live' status
