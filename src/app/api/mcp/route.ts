@@ -300,6 +300,85 @@ function createAuthenticatedMcpHandler() {
       }
     );
 
+    // Tool 2.5: register_mcp_server_from_github - Auto-register MCP server from GitHub repository
+    server.tool(
+      "register_mcp_server_from_github",
+      "Automatically analyze and register an MCP server from a GitHub repository URL. Includes intelligent analysis, quality assessment, and rejection logic.",
+      {
+        github_url: z.string().url().regex(/^https:\/\/github\.com\/[^\/]+\/[^\/]+\/?$/).describe("GitHub repository URL (e.g., \"https://github.com/owner/mcp-server-repo\")"),
+        contact_email: z.string().email().describe("Contact email for verification and notifications"),
+        force_register: z.boolean().default(false).describe("Force registration despite analysis warnings or rejections"),
+        skip_analysis: z.boolean().default(false).describe("Skip detailed analysis for faster processing (not recommended)"),
+        user_id: z.string().describe("Your authenticated user ID - required for registration")
+      },
+      async (args, request) => {
+        try {
+          // 🔒 SECURITY: Validate API key authentication for registration
+          const authResult = await validateMCPToolAuth(request, "register_mcp_server_from_github", args);
+
+          if (!authResult.success) {
+            return {
+              content: [{
+                type: "text",
+                text: JSON.stringify({
+                  error: "Authentication failed",
+                  message: authResult.error,
+                  tool: "register_mcp_server_from_github",
+                  timestamp: new Date().toISOString()
+                }, null, 2)
+              }]
+            };
+          }
+
+          // Use authenticated user ID
+          const userId = authResult.context?.userId || args.user_id;
+
+          // Call the GitHub auto-registration API internally by making a fetch request
+          const response = await fetch(`${process.env.NEXTAUTH_URL || "http://localhost:3000"}/api/v1/register/github`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${authResult.context?.apiKey || "internal"}`
+            },
+            body: JSON.stringify({
+              github_url: args.github_url,
+              contact_email: args.contact_email,
+              force_register: args.force_register,
+              skip_analysis: args.skip_analysis
+            })
+          });
+
+          const data = await response.json();
+
+          // Return the response from the GitHub auto-registration API
+          return {
+            content: [{
+              type: "text",
+              text: JSON.stringify({
+                ...data,
+                tool: "register_mcp_server_from_github",
+                timestamp: new Date().toISOString()
+              }, null, 2)
+            }]
+          };
+
+        } catch (error) {
+          return {
+            content: [{
+              type: "text",
+              text: JSON.stringify({
+                error: "GitHub auto-registration failed",
+                message: error instanceof Error ? error.message : "Unknown error",
+                github_url: args.github_url,
+                timestamp: new Date().toISOString()
+              }, null, 2)
+            }]
+          };
+        }
+      }
+    );
+
+
     // Tool 3: verify_domain_ownership - Check DNS verification status
     server.tool(
       'verify_domain_ownership',
@@ -777,6 +856,16 @@ function createAuthenticatedMcpHandler() {
                 'Add new productivity server to registry'
               ]
             },
+            },
+            {
+              name: "register_mcp_server_from_github",
+              description: "Automatically analyze and register an MCP server from a GitHub repository URL with intelligent analysis and quality assessment.",
+              category: "registration",
+              parameters: ["github_url", "contact_email", "force_register", "skip_analysis"],
+              examples: [
+                "Register https://github.com/owner/mcp-server-repo",
+                "Auto-register MCP server from GitHub with analysis"
+              ]
             {
               name: 'verify_domain_ownership',
               description: 'Check DNS verification status for domain registration.',
@@ -846,6 +935,7 @@ function createAuthenticatedMcpHandler() {
                 usage_instructions: [
                   'Use discover_mcp_servers for finding servers',
                   'Use register_mcp_server to add new servers',
+                  "Use register_mcp_server_from_github for GitHub auto-registration",
                   'Use verify_domain_ownership to check verification',
                   'Use get_server_health for monitoring',
                   'Use browse_capabilities to explore features',
