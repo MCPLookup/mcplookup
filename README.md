@@ -1,192 +1,199 @@
-# MCPLOOKUP.ORG - README
+# 🔥 Stop Hardcoding AI Tools Forever
 
-**🔥 The Universal MCP Discovery Service - The DNS of AI Tools**
+## **The Problem: AI Agents Are Stuck in the Stone Age**
 
-[\![Build Status](https://github.com/mcplookup/registry/workflows/CI/badge.svg)](https://github.com/mcplookup/registry/actions)
-[\![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[\![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-green.svg)](https://nodejs.org/)
-[\![MCP Protocol](https://img.shields.io/badge/MCP-2025--03--26-blue.svg)](https://modelcontextprotocol.io)
+Every AI agent today uses **hardcoded lists** of tools. Want Gmail integration? Manually add it. Need Slack? Edit config files. Want GitHub? More manual work.
+
+**This is like manually editing your browser bookmarks every time a new website is created.**
+
+## **The Solution: Dynamic Discovery**
+
+**MCPLookup.org makes AI tools as discoverable as web pages.**
+
+Just like your browser finds websites through DNS, AI agents now discover tools in real-time through our universal registry.
 
 ---
 
-## 🎯 **THE REVOLUTION: THE END OF HARDCODED LISTS**
+# 🚀 **Get Started in 2 Minutes**
 
-**The Problem**: Every AI agent today maintains static, hardcoded lists of tools and services. This is the equivalent of having to manually edit your browser's bookmarks every time a new website is created.
+## **Step 1: Install the CLI**
+```bash
+npm install -g @mcplookup-org/mcpl-cli
+```
 
-**Our Solution**: **Dynamic Discovery** - AI agents discover tools in real-time, just like web browsers discover websites through DNS.
+## **Step 2: Get Your Free API Key**
+[**→ Get API Key (30 seconds)**](https://mcplookup.org/dashboard)
 
-## 🚀 **MCPL Ecosystem**
+## **Step 3: Install Your First AI Tool**
+```bash
+# Login with your API key
+mcpl login --key your-api-key
 
-The MCPLookup.org platform consists of multiple repositories for different use cases:
+# Find and install tools instantly
+mcpl search "email automation"
+mcpl install @modelcontextprotocol/server-gmail
 
-### **📚 [@mcplookup-org/mcp-sdk](https://github.com/MCPLookup-org/mcp-sdk)**
-**The Official SDK for MCP Development**
-- 🔌 **Generated API Client** - Type-safe access to MCPLookup.org discovery service
-- 📝 **TypeScript Types** - Complete type definitions for MCP protocols
-- 🛠️ **Shared Utilities** - Common functions for response handling, validation, and configuration
-- 🔄 **Auto-Generation** - Keep your client up-to-date with the latest API changes
+# That's it\! Claude now has Gmail integration
+```
 
+## **Step 4: Use in Claude Desktop**
+Open Claude and try:
+> **"Send an email to john@company.com about the project update"**
+
+🎉 **It just works\!** No config files, no manual setup, no hardcoded lists.
+
+---
+
+# 💡 **What You Can Do**
+
+## **🔍 Discover Any Tool Instantly**
+```bash
+# Natural language search
+mcpl search "calendar scheduling tools"
+mcpl search "file management for cloud storage"
+mcpl search "customer support automation"
+
+# AI-powered recommendations
+mcpl search "I need tools for data analysis" --smart
+```
+
+## **📦 Install with One Command**
+```bash
+# Direct installation (recommended)
+mcpl install @company/awesome-tool
+
+# Bridge mode for multiple tools
+mcpl install @company/tool1 @company/tool2 --mode bridge
+
+# Global installation for developers
+mcpl install @company/dev-tool --global
+```
+
+## **🔧 Manage Everything Easily**
+```bash
+# Check status
+mcpl status
+
+# Monitor health
+mcpl health --watch
+
+# Control servers
+mcpl control server-name restart
+```
+
+---
+
+# 🎯 **Popular Use Cases**
+
+## **📧 Email Automation**
+```bash
+mcpl install @modelcontextprotocol/server-gmail
+```
+**Claude can now:** Send emails, read inbox, search messages, create drafts
+
+## **📁 File Management**
+```bash
+mcpl install @modelcontextprotocol/server-filesystem
+```
+**Claude can now:** List files, read/write documents, organize folders, search content
+
+## **📅 Calendar Integration**
+```bash
+mcpl install @company/calendar-server
+```
+**Claude can now:** Schedule meetings, check availability, send invites, manage events
+
+## **💼 CRM & Sales**
+```bash
+mcpl install @company/crm-server
+```
+**Claude can now:** Look up contacts, track opportunities, update deals, generate reports
+
+---
+
+# 🔗 **Want to Dig Deeper?**
+
+## **📚 For Users**
+- **[Complete User Guide](./GETTING_STARTED_COMPLETE.md)** - Zero to hero in 30 minutes
+- **[Visual Workflow Guide](./VISUAL_WORKFLOW_GUIDE.md)** - Interactive diagrams and flowcharts
+- **[Troubleshooting Guide](./USER_INTERFACE_GUIDE.md#troubleshooting)** - Fix common issues
+
+## **🛠️ For Developers**
+
+### **[@mcplookup-org/mcp-sdk](https://github.com/MCPLookup-org/mcp-sdk)**
+**Build with our SDK**
 ```bash
 npm install @mcplookup-org/mcp-sdk
 ```
+- Type-safe API client
+- Auto-generated from live API
+- Complete TypeScript support
 
-### **🌉 [@mcplookup-org/mcp-server](https://github.com/MCPLookup-org/mcp-server)**
-**Universal MCP Bridge Server - Dynamic Discovery & Tool Management**
-- 🔍 **Dynamic Discovery** - Eliminates hardcoded server lists forever
-- 🧠 **AI-Powered Search** - Natural language server recommendations
-- 📦 **Server Management** - Install and manage MCP servers
-- 🔧 **Tool Invocation** - Call tools from any discovered server
-
+### **[@mcplookup-org/mcp-server](https://github.com/MCPLookup-org/mcp-server)**
+**Universal Bridge Server**
 ```bash
 npm install -g @mcplookup-org/mcp-server
 ```
+- Manage multiple MCP servers
+- Dynamic tool discovery
+- Real-time health monitoring
 
-### **🖥️ [@mcplookup-org/mcpl-cli](https://github.com/MCPLookup-org/mcpl-cli)**
-**Enhanced MCP Server Management CLI**
-- 🔍 **Smart Discovery** - Find servers using natural language or technical filters
-- 📦 **Easy Installation** - Multiple installation modes (direct, bridge, global)
-- 🔧 **Lifecycle Management** - Start, stop, restart, and monitor servers
-- 🎨 **Beautiful Interface** - Rich CLI with colors, spinners, and progress bars
-
+### **[@mcplookup-org/mcpl-cli](https://github.com/MCPLookup-org/mcpl-cli)**
+**Enhanced CLI Tool**
 ```bash
 npm install -g @mcplookup-org/mcpl-cli
 ```
+- Beautiful command-line interface
+- Multiple installation modes
+- Advanced server management
 
-### **🌐 [MCPLookup-org/mcplookup.org](https://github.com/MCPLookup-org/mcplookup.org)**
-**The Discovery Service Website & API**
-- 🌐 **Web Interface** - Human-friendly server discovery and registration
-- 🔌 **REST API** - Programmatic access to the discovery service
-- 🔐 **DNS Verification** - Cryptographic proof of domain ownership
-- 📊 **Real-time Health** - Live server status and performance metrics
+## **🏗️ For Publishers**
 
-## ⚡ **Quick Start**
-
-### For AI Developers
-
-```typescript
-import { MCPLookupAPIClient } from '@mcplookup-org/mcp-sdk';
-
-// Discover MCP servers dynamically
-const client = new MCPLookupAPIClient();
-const servers = await client.discover({ query: 'filesystem' });
-```
-
-### For CLI Users
-
+### **Register Your MCP Server**
 ```bash
-# Install the CLI
-npm install -g @mcplookup-org/mcpl-cli
-
-# Search for servers
-mcpl search "email automation tools"
-
-# Install a server
-mcpl install @modelcontextprotocol/server-filesystem
-```
-
-### For Service Providers
-
-```bash
-# Register your MCP server
+# Register your server
 curl -X POST https://mcplookup.org/api/v1/register \
   -H "Content-Type: application/json" \
   -d '{"domain": "myservice.com", "endpoint": "https://myservice.com/mcp"}'
 ```
 
-## 🏗️ **Architecture: The Dynamic Discovery Engine**
-
-### **🚀 Zero-Hardcoding Architecture**
-
-```
-┌─────────────────┐ ┌──────────────────┐ ┌─────────────────┐
-│ AI AGENTS       │─▶│ MCPLOOKUP.ORG    │─▶│ MCP SERVERS     │
-│                 │  │ DYNAMIC ENGINE   │  │                 │
-│ • Claude        │  │ • DNS Discovery  │  │ • gmail.com/mcp │
-│ • ChatGPT       │  │ • Well-Known     │  │ • github.com/   │
-│ • Custom Agents │  │ • Live Registry  │  │ • ANY domain    │
-└─────────────────┘  └──────────────────┘  └─────────────────┘
-```
-
-## 🔧 **API Integration**
-
-### Discovery API
-
-```bash
-# Find servers by domain
-curl https://mcplookup.org/api/v1/discover/domain/gmail.com
-
-# Smart AI-powered search
-curl -X POST https://mcplookup.org/api/v1/discover/smart \
-  -d '{"query": "I need email automation tools"}'
-```
-
-### MCP Server
-
-```bash
-# Connect to the discovery MCP server
-mcp connect https://mcplookup.org/api/mcp
-```
-
-**Available MCP Tools:**
-- `discover_mcp_servers` - Find servers by domain/capability/intent
-- `register_mcp_server` - Register new servers with verification
-- `get_server_health` - Real-time health and performance metrics
-
-## 📚 **Documentation**
-
-### **🚀 Start Here**
-- **[🔥 The Future of MCP](THE_FUTURE_OF_MCP.md)** - Our vision for eliminating hardcoded lists
-- **[👤 User Guide](USER_GUIDE.md)** - Complete discovery and registration guide
-- **[⚡ API Reference](API_SPECIFICATION.md)** - Complete REST API documentation
-
-### **📖 Repository Documentation**
-- **[mcp-sdk Documentation](https://github.com/MCPLookup-org/mcp-sdk#readme)** - SDK usage and API reference
-- **[mcp-server Documentation](https://github.com/MCPLookup-org/mcp-server#readme)** - Bridge server setup and tools
-- **[mcpl-cli Documentation](https://github.com/MCPLookup-org/mcpl-cli#readme)** - CLI commands and usage
-
-### **🔧 Technical Specifications**
-- [`PROJECT_SPEC.md`](./PROJECT_SPEC.md) - Complete project overview
-- [`MCP_SERVER_SPEC.md`](./MCP_SERVER_SPEC.md) - MCP discovery server details
-- [`API_SPEC.md`](./API_SPEC.md) - REST API documentation
-- [`DEPLOYMENT_GUIDE.md`](./DEPLOYMENT_GUIDE.md) - Production deployment
-
-## 🌍 **Open Standards, Not Monopolies**
-
-MCPLookup.org is built on open standards and encourages competition:
-
-✅ **Open Source**: Every line of code is public and forkable  
-✅ **Open Standards**: DNS and HTTP standards anyone can implement  
-✅ **Open Collaboration**: Working with industry leaders, not against them  
-✅ **Open Distribution**: Encouraging alternative implementations  
-
-## 🤝 **Contributing**
-
-### Development Setup
-
-```bash
-# Clone and setup
-git clone https://github.com/MCPLookup-org/mcplookup.org.git
-cd mcplookup.org
-npm install
-npm run dev
-```
-
-### Related Repositories
-
-- **[mcp-sdk](https://github.com/MCPLookup-org/mcp-sdk)** - Shared SDK and utilities
-- **[mcp-server](https://github.com/MCPLookup-org/mcp-server)** - Universal MCP bridge server
-- **[mcpl-cli](https://github.com/MCPLookup-org/mcpl-cli)** - CLI management tool
-
-## 📄 **License**
-
-MIT License - see [LICENSE](./LICENSE) file for details.
+### **Developer Resources**
+- **[API Documentation](./API_SPECIFICATION.md)** - Complete REST API reference
+- **[MCP Server Spec](./MCP_SERVER_SPEC.md)** - Build your own MCP server
+- **[Developer Guide](./DEVELOPER_GUIDE.md)** - Technical implementation details
 
 ---
 
-**🔥 MCPLookup.org - Making AI tools as discoverable as web pages**
+# 🌍 **Open Standards, Not Monopolies**
 
-*The professional registry for AI capabilities. Enterprise-grade MCP server discovery.*
+MCPLookup.org is built on **open standards** and encourages competition:
+
+✅ **Open Source** - Every line of code is public and forkable  
+✅ **Open Standards** - DNS and HTTP standards anyone can implement  
+✅ **Open Collaboration** - Working with industry leaders, not against them  
+✅ **Open Distribution** - Encouraging alternative implementations  
 
 ---
 
-*Ready to revolutionize AI tool discovery? [Get started now\!](https://mcplookup.org)*
+# 🤝 **Community & Support**
+
+## **💬 Get Help**
+- **[Discord Community](https://discord.gg/mcplookup)** - Get help and share experiences
+- **[GitHub Issues](https://github.com/MCPLookup-org/mcpl-cli/issues)** - Report bugs and request features
+- **[Documentation](https://mcplookup.org/docs)** - Complete guides and tutorials
+
+## **🚀 Quick Links**
+- **[Get Started Now](./GETTING_STARTED_COMPLETE.md)** - 30-minute complete guide
+- **[Visual Guide](./VISUAL_WORKFLOW_GUIDE.md)** - Interactive learning
+- **[API Reference](./API_SPECIFICATION.md)** - Technical documentation
+- **[Developer Portal](https://mcplookup.org/developers)** - Build and publish tools
+
+---
+
+**🔥 Ready to revolutionize your AI workflow?**
+
+[**→ Get Started in 2 Minutes**](#-get-started-in-2-minutes) | [**→ Join Discord Community**](https://discord.gg/mcplookup) | [**→ View on GitHub**](https://github.com/MCPLookup-org)
+
+---
+
+*Making AI tools as discoverable as web pages. The professional registry for AI capabilities.*
