@@ -14,6 +14,12 @@ export interface User {
   emailVerified?: Date | null;
 }
 
+export interface AuthState {
+  user: User | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+}
+
 /**
  * Get current session (server-side)
  * Use in server components and API routes
@@ -44,7 +50,7 @@ export async function getCurrentUser(): Promise<User | null> {
       email: session.user.email || '',
       name: session.user.name || '',
       image: session.user.image || undefined,
-      emailVerified: session.user.emailVerified || null
+      emailVerified: (session.user as any).emailVerified || null
     }
   } catch (error) {
     console.error('Get current user error:', error)
@@ -96,7 +102,7 @@ export async function requireAuthAPI(request: NextRequest): Promise<
     email: session.user.email || '',
     name: session.user.name || '',
     image: session.user.image || undefined,
-    emailVerified: session.user.emailVerified || null
+    emailVerified: (session.user as any).emailVerified || null
   }
 
   return { user }

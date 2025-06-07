@@ -9,12 +9,31 @@ vi.mock('@/lib/services', () => ({
 
 // Mock services
 const mockRegistryService = {
-  getServersByDomain: vi.fn()
-};
+  getServersByDomain: vi.fn(),
+  storage: {} as any,
+  COLLECTION: 'servers',
+  getAllServers: vi.fn(),
+  getVerifiedServers: vi.fn(),
+  getServersByCapability: vi.fn(),
+  getServersByCategory: vi.fn(),
+  registerServer: vi.fn(),
+  updateServer: vi.fn(),
+  deleteServer: vi.fn(),
+  getServerStats: vi.fn(),
+  searchServers: vi.fn(),
+  getServersByIntent: vi.fn(),
+  getServersByAvailability: vi.fn(),
+  getServersByTrustScore: vi.fn(),
+  getAllVerifiedServers: vi.fn(),
+  getServersByDomainPattern: vi.fn()
+} as any;
 
 const mockHealthService = {
-  checkServerHealth: vi.fn()
-};
+  checkServerHealth: vi.fn(),
+  getHealthHistory: vi.fn(),
+  updateHealthStatus: vi.fn(),
+  getHealthStats: vi.fn()
+} as any;
 
 describe('/api/v1/health/[domain]', () => {
   beforeEach(async () => {
@@ -25,6 +44,10 @@ describe('/api/v1/health/[domain]', () => {
     vi.mocked(services.getServerlessServices).mockReturnValue({
       registry: mockRegistryService,
       health: mockHealthService,
+      user: {} as any,
+      audit: {} as any,
+      ai: {} as any,
+      aiStorage: {} as any,
       intent: {} as any,
       discovery: {} as any,
       verification: {} as any

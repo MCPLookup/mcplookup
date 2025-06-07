@@ -135,9 +135,15 @@ export function ServerDetailsModal({ server }: ServerDetailsModalProps) {
                 <Text color="gray.600" _dark={{ color: "gray.300" }}>
                   {server.domain}
                 </Text>
-                <Code fontSize="sm" colorPalette="blue">
-                  {server.endpoint}
-                </Code>
+                {server.endpoint ? (
+                  <Code fontSize="sm" colorPalette="blue">
+                    {server.endpoint}
+                  </Code>
+                ) : (
+                  <Badge colorPalette="orange" variant="outline">
+                    📦 Package-Only Server
+                  </Badge>
+                )}
               </VStack>
               <VStack align="end" gap={2}>
                 {server.verified && (
@@ -512,6 +518,51 @@ export function ServerDetailsModal({ server }: ServerDetailsModalProps) {
                   </VStack>
                 </>
               )}
+            </VStack>
+          </Card.Body>
+        </Card.Root>
+      )}
+
+      {/* Package Information */}
+      {(server as any).packages && (server as any).packages.length > 0 && (
+        <Card.Root>
+          <Card.Header>
+            <HStack gap={2}>
+              <Icon color="purple.500">📦</Icon>
+              <Heading size="md">Installation Packages ({(server as any).packages.length})</Heading>
+            </HStack>
+          </Card.Header>
+          <Card.Body>
+            <VStack gap={4} align="stretch">
+              {(server as any).packages.map((pkg: any, idx: number) => (
+                <VStack key={idx} align="start" gap={2} p={3} bg="gray.50" _dark={{ bg: "gray.800" }} rounded="md">
+                  <HStack gap={2}>
+                    <Badge colorPalette="purple" variant="solid">
+                      {pkg.registry_name}
+                    </Badge>
+                    <Text fontSize="sm" fontWeight="semibold">{pkg.name}</Text>
+                    <Text fontSize="xs" color="gray.500">v{pkg.version}</Text>
+                  </HStack>
+
+                  {pkg.installation_command && (
+                    <VStack align="start" gap={1}>
+                      <Text fontSize="xs" fontWeight="semibold">Installation:</Text>
+                      <Code fontSize="xs" colorPalette="purple" p={2} rounded="md" width="full">
+                        {pkg.installation_command}
+                      </Code>
+                    </VStack>
+                  )}
+
+                  {pkg.startup_command && (
+                    <VStack align="start" gap={1}>
+                      <Text fontSize="xs" fontWeight="semibold">Startup:</Text>
+                      <Code fontSize="xs" colorPalette="green" p={2} rounded="md" width="full">
+                        {pkg.startup_command}
+                      </Code>
+                    </VStack>
+                  )}
+                </VStack>
+              ))}
             </VStack>
           </Card.Body>
         </Card.Root>

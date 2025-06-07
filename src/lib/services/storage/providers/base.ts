@@ -1,13 +1,11 @@
 // Base Storage Provider - Common interface for all storage providers
 // This defines the factory interface that all storage providers must implement
 
-import { 
-  IRegistryStorage, 
-  IVerificationStorage, 
-  IUserStorage, 
-  IAuditStorage,
-  StorageResult
-} from '../interfaces';
+import {
+  IStorage,
+  StorageResult,
+  HealthCheckResult
+} from '../unified-storage';
 
 /**
  * Storage Provider Configuration
@@ -51,24 +49,9 @@ export interface IStorageProvider {
   isAvailable(): Promise<boolean>;
 
   /**
-   * Create a registry storage instance
+   * Create a unified storage instance
    */
-  createRegistryStorage(): IRegistryStorage;
-
-  /**
-   * Create a verification storage instance
-   */
-  createVerificationStorage(): IVerificationStorage;
-
-  /**
-   * Create a user storage instance
-   */
-  createUserStorage(): IUserStorage;
-
-  /**
-   * Create an audit storage instance
-   */
-  createAuditStorage(): IAuditStorage;
+  createStorage(): IStorage;
 
   /**
    * Gracefully shutdown the provider
@@ -78,11 +61,7 @@ export interface IStorageProvider {
   /**
    * Health check for the provider
    */
-  healthCheck(): Promise<{
-    healthy: boolean;
-    latency?: number;
-    details?: Record<string, any>;
-  }>;
+  healthCheck(): Promise<HealthCheckResult>;
 }
 
 /**
@@ -103,16 +82,9 @@ export abstract class BaseStorageProvider implements IStorageProvider {
   }
 
   abstract isAvailable(): Promise<boolean>;
-  abstract createRegistryStorage(): IRegistryStorage;
-  abstract createVerificationStorage(): IVerificationStorage;
-  abstract createUserStorage(): IUserStorage;
-  abstract createAuditStorage(): IAuditStorage;
+  abstract createStorage(): IStorage;
   abstract shutdown(): Promise<void>;
-  abstract healthCheck(): Promise<{
-    healthy: boolean;
-    latency?: number;
-    details?: Record<string, any>;
-  }>;
+  abstract healthCheck(): Promise<HealthCheckResult>;
 
   protected ensureInitialized(): void {
     if (!this.initialized) {

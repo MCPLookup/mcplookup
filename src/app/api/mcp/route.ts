@@ -55,6 +55,15 @@ function createAuthenticatedMcpHandler() {
           healthy_only: z.boolean().default(true).describe('Only healthy servers')
         }).optional().describe('Performance requirements'),
 
+        // Availability filtering (FIRST-CLASS vs DEPRECATED)
+        availability_filter: z.object({
+          include_live: z.boolean().default(true).describe('Include live servers with working endpoints'),
+          include_package_only: z.boolean().default(false).describe('Include package-only servers (deprecated citizens)'),
+          include_deprecated: z.boolean().default(false).describe('Include explicitly deprecated servers'),
+          include_offline: z.boolean().default(false).describe('Include offline servers'),
+          live_servers_only: z.boolean().default(false).describe('Shortcut: only live servers (overrides other flags)')
+        }).optional().describe('Server availability filtering'),
+
         // Technical requirements
         technical: z.object({
           auth_types: z.array(z.string()).optional().describe('Acceptable auth methods'),
@@ -122,6 +131,20 @@ function createAuthenticatedMcpHandler() {
           // Performance constraints
           if (args.performance) {
             discoveryRequest.performance = args.performance;
+          }
+
+          // Availability filtering (FIRST-CLASS vs DEPRECATED)
+          if (args.availability_filter) {
+            discoveryRequest.availability_filter = args.availability_filter;
+          } else {
+            // Default: live servers only (first-class citizens)
+            discoveryRequest.availability_filter = {
+              include_live: true,
+              include_package_only: false,
+              include_deprecated: false,
+              include_offline: false,
+              live_servers_only: false
+            };
           }
 
           // Technical requirements
@@ -277,6 +300,85 @@ function createAuthenticatedMcpHandler() {
       }
     );
 
+    // Tool 2.5: register_mcp_server_from_github - Auto-register MCP server from GitHub repository
+    server.tool(
+      "register_mcp_server_from_github",
+      "Automatically analyze and register an MCP server from a GitHub repository URL. Includes intelligent analysis, quality assessment, and rejection logic.",
+      {
+        github_url: z.string().url().regex(/^https:\/\/github\.com\/[^\/]+\/[^\/]+\/?$/).describe("GitHub repository URL (e.g., \"https://github.com/owner/mcp-server-repo\")"),
+        contact_email: z.string().email().describe("Contact email for verification and notifications"),
+        force_register: z.boolean().default(false).describe("Force registration despite analysis warnings or rejections"),
+        skip_analysis: z.boolean().default(false).describe("Skip detailed analysis for faster processing (not recommended)"),
+        user_id: z.string().describe("Your authenticated user ID - required for registration")
+      },
+      async (args, request) => {
+        try {
+          // 🔒 SECURITY: Validate API key authentication for registration
+          const authResult = await validateMCPToolAuth(request, "register_mcp_server_from_github", args);
+
+          if (!authResult.success) {
+            return {
+              content: [{
+                type: "text",
+                text: JSON.stringify({
+                  error: "Authentication failed",
+                  message: authResult.error,
+                  tool: "register_mcp_server_from_github",
+                  timestamp: new Date().toISOString()
+                }, null, 2)
+              }]
+            };
+          }
+
+          // Use authenticated user ID
+          const userId = authResult.context?.userId || args.user_id;
+
+          // Call the GitHub auto-registration API internally by making a fetch request
+          const response = await fetch(`${process.env.NEXTAUTH_URL || "http://localhost:3000"}/api/v1/register/github`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${authResult.context?.apiKey || "internal"}`
+            },
+            body: JSON.stringify({
+              github_url: args.github_url,
+              contact_email: args.contact_email,
+              force_register: args.force_register,
+              skip_analysis: args.skip_analysis
+            })
+          });
+
+          const data = await response.json();
+
+          // Return the response from the GitHub auto-registration API
+          return {
+            content: [{
+              type: "text",
+              text: JSON.stringify({
+                ...data,
+                tool: "register_mcp_server_from_github",
+                timestamp: new Date().toISOString()
+              }, null, 2)
+            }]
+          };
+
+        } catch (error) {
+          return {
+            content: [{
+              type: "text",
+              text: JSON.stringify({
+                error: "GitHub auto-registration failed",
+                message: error instanceof Error ? error.message : "Unknown error",
+                github_url: args.github_url,
+                timestamp: new Date().toISOString()
+              }, null, 2)
+            }]
+          };
+        }
+      }
+    );
+
+
     // Tool 3: verify_domain_ownership - Check DNS verification status
     server.tool(
       'verify_domain_ownership',
@@ -327,16 +429,33 @@ function createAuthenticatedMcpHandler() {
           // If challenge_id provided, check specific challenge status
           if (args.challenge_id) {
             try {
-              const challengeStatus = await services.verification.checkChallengeStatus(args.challenge_id);
+              const challengeStatus = await services.verification.getChallengeStatus(args.challenge_id);
+
+              if (!challengeStatus) {
+                return {
+                  content: [{
+                    type: 'text',
+                    text: JSON.stringify({
+                      domain: args.domain,
+                      challenge_id: args.challenge_id,
+                      verified: false,
+                      status: 'challenge_not_found',
+                      error: 'Challenge ID not found or expired',
+                      timestamp: new Date().toISOString()
+                    }, null, 2)
+                  }]
+                };
+              }
+
               return {
                 content: [{
                   type: 'text',
                   text: JSON.stringify({
                     domain: args.domain,
                     challenge_id: args.challenge_id,
-                    verified: challengeStatus.verified,
+                    verified: challengeStatus.status === 'verified',
                     status: challengeStatus.status,
-                    verification_date: challengeStatus.verified_at,
+                    verification_date: challengeStatus.status === 'verified' ? new Date().toISOString() : null,
                     verification_method: 'dns',
                     timestamp: new Date().toISOString()
                   }, null, 2)
@@ -432,7 +551,7 @@ function createAuthenticatedMcpHandler() {
                   };
                 }
 
-                const health = await services.health.checkServerHealth(server.endpoint);
+                const health = await services.health.checkServerHealth(server.endpoint || server.availability?.live_endpoint || '');
 
                 return {
                   domain,
@@ -716,13 +835,15 @@ function createAuthenticatedMcpHandler() {
           const tools = [
             {
               name: 'discover_mcp_servers',
-              description: 'Flexible MCP server discovery with natural language queries, similarity search, complex capability matching, and performance constraints.',
+              description: 'Flexible MCP server discovery with natural language queries, similarity search, complex capability matching, performance constraints, and availability filtering (live vs package-only servers).',
               category: 'discovery',
-              parameters: ['query', 'domain', 'domains', 'capabilities', 'similar_to', 'categories', 'keywords', 'performance', 'technical', 'limit', 'include_alternatives', 'include_similar', 'sort_by'],
+              parameters: ['query', 'domain', 'domains', 'capabilities', 'similar_to', 'categories', 'keywords', 'performance', 'availability_filter', 'technical', 'limit', 'include_alternatives', 'include_similar', 'sort_by'],
               examples: [
                 'Find email servers like Gmail but faster',
                 'Show me document collaboration tools',
-                'Find servers with OAuth2 authentication'
+                'Find servers with OAuth2 authentication',
+                'Find live email servers only (exclude package-only)',
+                'Include package-only servers for local development'
               ]
             },
             {
@@ -735,6 +856,16 @@ function createAuthenticatedMcpHandler() {
                 'Add new productivity server to registry'
               ]
             },
+            },
+            {
+              name: "register_mcp_server_from_github",
+              description: "Automatically analyze and register an MCP server from a GitHub repository URL with intelligent analysis and quality assessment.",
+              category: "registration",
+              parameters: ["github_url", "contact_email", "force_register", "skip_analysis"],
+              examples: [
+                "Register https://github.com/owner/mcp-server-repo",
+                "Auto-register MCP server from GitHub with analysis"
+              ]
             {
               name: 'verify_domain_ownership',
               description: 'Check DNS verification status for domain registration.',
@@ -804,6 +935,7 @@ function createAuthenticatedMcpHandler() {
                 usage_instructions: [
                   'Use discover_mcp_servers for finding servers',
                   'Use register_mcp_server to add new servers',
+                  "Use register_mcp_server_from_github for GitHub auto-registration",
                   'Use verify_domain_ownership to check verification',
                   'Use get_server_health for monitoring',
                   'Use browse_capabilities to explore features',
@@ -827,18 +959,6 @@ function createAuthenticatedMcpHandler() {
         }
       }
     );
-  },
-  {
-    // Server options
-    name: 'mcp-lookup-discovery-server',
-    version: '1.0.0'
-  },
-  {
-    // Adapter configuration
-    redisUrl: process.env.REDIS_URL || process.env.UPSTASH_REDIS_REST_URL,
-    basePath: '/api/mcp',
-    maxDuration: process.env.VERCEL_ENV === 'production' ? 300 : 60, // 5 minutes for production
-    verboseLogs: process.env.NODE_ENV === 'development'
   }
 );
 }

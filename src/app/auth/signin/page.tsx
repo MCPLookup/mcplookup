@@ -5,7 +5,8 @@ import { SignInButton } from "@/components/auth/signin-button"
 import { EmailSignInForm } from "@/components/auth/email-signin-form"
 import { EmailSignUpForm } from "@/components/auth/email-signup-form"
 import Link from "next/link"
-import { Alert, Text, Box, Divider, HStack } from "@chakra-ui/react"
+import { Text, Box, HStack, Alert } from "@chakra-ui/react"
+import { Divider } from "@chakra-ui/layout"
 
 export default function SignInPage() {
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')
@@ -17,39 +18,40 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-md mx-auto py-16 px-4">
-        <div className="space-y-8">
+    <Box minH="100vh" bg="gray.50">
+      <Box maxW="md" mx="auto" py={16} px={4}>
+        <Box display="flex" flexDir="column" gap={8}>
           {/* Logo */}
           <Link href="/">
-            <div className="text-center cursor-pointer">
-              <div className="text-5xl text-orange-500 mb-2">🔍</div>
-              <h1 className="text-2xl font-bold text-orange-500">
+            <Box textAlign="center" cursor="pointer">
+              <Text fontSize="5xl" color="orange.500" mb={2}>🔍</Text>
+              <Text fontSize="2xl" fontWeight="bold" color="orange.500">
                 MCPLookup
-              </h1>
-            </div>
+              </Text>
+            </Box>
           </Link>
 
           {/* Auth Card */}
-          <div className="bg-white rounded-lg shadow-md p-8">
-            <div className="space-y-6">
+          <Box bg="white" rounded="lg" shadow="md" p={8}>
+            <Box display="flex" flexDir="column" gap={6}>
               {successMessage && (
-                <Alert status="success" borderRadius="md">
-                  <Text fontSize="sm">{successMessage}</Text>
-                </Alert>
+                <Alert.Root status="success">
+                  <Alert.Indicator />
+                  <Alert.Title fontSize="sm">{successMessage}</Alert.Title>
+                </Alert.Root>
               )}
 
-              <div className="text-center">
-                <h2 className="text-2xl font-bold">
+              <Box textAlign="center">
+                <Text fontSize="2xl" fontWeight="bold">
                   {mode === 'signin' ? 'Welcome back' : 'Create your account'}
-                </h2>
-                <p className="text-gray-600 mt-2">
+                </Text>
+                <Text color="gray.600" mt={2}>
                   {mode === 'signin'
                     ? 'Sign in to your account to continue'
                     : 'Join MCPLookup.org to get started'
                   }
-                </p>
-              </div>
+                </Text>
+              </Box>
 
               {/* Email/Password Form */}
               {mode === 'signin' ? (
@@ -73,7 +75,7 @@ export default function SignInPage() {
               </HStack>
 
               {/* Social Sign In */}
-              <div className="space-y-3">
+              <Box display="flex" flexDir="column" gap={3}>
                 <SignInButton
                   provider="github"
                   width="full"
@@ -84,15 +86,15 @@ export default function SignInPage() {
                   width="full"
                   size="md"
                 />
-              </div>
+              </Box>
 
-              <p className="text-sm text-gray-500 text-center">
+              <Text fontSize="sm" color="gray.500" textAlign="center">
                 By {mode === 'signin' ? 'signing in' : 'creating an account'}, you agree to our Terms of Service and Privacy Policy
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+              </Text>
+            </Box>
+          </Box>
+        </Box>
+      </Box>
+    </Box>
   )
 }

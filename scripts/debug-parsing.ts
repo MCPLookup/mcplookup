@@ -52,8 +52,8 @@ async function debugParsing() {
     console.log('🎯 Confidence:', analysis.confidence);
     
   } catch (error) {
-    console.error('❌ Error debugging parsing:', error.message);
-    console.error('Stack:', error.stack);
+    console.error('❌ Error debugging parsing:', error instanceof Error ? error.message : String(error));
+    console.error('Stack:', error instanceof Error ? error instanceof Error ? error.stack : "No stack trace available" : 'No stack trace available');
     process.exit(1);
   }
 }

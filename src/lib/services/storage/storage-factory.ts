@@ -1,7 +1,7 @@
 // Storage Factory - Creates and manages storage provider instances
 // Handles configuration, initialization, and provider selection
 
-import { IUnifiedStorage } from './unified-storage';
+import { IStorage } from './unified-storage';
 
 /**
  * Storage Provider Types
@@ -39,7 +39,7 @@ export interface StorageProviderConfig {
  */
 export class StorageFactory {
   private static instance: StorageFactory;
-  private providers: Map<string, IUnifiedStorage> = new Map();
+  private providers: Map<string, IStorage> = new Map();
   private defaultProvider: string | null = null;
 
   private constructor() {}
@@ -60,38 +60,44 @@ export class StorageFactory {
   async createProvider(
     name: string,
     config: StorageProviderConfig
-  ): Promise<IUnifiedStorage> {
+  ): Promise<IStorage> {
     // Check if provider already exists
     if (this.providers.has(name)) {
       throw new Error(`Storage provider '${name}' already exists`);
     }
 
-    let provider: IUnifiedStorage;
+    let provider: IStorage;
 
     switch (config.type) {
       case 'upstash':
-        const { UpstashStorageProvider } = await import('./providers/upstash-provider');
-        provider = new UpstashStorageProvider(config);
+        const { UpstashStorageProvider } = await import('./providers/upstash');
+        const upstashProvider = new UpstashStorageProvider();
+        await upstashProvider.initialize(config);
+        provider = upstashProvider.createStorage();
         break;
-        
+
       case 'redis':
-        const { RedisStorageProvider } = await import('./providers/redis-provider');
-        provider = new RedisStorageProvider(config);
+        const { RedisStorageProvider } = await import('./providers/redis');
+        const redisProvider = new RedisStorageProvider();
+        await redisProvider.initialize(config);
+        provider = redisProvider.createStorage();
         break;
-        
+
       case 'memory':
-        const { MemoryStorageProvider } = await import('./providers/memory-provider');
-        provider = new MemoryStorageProvider(config);
+        const { InMemoryStorageProvider } = await import('./providers/memory');
+        const memoryProvider = new InMemoryStorageProvider();
+        await memoryProvider.initialize(config);
+        provider = memoryProvider.createStorage();
         break;
-        
+
       default:
         throw new Error(`Unknown storage provider type: ${config.type}`);
     }
 
-    // Initialize the provider
+    // Test the storage instance
     const healthCheck = await provider.healthCheck();
     if (!healthCheck.healthy) {
-      throw new Error(`Failed to initialize storage provider '${name}': ${JSON.stringify(healthCheck.details)}`);
+      throw new Error(`Failed to initialize storage provider '${name}': ${healthCheck.error || 'Unknown error'}`);
     }
 
     // Store the provider
@@ -108,7 +114,7 @@ export class StorageFactory {
   /**
    * Get an existing storage provider
    */
-  getProvider(name?: string): IUnifiedStorage {
+  getProvider(name?: string): IStorage {
     const providerName = name || this.defaultProvider;
     
     if (!providerName) {
@@ -174,7 +180,7 @@ export class StorageFactory {
   /**
    * Create provider from environment variables
    */
-  static async createFromEnv(name = 'default'): Promise<IUnifiedStorage> {
+  static async createFromEnv(name = 'default'): Promise<IStorage> {
     const factory = StorageFactory.getInstance();
 
     // Determine provider type from environment

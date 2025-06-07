@@ -4,20 +4,9 @@ import { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { 
-  Box, 
-  Button, 
-  Input, 
-  VStack, 
-  Text, 
-  Alert,
-  FormControl,
-  FormLabel,
-  FormErrorMessage,
-  InputGroup,
-  InputRightElement,
-  IconButton
-} from '@chakra-ui/react'
+import { Box, Button, VStack, Text, IconButton, Alert } from '@chakra-ui/react'
+import { FormControl, FormLabel, FormErrorMessage } from '@chakra-ui/form-control'
+import { Input, InputGroup, InputRightElement } from '@chakra-ui/input'
 import { FaEye, FaEyeSlash } from 'react-icons/fa'
 
 interface EmailSignInFormProps {
@@ -90,11 +79,12 @@ export function EmailSignInForm({ callbackUrl = '/', onToggleMode }: EmailSignIn
 
   return (
     <Box as="form" onSubmit={handleSubmit}>
-      <VStack spacing={4}>
+      <VStack gap={4}>
         {error && (
-          <Alert status="error" borderRadius="md">
-            <Text fontSize="sm">{error}</Text>
-          </Alert>
+          <Alert.Root status="error">
+            <Alert.Indicator />
+            <Alert.Title fontSize="sm">{error}</Alert.Title>
+          </Alert.Root>
         )}
 
         <FormControl isInvalid={!!emailError}>
@@ -122,12 +112,13 @@ export function EmailSignInForm({ callbackUrl = '/', onToggleMode }: EmailSignIn
             <InputRightElement>
               <IconButton
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
-                icon={showPassword ? <FaEyeSlash /> : <FaEye />}
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowPassword(!showPassword)}
                 disabled={isLoading}
-              />
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </IconButton>
             </InputRightElement>
           </InputGroup>
           <FormErrorMessage>{passwordError}</FormErrorMessage>
@@ -138,13 +129,13 @@ export function EmailSignInForm({ callbackUrl = '/', onToggleMode }: EmailSignIn
           colorScheme="orange"
           width="full"
           size="lg"
-          isLoading={isLoading}
+          loading={isLoading}
           loadingText="Signing in..."
         >
           Sign In
         </Button>
 
-        <VStack spacing={2} width="full">
+        <VStack gap={2} width="full">
           <Link href="/auth/forgot-password">
             <Text 
               fontSize="sm" 

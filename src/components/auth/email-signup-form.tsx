@@ -1,22 +1,9 @@
 "use client"
 
 import { useState } from 'react'
-import { 
-  Box, 
-  Button, 
-  Input, 
-  VStack, 
-  Text, 
-  Alert,
-  FormControl,
-  FormLabel,
-  FormErrorMessage,
-  InputGroup,
-  InputRightElement,
-  IconButton,
-  Progress,
-  HStack
-} from '@chakra-ui/react'
+import { Box, Button, VStack, Text, IconButton, Progress, HStack, Alert } from '@chakra-ui/react'
+import { FormControl, FormLabel, FormErrorMessage } from '@chakra-ui/form-control'
+import { Input, InputGroup, InputRightElement } from '@chakra-ui/input'
 import { FaEye, FaEyeSlash, FaCheck, FaTimes } from 'react-icons/fa'
 import { validatePassword, getPasswordStrengthDescription } from '@/lib/auth/password'
 
@@ -129,11 +116,12 @@ export function EmailSignUpForm({ onToggleMode, onSuccess }: EmailSignUpFormProp
 
   return (
     <Box as="form" onSubmit={handleSubmit}>
-      <VStack spacing={4}>
+      <VStack gap={4}>
         {errors.general && (
-          <Alert status="error" borderRadius="md">
-            <Text fontSize="sm">{errors.general}</Text>
-          </Alert>
+          <Alert.Root status="error">
+            <Alert.Indicator />
+            <Alert.Title fontSize="sm">{errors.general}</Alert.Title>
+          </Alert.Root>
         )}
 
         <FormControl isInvalid={!!errors.name}>
@@ -173,12 +161,13 @@ export function EmailSignUpForm({ onToggleMode, onSuccess }: EmailSignUpFormProp
             <InputRightElement>
               <IconButton
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
-                icon={showPassword ? <FaEyeSlash /> : <FaEye />}
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowPassword(!showPassword)}
                 disabled={isLoading}
-              />
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </IconButton>
             </InputRightElement>
           </InputGroup>
           
@@ -190,18 +179,22 @@ export function EmailSignUpForm({ onToggleMode, onSuccess }: EmailSignUpFormProp
                   {strengthInfo.description}
                 </Text>
               </HStack>
-              <Progress 
-                value={passwordValidation.score} 
-                size="sm" 
-                colorScheme={
-                  passwordValidation.score < 40 ? 'red' : 
+              <Progress.Root
+                value={passwordValidation.score}
+                size="sm"
+                colorPalette={
+                  passwordValidation.score < 40 ? 'red' :
                   passwordValidation.score < 70 ? 'yellow' : 'green'
                 }
-              />
+              >
+                <Progress.Track>
+                  <Progress.Range />
+                </Progress.Track>
+              </Progress.Root>
               {passwordValidation.errors.length > 0 && (
-                <VStack align="start" mt={2} spacing={1}>
+                <VStack align="start" mt={2} gap={1}>
                   {passwordValidation.errors.map((error, index) => (
-                    <HStack key={index} spacing={1}>
+                    <HStack key={index} gap={1}>
                       <FaTimes color="#ef4444" size={10} />
                       <Text fontSize="xs" color="red.500">{error}</Text>
                     </HStack>
@@ -227,17 +220,18 @@ export function EmailSignUpForm({ onToggleMode, onSuccess }: EmailSignUpFormProp
             <InputRightElement>
               <IconButton
                 aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
-                icon={showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 disabled={isLoading}
-              />
+              >
+                {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+              </IconButton>
             </InputRightElement>
           </InputGroup>
           
           {formData.confirmPassword && formData.password === formData.confirmPassword && (
-            <HStack mt={1} spacing={1}>
+            <HStack mt={1} gap={1}>
               <FaCheck color="#22c55e" size={12} />
               <Text fontSize="xs" color="green.500">Passwords match</Text>
             </HStack>
@@ -251,7 +245,7 @@ export function EmailSignUpForm({ onToggleMode, onSuccess }: EmailSignUpFormProp
           colorScheme="orange"
           width="full"
           size="lg"
-          isLoading={isLoading}
+          loading={isLoading}
           loadingText="Creating account..."
           disabled={!passwordValidation.isValid || formData.password !== formData.confirmPassword}
         >

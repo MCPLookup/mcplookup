@@ -57,12 +57,12 @@ async function testOpenRouterModels() {
         }
         
       } catch (error) {
-        console.log(`❌ API call failed: ${error.message}`);
+        console.log(`❌ API call failed: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
     
   } catch (error) {
-    console.error('❌ Error testing OpenRouter models:', error.message);
+    console.error('❌ Error testing OpenRouter models:', error instanceof Error ? error.message : String(error));
     process.exit(1);
   }
 }

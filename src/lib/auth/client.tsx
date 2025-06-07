@@ -36,7 +36,7 @@ export function useAuth(): AuthState {
     email: session.user.email || '',
     name: session.user.name || '',
     image: session.user.image || undefined,
-    emailVerified: session.user.emailVerified || null
+    emailVerified: (session.user as any).emailVerified || null
   } : null
 
   return {
@@ -67,12 +67,12 @@ export function useSignIn() {
       const result = await nextAuthSignIn(provider, {
         email: options?.email,
         password: options?.password,
-        redirectTo: options?.redirectTo || "/onboarding",
+        callbackUrl: options?.redirectTo || "/onboarding",
         redirect: options?.redirect !== false
-      })
+      } as any)
 
-      if (result?.error) {
-        throw new Error(result.error)
+      if ((result as any)?.error) {
+        throw new Error((result as any).error)
       }
 
       return result

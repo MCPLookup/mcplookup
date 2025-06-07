@@ -16,7 +16,16 @@ const SmartDiscoveryRequestSchema = z.object({
     preferred_auth: z.array(z.string()).optional(),
     region: z.string().optional(),
     max_results: z.number().min(1).max(50).default(10)
-  }).optional()
+  }).optional(),
+
+  // Availability filtering (FIRST-CLASS vs DEPRECATED)
+  availability_filter: z.object({
+    include_live: z.boolean().default(true).describe('Include live servers with working endpoints'),
+    include_package_only: z.boolean().default(false).describe('Include package-only servers (deprecated citizens)'),
+    include_deprecated: z.boolean().default(false).describe('Include explicitly deprecated servers'),
+    include_offline: z.boolean().default(false).describe('Include offline servers'),
+    live_servers_only: z.boolean().default(false).describe('Shortcut: only live servers (overrides other flags)')
+  }).optional().describe('Server availability filtering')
 });
 
 export async function POST(request: NextRequest) {
@@ -41,7 +50,7 @@ export async function POST(request: NextRequest) {
   try {
     // Parse request body
     const body = await request.json();
-    const { intent, context } = SmartDiscoveryRequestSchema.parse(body);
+    const { intent, context, availability_filter } = SmartDiscoveryRequestSchema.parse(body);
     
     console.log(`🧠 Smart discovery request: "${intent}"`);
     
@@ -62,7 +71,15 @@ export async function POST(request: NextRequest) {
         sort_by: 'relevance',
         offset: 0,
         // Use intent for search instead of q
-        intent: searchQuery
+        intent: searchQuery,
+        // Apply availability filtering (default to live servers only)
+        availability_filter: availability_filter || {
+          include_live: true,
+          include_package_only: false,
+          include_deprecated: false,
+          include_offline: false,
+          live_servers_only: false
+        }
       });
       
       // Transform to format expected by AI

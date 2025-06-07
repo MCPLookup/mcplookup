@@ -1,8 +1,9 @@
 // Next.js API Route - Main Discovery Endpoint
 // Serverless function for MCP server discovery
+// Uses generated OpenAPI schemas for validation
 
 import { NextRequest, NextResponse } from 'next/server';
-import { DiscoveryRequestSchema, DiscoveryResponseSchema } from '@/lib/schemas/discovery';
+import { withValidation, RequestSchemas } from '@/lib/middleware/openapi-validation';
 import { discoveryRateLimit, addRateLimitHeaders } from '@/lib/security/rate-limiting';
 import { apiKeyMiddleware, recordApiUsage } from '@/lib/auth/api-key-middleware';
 
@@ -28,6 +29,18 @@ import { apiKeyMiddleware, recordApiUsage } from '@/lib/auth/api-key-middleware'
  *         schema:
  *           type: string
  *           enum: [communication, productivity, data, development, content, integration, analytics, security, finance, ecommerce, social, other]
+ *       - in: query
+ *         name: include_package_only
+ *         schema:
+ *           type: boolean
+ *           default: false
+ *         description: Include package-only servers (deprecated citizens)
+ *       - in: query
+ *         name: live_servers_only
+ *         schema:
+ *           type: boolean
+ *           default: false
+ *         description: Only return live servers with working endpoints
  *         description: Capability category filter
  *       - in: query
  *         name: intent
@@ -121,7 +134,16 @@ export async function GET(request: NextRequest) {
       include_health: searchParams.get('include_health') !== 'false',
       include_tools: searchParams.get('include_tools') !== 'false',
       include_resources: searchParams.get('include_resources') === 'true',
-      sort_by: searchParams.get('sort_by') || 'relevance'
+      sort_by: searchParams.get('sort_by') || 'relevance',
+
+      // Availability filtering (FIRST-CLASS vs DEPRECATED)
+      availability_filter: {
+        include_live: true,
+        include_package_only: searchParams.get('include_package_only') === 'true',
+        include_deprecated: false,
+        include_offline: false,
+        live_servers_only: searchParams.get('live_servers_only') === 'true'
+      }
     };
 
     // Validate request parameters

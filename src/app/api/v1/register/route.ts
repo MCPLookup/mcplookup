@@ -6,7 +6,7 @@ import { RegistrationRequestSchema, VerificationChallengeSchema } from '@/lib/sc
 import { registerRateLimit, addRateLimitHeaders } from '@/lib/security/rate-limiting';
 import { SecureURLSchema, SecureDomainSchema } from '@/lib/security/url-validation';
 import { createVerificationService } from '@/lib/services';
-import { auth } from '../../../../auth';
+import { auth } from '@/auth';
 import { isUserDomainVerified } from '@/lib/services/dns-verification';
 import { apiKeyMiddleware, recordApiUsage } from '@/lib/auth/api-key-middleware';
 

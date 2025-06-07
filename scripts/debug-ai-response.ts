@@ -69,7 +69,7 @@ async function debugAIResponse() {
             }
             
           } catch (error) {
-            console.log('❌ API call failed:', error.message);
+            console.log('❌ API call failed:', error instanceof Error ? error.message : String(error));
           }
         }
       }
@@ -126,14 +126,14 @@ async function debugAIResponse() {
             }
             
           } catch (error) {
-            console.log('❌ API call failed:', error.message);
+            console.log('❌ API call failed:', error instanceof Error ? error.message : String(error));
           }
         }
       }
     }
     
   } catch (error) {
-    console.error('❌ Error debugging AI response:', error.message);
+    console.error('❌ Error debugging AI response:', error instanceof Error ? error.message : String(error));
     process.exit(1);
   }
 }

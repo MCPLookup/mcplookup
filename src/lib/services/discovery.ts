@@ -50,6 +50,9 @@ export class DiscoveryService implements IDiscoveryService {
       // Apply semantic filters
       servers = await this.applySemanticFilters(servers, request, filtersApplied);
 
+      // Apply availability filters (FIRST-CLASS vs DEPRECATED)
+      servers = this.applyAvailabilityFilters(servers, request, filtersApplied);
+
       // Apply technical filters
       servers = this.applyTechnicalFilters(servers, request, filtersApplied);
 
@@ -72,12 +75,20 @@ export class DiscoveryService implements IDiscoveryService {
 
       const queryTime = Date.now() - startTime;
 
-      // Return simple format for backward compatibility with tests
+      // Return format matching DiscoveryResponseSchema
       return {
         servers: enhancedServers,
-        total_results: totalCount,
-        has_more: offset + limit < totalCount,
-        query_time_ms: queryTime
+        pagination: {
+          total_count: totalCount,
+          returned_count: enhancedServers.length,
+          offset: offset,
+          has_more: offset + limit < totalCount
+        },
+        query_metadata: {
+          query_time_ms: queryTime,
+          cache_hit: false,
+          filters_applied: filtersApplied
+        }
       };
 
     } catch (error) {
@@ -324,6 +335,63 @@ export class DiscoveryService implements IDiscoveryService {
       filtersApplied.push('cors_required');
       filtered = filtered.filter(server => server.cors_enabled);
     }
+
+    return filtered;
+  }
+
+  private applyAvailabilityFilters(
+    servers: MCPServerRecord[],
+    request: DiscoveryRequest,
+    filtersApplied: string[]
+  ): MCPServerRecord[] {
+    let filtered = servers;
+
+    // Get availability filter settings (default to live servers only)
+    const availabilityFilter = request.availability_filter || {
+      include_live: true,
+      include_package_only: false,
+      include_deprecated: false,
+      include_offline: false,
+      live_servers_only: false
+    };
+
+    // If live_servers_only is true, override all other settings
+    if (availabilityFilter.live_servers_only) {
+      filtersApplied.push('live_servers_only');
+      return filtered.filter(server =>
+        server.availability?.status === 'live' &&
+        server.availability?.endpoint_verified === true
+      );
+    }
+
+    // Apply individual availability filters
+    const allowedStatuses: string[] = [];
+
+    if (availabilityFilter.include_live) {
+      allowedStatuses.push('live');
+    }
+    if (availabilityFilter.include_package_only) {
+      allowedStatuses.push('package_only');
+    }
+    if (availabilityFilter.include_deprecated) {
+      allowedStatuses.push('deprecated');
+    }
+    if (availabilityFilter.include_offline) {
+      allowedStatuses.push('offline');
+    }
+
+    // Default behavior: if no explicit inclusion, default to live servers only
+    if (allowedStatuses.length === 0) {
+      allowedStatuses.push('live');
+      filtersApplied.push('default_live_only');
+    } else {
+      filtersApplied.push(`availability_filter:${allowedStatuses.join(',')}`);
+    }
+
+    filtered = filtered.filter(server => {
+      const status = server.availability?.status || 'live'; // Default to live for backward compatibility
+      return allowedStatuses.includes(status);
+    });
 
     return filtered;
   }

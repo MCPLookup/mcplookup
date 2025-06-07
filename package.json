@@ -32,18 +32,7 @@
     "lint": "eslint src/**/*.ts",
     "format": "prettier --write src/**/*.ts",
     "type-check": "tsc --project tsconfig.typecheck.json",
-    "openapi": "swagger-jsdoc -d swaggerDef.js src/pages/api/**/*.ts -o public/openapi.json",
-    "openapi:generate": "tsx scripts/generate-openapi.ts",
-    "openapi:enhanced": "tsx scripts/generate-enhanced-openapi.ts",
-    "openapi:validate": "tsx scripts/validate-openapi.ts",
-    "sync:bridge": "tsx scripts/sync-bridge-tools.ts",
-    "sync:complete": "tsx scripts/sync-workflow.ts",
-    "sync:openapi": "npm run openapi:enhanced",
-    "sync:validate": "npm run openapi:validate",
-    "deploy": "vercel --prod",
-    "bridge": "node scripts/mcp-bridge.mjs",
-    "bridge:test": "node scripts/test-bridge.mjs",
-    "bridge:example": "node examples/bridge-usage.mjs"
+    "deploy": "vercel --prod"
   },
   "keywords": [
     "mcp",
@@ -65,10 +54,16 @@
   "author": "MCPLookup.org",
   "license": "MIT",
   "dependencies": {
+    "@chakra-ui/alert": "^2.2.2",
+    "@chakra-ui/form-control": "^2.2.0",
+    "@chakra-ui/input": "^2.1.2",
+    "@chakra-ui/layout": "^2.3.1",
     "@chakra-ui/react": "^3.19.2",
     "@emotion/react": "^11.14.0",
+    "@heroicons/react": "^2.2.0",
     "@hookform/resolvers": "^3.9.1",
     "@modelcontextprotocol/sdk": "^1.12.1",
+    "@types/bcryptjs": "^2.4.6",
     "@types/ioredis": "^4.28.10",
     "@types/nodemailer": "^6.4.17",
     "@types/prismjs": "^1.26.5",
@@ -76,6 +71,7 @@
     "@vercel/mcp-adapter": "^0.7.3",
     "autoprefixer": "^10.4.21",
     "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dotenv": "^16.5.0",
@@ -108,6 +104,8 @@
     "zod": "^3.25.50"
   },
   "devDependencies": {
+    "@apidevtools/json-schema-ref-parser": "^13.0.1",
+    "@apidevtools/swagger-parser": "^11.0.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@types/bcrypt": "^5.0.2",

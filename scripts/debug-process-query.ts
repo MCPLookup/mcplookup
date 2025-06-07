@@ -34,12 +34,12 @@ async function debugProcessQuery() {
       console.log(JSON.stringify(response, null, 2));
       
     } catch (error) {
-      console.log('❌ processQuery failed:', error.message);
-      console.log('Stack:', error.stack);
+      console.log('❌ processQuery failed:', error instanceof Error ? error.message : String(error));
+      console.log('Stack:', error instanceof Error ? error.stack : "No stack trace available");
     }
     
   } catch (error) {
-    console.error('❌ Error debugging processQuery:', error.message);
+    console.error('❌ Error debugging processQuery:', error instanceof Error ? error.message : String(error));
     process.exit(1);
   }
 }

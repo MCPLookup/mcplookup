@@ -101,7 +101,7 @@ async function testResendDirectly() {
     // Check for errors in the response
     if (verificationResult.error) {
       console.log('❌ Error in verification email:', verificationResult.error)
-      throw new Error(`Verification email failed: ${verificationResult.error.message}`)
+      throw new Error(`Verification email failed: ${verificationResult.error instanceof Error ? verificationResult.error.message : String(verificationResult.error)}`)
     }
     
     console.log(`   Response:`, JSON.stringify(verificationResult, null, 2))
@@ -176,7 +176,7 @@ async function testResendDirectly() {
     // Check for errors in the response
     if (welcomeResult.error) {
       console.log('❌ Error in welcome email:', welcomeResult.error)
-      throw new Error(`Welcome email failed: ${welcomeResult.error.message}`)
+      throw new Error(`Welcome email failed: ${welcomeResult.error instanceof Error ? welcomeResult.error.message : String(welcomeResult.error)}`)
     }
     
     console.log(`   Response:`, JSON.stringify(welcomeResult, null, 2))
@@ -191,12 +191,12 @@ async function testResendDirectly() {
     console.error('❌ Error testing Resend:', error)
     
     if (error instanceof Error) {
-      if (error.message.includes('API key')) {
+      if (error instanceof Error ? error.message : String(error).includes('API key')) {
         console.log('\n💡 API Key issue:')
         console.log('   - Make sure your API key is correct')
         console.log('   - Check that it starts with "re_"')
         console.log('   - Verify it\'s active in your Resend dashboard')
-      } else if (error.message.includes('from')) {
+      } else if (error instanceof Error ? error.message : String(error).includes('from')) {
         console.log('\n💡 From address issue:')
         console.log('   - Make sure EMAIL_FROM is a valid email address')
         console.log('   - For testing, any email format works')

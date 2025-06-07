@@ -82,7 +82,7 @@ async function finalIntentTest() {
           }
           
         } catch (error) {
-          console.log(`  ❌ "${query}" - Error: ${error.message}`);
+          console.log(`  ❌ "${query}" - Error: ${error instanceof Error ? error.message : String(error)}`);
         }
       }
       
@@ -96,7 +96,7 @@ async function finalIntentTest() {
       console.log('');
       
     } catch (error) {
-      console.log(`❌ ${name} failed: ${error.message}\n`);
+      console.log(`❌ ${name} failed: ${error instanceof Error ? error.message : String(error)}\n`);
     }
   }
 

@@ -81,7 +81,7 @@ describe('MCP Server Implementation', () => {
         await import('./route')
         expect(true).toBe(true) // Import successful
       } catch (error) {
-        throw new Error(`Failed to import MCP route: ${error.message}`)
+        throw new Error(`Failed to import MCP route: ${error instanceof Error ? error.message : String(error)}`)
       }
 
       // Verify that the expected tools are defined in the implementation
@@ -118,11 +118,36 @@ describe('MCP Server Implementation', () => {
             domain: 'example.com',
             endpoint: 'https://example.com/mcp',
             name: 'Example Server',
-            description: 'Test server'
+            description: 'Test server',
+            auth: { type: 'none' },
+            capabilities: {
+              category: 'development',
+              subcategories: ['testing'],
+              intent_keywords: ['test'],
+              use_cases: ['testing']
+            },
+            cors_enabled: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            availability: {
+              status: 'live',
+              live_endpoint: 'https://example.com/mcp',
+              endpoint_verified: true,
+              packages_available: false
+            }
           }
         ],
-        pagination: { total_count: 1, page: 1, limit: 10 },
-        query_metadata: { query_time_ms: 50 }
+        pagination: {
+          offset: 0,
+          total_count: 1,
+          returned_count: 1,
+          has_more: false
+        },
+        query_metadata: {
+          query_time_ms: 50,
+          cache_hit: false,
+          filters_applied: []
+        }
       })
       
       // Import and test the route
@@ -144,9 +169,7 @@ describe('MCP Server Implementation', () => {
         txt_record_name: '_mcp-verify.test.com',
         txt_record_value: 'mcp_verify_abc123',
         expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        instructions: 'Add this TXT record to your DNS configuration',
-        endpoint: 'https://test.com/mcp',
-        contact_email: 'admin@test.com'
+        instructions: 'Add this TXT record to your DNS configuration'
       })
       
       // Import and test the route
@@ -167,10 +190,31 @@ describe('MCP Server Implementation', () => {
       vi.mocked(mockServices.discovery.discoverByDomain).mockResolvedValue({
         domain: 'verified.com',
         endpoint: 'https://verified.com/mcp',
+        name: 'Verified Server',
+        description: 'A verified test server',
+        auth: { type: 'none' },
+        capabilities: {
+          category: 'development',
+          subcategories: ['testing'],
+          intent_keywords: ['test'],
+          use_cases: ['testing']
+        },
+        cors_enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        availability: {
+          status: 'live',
+          live_endpoint: 'https://verified.com/mcp',
+          endpoint_verified: true,
+          packages_available: false
+        },
         verification: {
+          endpoint_verified: true,
           dns_verified: true,
-          verified_at: new Date().toISOString(),
-          verification_method: 'dns'
+          ssl_verified: true,
+          last_verification: new Date().toISOString(),
+          verification_method: 'dns',
+          verified_at: new Date().toISOString()
         }
       })
       
@@ -185,16 +229,36 @@ describe('MCP Server Implementation', () => {
       // Mock health check response
       vi.mocked(mockServices.health.checkServerHealth).mockResolvedValue({
         status: 'healthy',
-        uptime_percentage: 99.9,
-        response_time_ms: 150,
         avg_response_time_ms: 200,
-        last_check: new Date().toISOString()
+        uptime_percentage: 99.9,
+        error_rate: 0.1,
+        last_check: new Date().toISOString(),
+        consecutive_failures: 0,
+        response_time_ms: 150
       })
       
       // Mock server discovery
       vi.mocked(mockServices.discovery.discoverByDomain).mockResolvedValue({
         domain: 'healthy.com',
         endpoint: 'https://healthy.com/mcp',
+        name: 'Healthy Server',
+        description: 'A healthy test server',
+        auth: { type: 'none' },
+        capabilities: {
+          category: 'development',
+          subcategories: ['testing'],
+          intent_keywords: ['test'],
+          use_cases: ['testing']
+        },
+        cors_enabled: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        availability: {
+          status: 'live',
+          live_endpoint: 'https://healthy.com/mcp',
+          endpoint_verified: true,
+          packages_available: false
+        },
         trust_score: 85
       })
       
@@ -210,11 +274,25 @@ describe('MCP Server Implementation', () => {
       vi.mocked(mockServices.registry.getAllVerifiedServers).mockResolvedValue([
         {
           domain: 'example.com',
+          endpoint: 'https://example.com/mcp',
+          name: 'Example Server',
+          description: 'Email and chat server',
+          auth: { type: 'none' },
           capabilities: {
             category: 'communication',
-            subcategories: ['email', 'chat']
+            subcategories: ['email', 'chat'],
+            intent_keywords: ['email', 'chat'],
+            use_cases: ['communication']
           },
-          description: 'Email and chat server'
+          cors_enabled: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          availability: {
+            status: 'live',
+            live_endpoint: 'https://example.com/mcp',
+            endpoint_verified: true,
+            packages_available: false
+          }
         }
       ])
       
@@ -230,16 +308,79 @@ describe('MCP Server Implementation', () => {
       vi.mocked(mockServices.registry.getAllVerifiedServers).mockResolvedValue([
         {
           domain: 'stats1.com',
-          verification: { dns_verified: true },
-          health: { status: 'healthy' },
-          capabilities: { category: 'productivity' },
+          endpoint: 'https://stats1.com/mcp',
+          name: 'Stats Server 1',
+          description: 'First stats server',
+          auth: { type: 'none' },
+          verification: {
+            endpoint_verified: true,
+            dns_verified: true,
+            ssl_verified: true,
+            last_verification: new Date().toISOString(),
+            verification_method: 'dns'
+          },
+          health: {
+            status: 'healthy',
+            avg_response_time_ms: 100,
+            uptime_percentage: 99.9,
+            error_rate: 0.1,
+            last_check: new Date().toISOString(),
+            consecutive_failures: 0
+          },
+          capabilities: {
+            category: 'productivity',
+            subcategories: ['stats'],
+            intent_keywords: ['productivity'],
+            use_cases: ['analytics']
+          },
+          cors_enabled: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          availability: {
+            status: 'live',
+            live_endpoint: 'https://stats1.com/mcp',
+            endpoint_verified: true,
+            packages_available: false
+          },
           trust_score: 90
         },
         {
           domain: 'stats2.com',
-          verification: { dns_verified: false },
-          health: { status: 'unhealthy' },
-          capabilities: { category: 'communication' },
+          endpoint: 'https://stats2.com/mcp',
+          name: 'Stats Server 2',
+          description: 'Second stats server',
+          auth: { type: 'none' },
+          verification: {
+            endpoint_verified: false,
+            dns_verified: false,
+            ssl_verified: false,
+            last_verification: new Date().toISOString(),
+            verification_method: 'dns'
+          },
+          health: {
+            status: 'unhealthy',
+            avg_response_time_ms: 1000,
+            uptime_percentage: 50.0,
+            error_rate: 25.0,
+            last_check: new Date().toISOString(),
+            consecutive_failures: 5
+          },
+          capabilities: {
+            category: 'communication',
+            subcategories: ['chat'],
+            intent_keywords: ['communication'],
+            use_cases: ['messaging']
+          },
+          cors_enabled: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          availability: {
+            status: 'package_only',
+            live_endpoint: undefined,
+            endpoint_verified: false,
+            packages_available: true,
+            primary_package: 'npm'
+          },
           trust_score: 75
         }
       ])

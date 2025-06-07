@@ -6,6 +6,9 @@ import { auth } from '../../../auth';
 import { checkSetupStatus } from './setup';
 import { isUserAdmin } from './roles';
 
+// Re-export for convenience
+export { isUserAdmin } from './roles';
+
 export interface AuthContext {
   user: {
     id: string;

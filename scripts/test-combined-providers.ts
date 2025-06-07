@@ -70,7 +70,7 @@ async function testCombinedProviders() {
         console.log(`💭 Reasoning: ${result.reasoning}`);
         
       } catch (error) {
-        console.log('❌ Query failed:', error.message);
+        console.log('❌ Query failed:', error instanceof Error ? error.message : String(error));
       }
     }
     
@@ -83,14 +83,14 @@ async function testCombinedProviders() {
     
     if (stats.models.problematicDetails.length > 0) {
       console.log('\n⚠️ Problematic models:');
-      stats.models.problematicDetails.forEach(model => {
+      stats.models.problematicDetails.forEach((model: any) => {
         console.log(`  - ${model.provider}/${model.name} (${model.failureCount} failures)`);
       });
     }
     
   } catch (error) {
-    console.error('❌ Error testing providers:', error.message);
-    console.error('Stack:', error.stack);
+    console.error('❌ Error testing providers:', error instanceof Error ? error.message : String(error));
+    console.error('Stack:', error instanceof Error ? error instanceof Error ? error.stack : "No stack trace available" : 'No stack trace available');
     process.exit(1);
   }
 }
