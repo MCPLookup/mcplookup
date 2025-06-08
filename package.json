@@ -1,0 +1,40 @@
+{
+  "name": "mcplookup-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MCPLookup.org monorepo - The universal MCP discovery service ecosystem",
+  "workspaces": [
+    "mcp-sdk",
+    "mcp-server", 
+    "mcpl-cli",
+    "mcplookup.org"
+  ],  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "test": "turbo test",
+    "lint": "turbo lint",
+    "clean": "turbo clean",
+    "type-check": "turbo type-check",
+    "dev:web": "turbo dev --filter=mcplookup-registry",
+    "dev:sdk": "turbo dev --filter=@mcplookup-org/mcp-sdk",
+    "dev:server": "turbo dev --filter=@mcplookup-org/mcp-server",
+    "dev:cli": "turbo dev --filter=@mcplookup-org/mcpl-cli",
+    "build:sdk": "turbo build --filter=@mcplookup-org/mcp-sdk",
+    "publish:packages": "turbo build --filter='@mcplookup-org/*' && npm publish --workspaces --access public"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "packageManager": "npm@11.4.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MCPLookup-org/mcplookup.git"
+  },
+  "author": "MCPLookup.org",
+  "license": "MIT"
+}
