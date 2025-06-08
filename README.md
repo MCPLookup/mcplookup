@@ -1,4 +1,4 @@
-# MCPLookup.org Monorepo 🚀
+# MCPLookup.org 🚀
 
 **The Universal MCP Discovery Service Ecosystem**
 
@@ -8,13 +8,13 @@ This monorepo contains all the core components of the MCPLookup.org platform - t
 
 ```
 mcplookup/
-├── mcp-sdk/                    # @mcplookup-org/mcp-sdk
+├── mcp-sdk/                    # @mcplookup-org/mcp-sdk@0.0.1
 │   └── src/                    # Shared SDK and utilities
-├── mcp-server/                 # @mcplookup-org/mcp-server  
+├── mcp-server/                 # @mcplookup-org/mcp-server@0.0.1  
 │   └── src/                    # Universal MCP bridge server
-├── mcpl-cli/                   # @mcplookup-org/mcpl-cli
+├── mcpl-cli/                   # @mcplookup-org/mcpl-cli@0.0.1
 │   └── src/                    # Enhanced CLI management tool
-├── mcplookup.org/              # Next.js web application
+├── mcplookup.org/              # mcplookup-registry@0.0.1
 │   └── src/                    # Discovery service website & API
 ├── package.json                # Workspace configuration
 └── turbo.json                  # Build orchestration
