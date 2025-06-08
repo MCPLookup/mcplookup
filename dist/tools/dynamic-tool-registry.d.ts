@@ -1,5 +1,5 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { ManagedServer } from '@mcplookup-org/mcp-sdk/types';
+import { ManagedServer } from '@mcplookup-org/mcp-sdk';
 export declare class DynamicToolRegistry {
     private mcpServer;
     private registeredTools;

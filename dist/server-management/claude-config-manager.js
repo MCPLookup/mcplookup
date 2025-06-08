@@ -2,7 +2,7 @@
 import { readFile, writeFile, access } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
-import { readJsonFile, writeJsonFile, updateJsonFile } from '@mcplookup-org/mcp-sdk/utils';
+import { readJsonFile, writeJsonFile, updateJsonFile } from '@mcplookup-org/mcp-sdk';
 export class ClaudeConfigManager {
     configPath;
     /**

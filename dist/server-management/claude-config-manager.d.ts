@@ -1,4 +1,4 @@
-import { ClaudeConfig } from '@mcplookup-org/mcp-sdk/types';
+import { ClaudeConfig } from '@mcplookup-org/mcp-sdk';
 export declare class ClaudeConfigManager {
     private configPath?;
     /**

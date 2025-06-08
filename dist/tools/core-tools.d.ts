@@ -1,5 +1,5 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { MCPLookupAPIClient } from '../generated/api-client.js';
+import { MCPLookupAPIClient } from '@mcplookup-org/mcp-sdk';
 export declare class CoreTools {
     private apiClient;
     private toolInvoker;

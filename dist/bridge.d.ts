@@ -1,4 +1,4 @@
-import { MCPLookupAPIClient } from './generated/api-client.js';
+import { MCPLookupAPIClient } from '@mcplookup-org/mcp-sdk';
 import { CoreTools } from './tools/core-tools.js';
 import { ServerManagementTools } from './tools/server-management-tools.js';
 import { DynamicToolRegistry } from './tools/dynamic-tool-registry.js';
@@ -104,12 +104,12 @@ export declare class MCPLookupBridge {
         smartDiscovery(params: any): Promise<any>;
         registerServer(params: any): Promise<any>;
         getOnboardingState(): Promise<any>;
-        installServer(params: any): Promise<ToolCallResult>;
-        listManagedServers(): Promise<ToolCallResult>;
-        controlServer(params: any): Promise<ToolCallResult>;
-        listClaudeServers(): Promise<ToolCallResult>;
+        installServer(params: any): Promise<import("@mcplookup-org/mcp-sdk").ToolCallResult>;
+        listManagedServers(): Promise<import("@mcplookup-org/mcp-sdk").ToolCallResult>;
+        controlServer(params: any): Promise<import("@mcplookup-org/mcp-sdk").ToolCallResult>;
+        listClaudeServers(): Promise<import("@mcplookup-org/mcp-sdk").ToolCallResult>;
         getServerHealth(serverName: string): Promise<{
-            status: MCPLookupAPIClient["status"];
+            status: import("@mcplookup-org/mcp-sdk").ManagedServer["status"];
             toolCount: number;
             uptime?: number;
             lastError?: string;

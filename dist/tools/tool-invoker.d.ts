@@ -1,4 +1,4 @@
-import { InvokeToolOptions, ToolCallResult } from '@mcplookup-org/mcp-sdk/types';
+import { InvokeToolOptions, ToolCallResult } from '@mcplookup-org/mcp-sdk';
 export declare class ToolInvoker {
     private clientCache;
     /**

@@ -1,4 +1,4 @@
-import { ManagedServer } from '@mcplookup-org/mcp-sdk/types';
+import { ManagedServer } from '@mcplookup-org/mcp-sdk';
 export declare class ServerRegistry {
     private servers;
     private dockerManager;
