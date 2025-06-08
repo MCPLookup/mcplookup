@@ -32,7 +32,7 @@
     "url": "https://github.com/MCPLookup-org/mcp-server.git"
   },
   "dependencies": {
-    "@mcplookup-org/mcp-sdk": "file:../mcp-sdk",
+    "@mcplookup-org/mcp-sdk": "0.0.1",
     "@modelcontextprotocol/sdk": "^1.0.7",
     "zod": "^3.25.50"
   },

@@ -1,7 +1,7 @@
 // Dynamic tool registry for managing tools from bridge-mode servers
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { ManagedServer } from '@mcplookup-org/mcp-sdk/types';
+import { ManagedServer } from '@mcplookup-org/mcp-sdk';
 
 export class DynamicToolRegistry {
   private mcpServer: McpServer;

@@ -6,8 +6,11 @@ import {
   ServerInstallOptions,
   ServerControlOptions,
   ToolCallResult,
-  ManagedServer
-} from '@mcplookup-org/mcp-sdk/types';
+  ManagedServer,
+  InstallationResolver,
+  InstallationContext,
+  ResolvedPackage
+} from '@mcplookup-org/mcp-sdk';
 import { ServerRegistry } from '../server-management/server-registry.js';
 import { ClaudeConfigManager } from '../server-management/claude-config-manager.js';
 import { DockerManager } from '../server-management/docker-manager.js';
@@ -16,15 +19,16 @@ import {
   createSuccessResult,
   createErrorResult,
   executeWithErrorHandling,
-  sanitizeIdentifier
-} from '@mcplookup-org/mcp-sdk/utils';
-import { validateInstallOptions } from '@mcplookup-org/mcp-sdk/utils';
+  sanitizeIdentifier,
+  validateInstallOptions
+} from '@mcplookup-org/mcp-sdk';
 
 export class ServerManagementTools {
   private serverRegistry: ServerRegistry;
   private claudeConfigManager: ClaudeConfigManager;
   private dockerManager: DockerManager;
   private dynamicToolRegistry: DynamicToolRegistry;
+  private installationResolver: InstallationResolver;
 
   constructor(
     serverRegistry: ServerRegistry,
@@ -36,6 +40,7 @@ export class ServerManagementTools {
     this.claudeConfigManager = claudeConfigManager;
     this.dockerManager = dockerManager;
     this.dynamicToolRegistry = dynamicToolRegistry;
+    this.installationResolver = new InstallationResolver();
   }
 
   /**
@@ -48,19 +53,25 @@ export class ServerManagementTools {
   }
 
   private registerInstallationTools(server: McpServer): void {
-    // Tool: Install MCP server (enhanced with installation modes)
+    // Tool: Install MCP server (enhanced with SDK package resolution)
     server.tool(
       'install_mcp_server',
       {
-        name: z.string().describe('Local name for the server'),
-        type: z.enum(['docker', 'npm']).describe('Installation type'),
-        command: z.string().describe('Docker command or npm package name'),
+        package_query: z.string().describe('Package name, Docker image, or natural language description of the server to install'),
+        name: z.string().optional().describe('Custom local name for the server (auto-generated if not provided)'),
         mode: z.enum(['bridge', 'direct']).default('bridge').describe('Installation mode: bridge (dynamic) or direct (Claude config)'),
         auto_start: z.boolean().default(true).describe('Start server immediately after install (bridge mode only)'),
         global_install: z.boolean().default(false).describe('Install npm package globally (direct mode only, like Smithery)'),
         env: z.record(z.string()).optional().describe('Environment variables for the server')
       },
-      async (options: ServerInstallOptions) => this.installServer(options)
+      async (options: {
+        package_query: string;
+        name?: string;
+        mode: 'bridge' | 'direct';
+        auto_start: boolean;
+        global_install: boolean;
+        env?: Record<string, string>;
+      }) => this.installServerWithSDK(options)
     );
   }
 
@@ -101,131 +112,162 @@ export class ServerManagementTools {
     );
   }
 
-  // Implementation methods
-  async installServer(options: ServerInstallOptions): Promise<ToolCallResult> {
-    // Validate installation options
-    const validation = validateInstallOptions(options);
-    if (!validation.isValid) {
-      return createErrorResult(new Error(validation.errors.join('; ')), 'Invalid installation options');
-    }
-
+  // Implementation methods - SDK-powered installation
+  async installServerWithSDK(options: {
+    package_query: string;
+    name?: string;
+    mode: 'bridge' | 'direct';
+    auto_start: boolean;
+    global_install: boolean;
+    env?: Record<string, string>;
+  }): Promise<ToolCallResult> {
     return executeWithErrorHandling(async () => {
+      // Step 1: Use SDK to resolve the package query to actual package
+      const resolvedPackage = await this.installationResolver.resolvePackage(options.package_query);
+      
+      // Step 2: Generate server name if not provided
+      const serverName = options.name || this.installationResolver.generateServerName(resolvedPackage.packageName);
+      
+      // Step 3: Create installation context
+      const context: InstallationContext = {
+        mode: options.mode,
+        platform: process.platform as 'linux' | 'darwin' | 'win32',
+        globalInstall: options.global_install,
+        client: 'mcp-bridge',
+        verbose: true
+      };
+      
+      // Step 4: Get installation instructions from SDK
+      const instructions = await this.installationResolver.getInstallationInstructions(resolvedPackage, context);
+      
+      // Step 5: Install based on mode using SDK instructions
       if (options.mode === 'direct') {
-        return await this.installDirectMode(options);
+        return await this.installDirectModeWithSDK(resolvedPackage, serverName, instructions, options.env || {});
       } else {
-        return await this.installBridgeMode(options);
+        return await this.installBridgeModeWithSDK(resolvedPackage, serverName, instructions, options);
       }
-    }, `Failed to install ${options.name}`);
+    }, `Failed to install server from query: "${options.package_query}"`);
   }
 
-  private async installBridgeMode(options: ServerInstallOptions): Promise<ToolCallResult> {
-    if (this.serverRegistry.hasServer(options.name)) {
-      return {
-        content: [{
-          type: 'text' as const,
-          text: `❌ Server '${options.name}' already exists. Use control_mcp_server to manage it.`
-        }],
-        isError: true
-      };
+  private async installBridgeModeWithSDK(
+    resolvedPackage: ResolvedPackage,
+    serverName: string,
+    instructions: any,
+    options: { auto_start: boolean; env?: Record<string, string> }
+  ): Promise<ToolCallResult> {
+    if (this.serverRegistry.hasServer(serverName)) {
+      return createErrorResult(
+        new Error(`Server '${serverName}' already exists`),
+        'Server already exists'
+      );
     }
 
     const server: ManagedServer = {
-      name: options.name,
-      type: options.type,
+      name: serverName,
+      type: resolvedPackage.type as 'npm' | 'docker',
       mode: 'bridge',
-      command: options.type === 'docker' ? options.command.split(' ') : ['npx', options.command],
+      command: instructions.args || [instructions.command],
       tools: [],
       status: 'installing'
     };
 
     this.serverRegistry.addServer(server);
 
-    if (options.type === 'npm') {
-      // For npm packages, dockerize them using centralized method
-      // Environment variables are handled inside dockerizeNpmServer
-      await this.dockerManager.dockerizeNpmServer(server, options.env || {});
-    } else if (options.type === 'docker') {
-      // Add environment variables to existing Docker command if provided
-      if (options.env && Object.keys(options.env).length > 0) {
-        server.command = this.dockerManager.addEnvironmentVariables(server.command, options.env);
+    // Use SDK-generated instructions for setup
+    if (resolvedPackage.type === 'npm') {
+      await this.dockerManager.dockerizeNpmServer(server, { 
+        ...options.env, 
+        ...instructions.env_vars 
+      });
+    } else if (resolvedPackage.type === 'docker') {
+      if (instructions.env_vars && Object.keys(instructions.env_vars).length > 0) {
+        server.command = this.dockerManager.addEnvironmentVariables(
+          server.command, 
+          { ...options.env, ...instructions.env_vars }
+        );
       }
     }
 
     if (options.auto_start) {
-      await this.serverRegistry.startServer(options.name);
-      
-      // Register dynamic tools
-      await this.dynamicToolRegistry.addServerTools(options.name, server);
+      await this.serverRegistry.startServer(serverName);
+      await this.dynamicToolRegistry.addServerTools(serverName, server);
     }
 
-    return {
-      content: [{
-        type: 'text' as const,
-        text: `✅ Installed ${options.name} (${options.type}, bridge mode)\n${options.auto_start ? 'Server started and tools available with prefix: ' + options.name + '_' : 'Use control_mcp_server to start.'}`
-      }]
-    };
+    return createSuccessResult(
+      `✅ Installed ${resolvedPackage.displayName || resolvedPackage.packageName} as '${serverName}' (${resolvedPackage.type}, bridge mode)
+📦 Package: ${resolvedPackage.packageName}
+${resolvedPackage.description ? `📝 Description: ${resolvedPackage.description}` : ''}
+${resolvedPackage.verified ? '🔐 Verified server' : '⚠️ Unverified server'}
+${options.auto_start ? 
+  `🚀 Server started and tools available with prefix: ${serverName}_` : 
+  '⏳ Use control_mcp_server to start.'
+}
+
+💡 Installation steps completed:
+${instructions.steps.map((step: string, i: number) => `${i + 1}. ${step}`).join('\n')}`
+    );
   }
 
-  private async installDirectMode(options: ServerInstallOptions): Promise<ToolCallResult> {
+  private async installDirectModeWithSDK(
+    resolvedPackage: ResolvedPackage,
+    serverName: string,
+    instructions: any,
+    env: Record<string, string>
+  ): Promise<ToolCallResult> {
     // Check if server already exists in Claude config
-    if (await this.claudeConfigManager.hasServer(options.name)) {
-      return {
-        content: [{
-          type: 'text' as const,
-          text: `❌ Server '${options.name}' already exists in Claude Desktop config. Remove it first or use a different name.`
-        }],
-        isError: true
-      };
-    }
-
-    // Add server to Claude Desktop config
-    if (options.type === 'docker') {
-      const dockerArgs = options.command.split(' ').slice(1); // Remove 'docker' command
-      await this.claudeConfigManager.addServer(
-        options.name,
-        'docker',
-        dockerArgs,
-        options.env || {}
+    if (await this.claudeConfigManager.hasServer(serverName)) {
+      return createErrorResult(
+        new Error(`Server '${serverName}' already exists in Claude Desktop config`),
+        'Server already exists in Claude config'
       );
-    } else {
-      // npm package handling
-      if (options.global_install) {
-        // Smithery-style: use the package name directly (assumes global install)
-        // Extract package name from scoped packages (@org/pkg -> pkg)
-        const packageName = options.command.includes('/')
-          ? options.command.split('/').pop() || options.command
-          : options.command;
-
-        await this.claudeConfigManager.addServer(
-          options.name,
-          packageName,
-          [],
-          options.env || {}
-        );
-      } else {
-        // Default: Dockerize the npx command using centralized Docker manager
-        const dockerArgs = this.dockerManager.createDirectModeDockerArgs(
-          options.command,
-          options.env || {}
-        );
-        await this.claudeConfigManager.addServer(
-          options.name,
-          'docker',
-          dockerArgs,
-          {} // env already included in docker command
-        );
-      }
     }
+
+    // Generate Claude Desktop configuration using SDK
+    const context: InstallationContext = {
+      mode: 'direct',
+      platform: process.platform as 'linux' | 'darwin' | 'win32',
+      client: 'claude-desktop'
+    };
+
+    const claudeConfig = this.installationResolver.generateClaudeConfig(
+      resolvedPackage,
+      context,
+      { ...env, ...instructions.env_vars }
+    );
+
+    // Extract the server config from the generated Claude config
+    const serverConfig = Object.values(claudeConfig.mcpServers)[0] as any;
+
+    // Add server to Claude Desktop config using SDK-generated configuration
+    await this.claudeConfigManager.addServer(
+      serverName,
+      serverConfig.command,
+      serverConfig.args || [],
+      serverConfig.env || {}
+    );
 
     const configPath = await this.claudeConfigManager.getConfigPath();
-    const installMethod = options.global_install ? 'host (Smithery-style)' : 'Docker container';
+    const runtimeInfo = this.installationResolver.getRuntimeInfo(
+      resolvedPackage.type as string,
+      'direct',
+      false // global install handled by SDK
+    );
 
-    return {
-      content: [{
-        type: 'text' as const,
-        text: `✅ Installed ${options.name} in Claude Desktop config (direct mode)\n📋 Config updated at: ${configPath}\n🔄 Please restart Claude Desktop to use the server.\n\n🏃 Runtime: ${installMethod}\nServer will be available as: ${options.name}`
-      }]
-    };
+    return createSuccessResult(
+      `✅ Installed ${resolvedPackage.displayName || resolvedPackage.packageName} as '${serverName}' in Claude Desktop config
+📦 Package: ${resolvedPackage.packageName}
+${resolvedPackage.description ? `📝 Description: ${resolvedPackage.description}` : ''}
+${resolvedPackage.verified ? '🔐 Verified server' : '⚠️ Unverified server'}
+📋 Config updated at: ${configPath}
+🏃 Runtime: ${runtimeInfo}
+🔄 Please restart Claude Desktop to use the server.
+
+💡 Installation steps completed:
+${instructions.steps.map((step: string, i: number) => `${i + 1}. ${step}`).join('\n')}
+
+🔧 Generated command: ${instructions.command}
+📝 Generated args: ${instructions.args.join(' ')}`
+    );
   }
 
 

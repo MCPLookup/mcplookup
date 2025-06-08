@@ -2,7 +2,7 @@
 
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
-import { ManagedServer } from '@mcplookup-org/mcp-sdk/types';
+import { ManagedServer } from '@mcplookup-org/mcp-sdk';
 import { DockerManager } from './docker-manager.js';
 
 export class ServerRegistry {

@@ -3,13 +3,13 @@
 import { readFile, writeFile, access } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
-import { ClaudeConfig } from '@mcplookup-org/mcp-sdk/types';
+import { ClaudeConfig } from '@mcplookup-org/mcp-sdk';
 import {
   readJsonFile,
   writeJsonFile,
   updateJsonFile,
   fileExists
-} from '@mcplookup-org/mcp-sdk/utils';
+} from '@mcplookup-org/mcp-sdk';
 
 export class ClaudeConfigManager {
   private configPath?: string;

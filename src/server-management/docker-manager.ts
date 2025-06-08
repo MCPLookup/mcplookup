@@ -1,6 +1,6 @@
 // Docker container management for MCP servers
 
-import { ManagedServer } from '@mcplookup-org/mcp-sdk/types';
+import { ManagedServer } from '@mcplookup-org/mcp-sdk';
 
 export class DockerManager {
   /**
