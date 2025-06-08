@@ -1,6 +1,12 @@
 // Install command - Enhanced Smithery parity with mcplookup.org integration
 
 import { BaseCommand } from './base-command.js';
+import { 
+  InstallationResolver, 
+  InstallationContext, 
+  ResolvedPackage, 
+  InstallationMethod 
+} from '@mcplookup-org/mcp-sdk';
 
 export interface InstallOptions {
   client: string;
@@ -14,16 +20,14 @@ export interface InstallOptions {
   verbose?: boolean;
 }
 
-export interface ResolvedPackage {
-  packageName: string;
-  displayName: string;
-  description?: string;
-  type: 'npm' | 'docker';
-  source: 'direct' | 'smart_search' | 'registry_search';
-  verified?: boolean;
-}
-
 export class InstallCommand extends BaseCommand {
+  private resolver: InstallationResolver;
+
+  constructor(bridge: any) {
+    super(bridge);
+    this.resolver = new InstallationResolver();
+  }
+
   async execute(packageName: string, options: InstallOptions): Promise<void> {
     this.setVerbose(options.verbose || false);
 
@@ -35,21 +39,34 @@ export class InstallCommand extends BaseCommand {
       const config = options.config ? this.parseJSON(options.config) : {};
       const env = options.env ? this.parseJSON(options.env) : {};
 
-      // Resolve the actual package to install
+      // Create installation context
+      const context: InstallationContext = {
+        mode: options.mode,
+        platform: process.platform as 'linux' | 'darwin' | 'win32',
+        globalInstall: options.globalInstall,
+        client: options.client,
+        dryRun: options.dryRun,
+        verbose: options.verbose
+      };
+
+      // Resolve the actual package to install using SDK
       const resolvedPackage = await this.resolvePackage(packageName);
       this.debug(`Resolved package: ${JSON.stringify(resolvedPackage, null, 2)}`);
 
+      // Get installation instructions from SDK
+      const instructions = await this.resolver.getInstallationInstructions(resolvedPackage, context);
+
       // Dry run mode
       if (options.dryRun) {
-        await this.performDryRun(resolvedPackage, options, config, env);
+        await this.performDryRun(resolvedPackage, options, config, env, instructions);
         return;
       }
 
       // Install based on mode
       if (options.mode === 'bridge') {
-        await this.installBridgeMode(resolvedPackage, config, env, options);
+        await this.installBridgeMode(resolvedPackage, config, env, options, instructions);
       } else {
-        await this.installDirectMode(resolvedPackage, config, env, options);
+        await this.installDirectMode(resolvedPackage, config, env, options, instructions);
       }
 
       this.success(`Successfully installed ${resolvedPackage.displayName || resolvedPackage.packageName}`);
@@ -63,123 +80,27 @@ export class InstallCommand extends BaseCommand {
   }
 
   /**
-   * Resolve package name to actual installable package
-   * Handles: NPM packages, Docker images, natural language queries
+   * Resolve package name using SDK utilities
    */
   private async resolvePackage(input: string): Promise<ResolvedPackage> {
-    // 1. Direct NPM package (e.g., @npmorg/package, package-name)
-    if (this.isNpmPackage(input)) {
-      return {
-        packageName: input,
-        displayName: input,
-        type: 'npm',
-        source: 'direct'
-      };
-    }
-
-    // 2. Docker image (e.g., company/server:latest)
-    if (this.isDockerImage(input)) {
-      return {
-        packageName: input,
-        displayName: input,
-        type: 'docker',
-        source: 'direct'
-      };
-    }
-
-    // 3. Natural language or server name - search mcplookup.org
-    this.info(`🔍 Searching for: "${input}"`);
-    return await this.searchForPackage(input);
-  }
-
-  private isNpmPackage(input: string): boolean {
-    // NPM package patterns: @scope/name, package-name, etc.
-    return /^(@[a-z0-9-~][a-z0-9-._~]*\/)?[a-z0-9-~][a-z0-9-._~]*$/.test(input) &&
-           !input.includes(':') &&
-           !input.includes(' ');
-  }
-
-  private isDockerImage(input: string): boolean {
-    // Docker image patterns: name:tag, registry/name:tag, etc.
-    return input.includes(':') && !input.includes(' ') && !input.startsWith('@');
-  }
-
-  private async searchForPackage(query: string): Promise<ResolvedPackage> {
+    this.info(`🔍 Resolving package: "${input}"`);
+    
     try {
-      // First try smart discovery for better matching
-      const smartResult = await this.bridge.api.smartDiscovery({
-        query,
-        limit: 5
-      });
-
-      const smartResponse = JSON.parse(smartResult.content[0].text);
-
-      if (smartResponse.servers && smartResponse.servers.length > 0) {
-        const server = smartResponse.servers[0]; // Take the best match
-
-        // Prefer NPM package if available
-        if (server.npm_package) {
-          return {
-            packageName: server.npm_package,
-            displayName: server.name,
-            description: server.description,
-            type: 'npm',
-            source: 'smart_search',
-            verified: server.verified
-          };
+      const resolved = await this.resolver.resolvePackage(input);
+      
+      if (resolved.source === 'smart_search') {
+        this.info(`✅ Found: ${resolved.displayName}`);
+        if (resolved.description) {
+          this.info(`📝 ${resolved.description}`);
         }
-
-        // Fall back to Docker if available
-        if (server.docker_image) {
-          return {
-            packageName: server.docker_image,
-            displayName: server.name,
-            description: server.description,
-            type: 'docker',
-            source: 'smart_search',
-            verified: server.verified
-          };
+        if (resolved.verified) {
+          this.info('🔐 Verified server');
         }
       }
-
-      // Fall back to regular discovery
-      const regularResult = await this.bridge.api.discoverServers({
-        query,
-        limit: 5
-      });
-
-      const regularResponse = JSON.parse(regularResult.content[0].text);
-
-      if (regularResponse.servers && regularResponse.servers.length > 0) {
-        const server = regularResponse.servers[0];
-
-        if (server.npm_package) {
-          return {
-            packageName: server.npm_package,
-            displayName: server.name,
-            description: server.description,
-            type: 'npm',
-            source: 'registry_search',
-            verified: server.verified
-          };
-        }
-
-        if (server.docker_image) {
-          return {
-            packageName: server.docker_image,
-            displayName: server.name,
-            description: server.description,
-            type: 'docker',
-            source: 'registry_search',
-            verified: server.verified
-          };
-        }
-      }
-
-      throw new Error(`No installable package found for: "${query}"`);
-
+      
+      return resolved;
     } catch (error) {
-      throw new Error(`Search failed for "${query}": ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(`Failed to resolve package "${input}": ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -187,11 +108,16 @@ export class InstallCommand extends BaseCommand {
     resolvedPackage: ResolvedPackage,
     options: InstallOptions,
     config: any,
-    env: any
+    env: any,
+    instructions: any
   ): Promise<void> {
     this.info('🔍 Dry run mode - showing what would be installed:');
 
-    const runtimeInfo = this.getRuntimeInfo(resolvedPackage.type, options.mode, options.globalInstall);
+    const runtimeInfo = this.resolver.getRuntimeInfo(
+      resolvedPackage.type as string, 
+      options.mode, 
+      options.globalInstall
+    );
 
     console.log(`
 📦 Package: ${resolvedPackage.packageName}
@@ -206,6 +132,12 @@ ${resolvedPackage.verified ? '✅ Verified' : '⚠️  Unverified'}
 ⚙️ Config: ${Object.keys(config).length} keys
 🌍 Environment: ${Object.keys(env).length} variables
 🚀 Auto-start: ${options.autoStart}
+
+📋 Installation Steps:
+${instructions.steps.map((step: string, i: number) => `${i + 1}. ${step}`).join('\n')}
+
+🔧 Command: ${instructions.command}
+📝 Args: ${instructions.args.join(' ')}
     `);
 
     if (options.mode === 'direct') {
@@ -221,7 +153,8 @@ ${resolvedPackage.verified ? '✅ Verified' : '⚠️  Unverified'}
     resolvedPackage: ResolvedPackage,
     config: any,
     env: any,
-    options: InstallOptions
+    options: InstallOptions,
+    instructions: any
   ): Promise<void> {
     this.info('Installing in bridge mode (dynamic, no restart required)');
 
@@ -238,12 +171,13 @@ ${resolvedPackage.verified ? '✅ Verified' : '⚠️  Unverified'}
 
     await this.withSpinner('Installing server...', async () => {
       const result = await this.bridge.api.installServer({
-        name: this.generateServerName(resolvedPackage.packageName),
+        name: this.resolver.generateServerName(resolvedPackage.packageName),
         type: resolvedPackage.type,
-        command: resolvedPackage.packageName,
+        command: instructions.command,
+        args: instructions.args,
         mode: 'bridge',
         auto_start: options.autoStart,
-        env: { ...env, ...config }
+        env: { ...env, ...config, ...instructions.env_vars }
       });
 
       if (result.isError) {
@@ -262,7 +196,8 @@ ${resolvedPackage.verified ? '✅ Verified' : '⚠️  Unverified'}
     resolvedPackage: ResolvedPackage,
     config: any,
     env: any,
-    options: InstallOptions
+    options: InstallOptions,
+    instructions: any
   ): Promise<void> {
     this.info('Installing in direct mode (permanent, requires restart)');
 
@@ -278,7 +213,11 @@ ${resolvedPackage.verified ? '✅ Verified' : '⚠️  Unverified'}
     }
 
     // Show runtime information
-    const runtimeInfo = this.getRuntimeInfo(resolvedPackage.type, 'direct', options.globalInstall);
+    const runtimeInfo = this.resolver.getRuntimeInfo(
+      resolvedPackage.type as string, 
+      'direct', 
+      options.globalInstall
+    );
     this.info(`🏃 Runtime: ${runtimeInfo}`);
 
     // For npm packages with global install, perform npm install -g
@@ -287,13 +226,29 @@ ${resolvedPackage.verified ? '✅ Verified' : '⚠️  Unverified'}
     }
 
     await this.withSpinner('Adding to Claude Desktop configuration...', async () => {
+      // Generate Claude config using SDK utilities
+      const context = {
+        mode: options.mode as 'direct' | 'bridge',
+        platform: process.platform as 'linux' | 'darwin' | 'win32',
+        globalInstall: options.globalInstall,
+        client: options.client
+      };
+      
+      const claudeConfig = this.resolver.generateClaudeConfig(
+        resolvedPackage, 
+        context, 
+        { ...env, ...config, ...instructions.env_vars }
+      );
+
       const result = await this.bridge.api.installServer({
-        name: this.generateServerName(resolvedPackage.packageName),
+        name: this.resolver.generateServerName(resolvedPackage.packageName),
         type: resolvedPackage.type,
-        command: resolvedPackage.packageName,
+        command: instructions.command,
+        args: instructions.args,
         mode: 'direct',
         global_install: options.globalInstall,
-        env: { ...env, ...config }
+        claude_config: claudeConfig.mcpServers,
+        env: { ...env, ...config, ...instructions.env_vars }
       });
 
       if (result.isError) {
