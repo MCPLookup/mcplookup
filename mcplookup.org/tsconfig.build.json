@@ -1,0 +1,26 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": "./dist",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    ".next",
+    "src/app/**/*",
+    "src/components/**/*",
+    "scripts/**/*"
+  ],
+  "include": [
+    "src/server.ts",
+    "src/server-clean.ts",
+    "src/lib/**/*",
+    "auth.ts",
+    "middleware.ts"
+  ]
+}

@@ -1,0 +1,15 @@
+node_modules
+git
+.next
+.DS_Store
+# Environment variables (contains API keys and secrets)
+.env*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+dist/
+
+# TypeScript build info
+*.tsbuildinfo
+tsconfig.tsbuildinfo

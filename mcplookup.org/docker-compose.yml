@@ -1,0 +1,83 @@
+# Docker Compose for MCPLookup.org Development
+# Provides local Redis instance and the Next.js application
+
+services:
+  # Redis database for local development
+  redis:
+    image: redis:7-alpine
+    container_name: mcplookup-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+      - ./docker/redis/redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+    environment:
+      - REDIS_REPLICATION_MODE=master
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+  # MCPLookup Next.js application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mcplookup-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - REDIS_URL=redis://redis:6379
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_SECRET=dev-secret-change-in-production
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      # Mount source code for development hot-reload
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    develop:
+      watch:
+        - action: sync
+          path: ./src
+          target: /app/src
+        - action: rebuild
+          path: package.json
+
+  # Redis Commander - Web UI for Redis
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: mcplookup-redis-ui
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+      - HTTP_USER=admin
+      - HTTP_PASSWORD=admin123
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  # Redis CLI for easy database access
+  redis-cli:
+    image: redis:7-alpine
+    container_name: mcplookup-redis-cli
+    profiles: ["tools"]
+    depends_on:
+      - redis
+    command: redis-cli -h redis
+    tty: true
+    stdin_open: true
+
+volumes:
+  redis_data:
+    driver: local
