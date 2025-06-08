@@ -10,24 +10,14 @@ export interface InstallOptions {
     globalInstall?: boolean;
     verbose?: boolean;
 }
-export interface ResolvedPackage {
-    packageName: string;
-    displayName: string;
-    description?: string;
-    type: 'npm' | 'docker';
-    source: 'direct' | 'smart_search' | 'registry_search';
-    verified?: boolean;
-}
 export declare class InstallCommand extends BaseCommand {
+    private resolver;
+    constructor(bridge: any);
     execute(packageName: string, options: InstallOptions): Promise<void>;
     /**
-     * Resolve package name to actual installable package
-     * Handles: NPM packages, Docker images, natural language queries
+     * Resolve package name using SDK utilities
      */
     private resolvePackage;
-    private isNpmPackage;
-    private isDockerImage;
-    private searchForPackage;
     private performDryRun;
     private installBridgeMode;
     private installDirectMode;

@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-#!/usr/bin/env node
 // MCPL CLI - Enhanced MCP server management tool
 // Provides Smithery parity and beyond with mcplookup.org integration
 import { Command } from 'commander';
