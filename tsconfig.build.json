@@ -13,13 +13,13 @@
     "**/*.test.ts",
     ".next",
     "src/app/**/*",
-    "src/components/**/*"
+    "src/components/**/*",
+    "scripts/**/*"
   ],
   "include": [
     "src/server.ts",
     "src/server-clean.ts",
     "src/lib/**/*",
-    "scripts/**/*",
     "auth.ts",
     "middleware.ts"
   ]

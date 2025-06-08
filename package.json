@@ -67,6 +67,8 @@
     "@emotion/react": "^11.14.0",
     "@heroicons/react": "^2.2.0",
     "@hookform/resolvers": "^3.9.1",
+    "@langchain/core": "^0.3.57",
+    "@langchain/ollama": "^0.2.1",
     "@mcplookup-org/mcp-sdk": "^0.0.1",
     "@modelcontextprotocol/sdk": "^1.12.1",
     "@types/bcryptjs": "^2.4.6",
@@ -83,6 +85,7 @@
     "dotenv": "^16.5.0",
     "framer-motion": "^12.16.0",
     "ioredis": "^5.4.1",
+    "langchain": "^0.3.27",
     "lucide-react": "^0.511.0",
     "mermaid": "^11.6.0",
     "next": "^15.3",
@@ -96,7 +99,7 @@
     "react-hook-form": "^7.57.0",
     "react-icons": "^5.5.0",
     "react-markdown": "^10.1.0",
-    "redis": "^5.5.5",
+    "redis": "^5.5.6",
     "rehype-highlight": "^7.0.2",
     "rehype-raw": "^7.0.0",
     "remark-gfm": "^4.0.1",
@@ -107,7 +110,7 @@
     "tailwindcss": "^3.4.17",
     "tailwindcss-animate": "^1.0.7",
     "uuid": "^11.1.0",
-    "zod": "^3.25.50"
+    "zod": "^3.25.56"
   },
   "devDependencies": {
     "@apidevtools/json-schema-ref-parser": "^13.0.1",
