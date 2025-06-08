@@ -1,14 +1,14 @@
 {
   "name": "mcplookup-monorepo",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "private": true,
-  "description": "MCPLookup.org monorepo - The universal MCP discovery service ecosystem",
-  "workspaces": [
+  "description": "MCPLookup.org monorepo - The universal MCP discovery service ecosystem",  "workspaces": [
     "mcp-sdk",
     "mcp-server", 
     "mcpl-cli",
     "mcplookup.org"
-  ],  "scripts": {
+  ],
+  "scripts": {
     "build": "turbo build",
     "dev": "turbo dev",
     "test": "turbo test",

@@ -17,55 +17,64 @@ export class MCPLookupAPIClient {
         });
     }
     /**
-     * Discover MCP servers using various search criteria
+     * Search and discover MCP servers
      */
-    async discover(params = {}) {
-        const { data, error } = await this.client.GET('/discover', {
+    async searchServers(params) {
+        const { data, error } = await this.client.GET('/servers', {
             params: { query: params }
         });
         if (error) {
-            throw new Error(`Discovery failed: ${JSON.stringify(error)}`);
+            throw new Error(`Search failed: ${error}`);
         }
         return data;
     }
     /**
-     * Smart AI-powered discovery using natural language
+     * Get detailed information about a specific server
      */
-    async discoverSmart(params) {
+    async getServer(serverId) {
+        const { data, error } = await this.client.GET('/servers/{serverId}', {
+            params: { path: { serverId } }
+        });
+        if (error) {
+            throw new Error(`Failed to get server: ${error}`);
+        }
+        return data;
+    }
+    /**
+     * Get installation instructions for a server
+     */
+    async getInstallInstructions(serverId, params) {
+        const { data, error } = await this.client.GET('/servers/{serverId}/install', {
+            params: {
+                path: { serverId },
+                query: params
+            }
+        });
+        if (error) {
+            throw new Error(`Failed to get installation instructions: ${error}`);
+        }
+        return data;
+    }
+    /**
+     * AI-powered smart discovery
+     */
+    async smartDiscover(params) {
         const { data, error } = await this.client.POST('/discover/smart', {
             body: params
         });
         if (error) {
-            throw new Error(`Smart discovery failed: ${JSON.stringify(error)}`);
+            throw new Error(`Smart discovery failed: ${error}`);
         }
         return data;
     }
     /**
-     * Register a new MCP server
+     * Update the base URL for the client
      */
-    async register(params) {
-        const { data, error } = await this.client.POST('/register', {
-            body: params
+    setBaseUrl(url) {
+        this.baseUrl = url;
+        this.client = createClient({
+            baseUrl: url
         });
-        if (error) {
-            throw new Error(`Registration failed: ${JSON.stringify(error)}`);
-        }
-        return data;
-    }
-    /**
-     * Get server health metrics
-     */
-    async getServerHealth(domain, realtime = false) {
-        const { data, error } = await this.client.GET('/health/{domain}', {
-            params: {
-                path: { domain },
-                query: { realtime }
-            }
-        });
-        if (error) {
-            throw new Error(`Health check failed: ${JSON.stringify(error)}`);
-        }
-        return data;
     }
     /**
      * Set API key for authenticated requests
@@ -77,6 +86,4 @@ export class MCPLookupAPIClient {
         });
     }
 }
-// Export default instance for convenience
-export const mcpLookupClient = new MCPLookupAPIClient();
 //# sourceMappingURL=api-client.js.map

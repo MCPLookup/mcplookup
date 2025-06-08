@@ -1,6 +1,6 @@
 {
   "name": "@mcplookup-org/mcp-server",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "MCP Bridge Server - Universal MCP client with dynamic discovery and tool management",
   "type": "module",
   "main": "dist/index.js",
@@ -32,7 +32,7 @@
     "url": "https://github.com/MCPLookup-org/mcp-server.git"
   },
   "dependencies": {
-    "@mcplookup-org/mcp-sdk": "0.0.1",
+    "@mcplookup-org/mcp-sdk": "*",
     "@modelcontextprotocol/sdk": "^1.0.7",
     "zod": "^3.25.50"
   },

@@ -1,6 +1,6 @@
 {
   "name": "mcplookup-registry",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "Professional MCP Discovery Server - Enterprise-grade MCP Discovery Service with Flexible Storage Architecture",
   "main": "dist/server.js",
   "type": "module",
@@ -69,10 +69,10 @@
     "@hookform/resolvers": "^3.9.1",
     "@langchain/core": "^0.3.57",
     "@langchain/ollama": "^0.2.1",
-    "@mcplookup-org/mcp-sdk": "^0.0.1",
+    "@mcplookup-org/mcp-sdk": "*",
     "@modelcontextprotocol/sdk": "^1.12.1",
     "@types/bcryptjs": "^2.4.6",
-    "@types/ioredis": "^4.28.10",
+
     "@types/nodemailer": "^6.4.17",
     "@types/prismjs": "^1.26.5",
     "@upstash/redis": "^1.35.0",
