@@ -1,0 +1,38 @@
+# API & Transport Configuration
+APIConfiguration:
+  type: object
+  properties:
+    transport:
+      type: string
+      enum: [stdio, http, websocket, sse]
+      description: Primary transport protocol
+      example: "stdio"
+    endpoints:
+      type: array
+      items:
+        type: string
+        format: uri
+      description: API endpoint URLs (documentation/reference)
+    cors_enabled:
+      type: boolean
+      description: CORS support for web usage
+    auth:
+      $ref: '#/AuthConfiguration'
+
+AuthConfiguration:
+  type: object
+  properties:
+    type:
+      type: string
+      enum: [none, api_key, oauth2, basic, custom]
+      description: Authentication method
+      example: "none"
+    description:
+      type: string
+      description: Authentication details
+      example: "No authentication required"
+    required_scopes:
+      type: array
+      items:
+        type: string
+      description: Required OAuth scopes (if applicable)

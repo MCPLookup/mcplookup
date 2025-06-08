@@ -1,0 +1,23 @@
+# Live Service & Availability
+AvailabilityInfo:
+  type: object
+  properties:
+    status:
+      type: string
+      enum: [package_only, live_service, both]
+      description: Service availability type
+      example: "package_only"
+    endpoint_verified:
+      type: boolean
+      description: Live endpoint tested and working
+    live_endpoint:
+      type: string
+      format: uri
+      description: Live service URL (if available)
+    primary_package:
+      type: string
+      description: Preferred package registry
+      example: "github"
+    packages_available:
+      type: boolean
+      description: Has installable packages

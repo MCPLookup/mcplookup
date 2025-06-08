@@ -1,0 +1,465 @@
+# Comprehensive MCP Server Schema
+# Purpose: Discovery + Installation
+# Based on Redis data analysis with 2,635 servers
+
+MCPServer:
+  type: object
+  description: Complete MCP server record optimized for discovery and installation
+  properties:
+    # === DISCOVERY SECTION ===
+    # Core Identity & Search
+    id:
+      type: string
+      description: Unique server identifier
+      example: "github.com/baidu-maps/mcp"
+    name:
+      type: string
+      description: Server name
+      example: "Baidu Maps MCP"
+    description:
+      type: string
+      description: Human-readable description
+      example: "百度地图MCP Server for location services"
+    tagline:
+      type: string
+      description: One-line summary for search results
+      example: "Location services and mapping for Claude"
+    
+    # Categorization & Discovery
+    category:
+      type: string
+      enum: [development, data, communication, api-integration, utility, other]
+      description: Primary category for filtering
+    subcategories:
+      type: array
+      items:
+        type: string
+      description: Technology/language tags
+      example: ["python", "maps", "geolocation"]
+    tags:
+      type: array
+      items:
+        type: string
+      description: Searchable keywords
+      example: ["maps", "baidu", "location", "gps"]
+    use_cases:
+      type: array
+      items:
+        type: string
+      description: What problems this server solves
+      example: ["Find locations", "Get directions", "Location search"]
+    
+    # Quality & Trust (Discovery)
+    quality:
+      type: object
+      properties:
+        score:
+          type: number
+          minimum: 0
+          maximum: 170
+          description: Overall quality score
+          example: 120
+        category:
+          type: string
+          enum: [high, medium, low]
+          description: Quality tier
+        trust_score:
+          type: number
+          minimum: 0
+          maximum: 100
+          description: Trust rating
+          example: 50
+        verified:
+          type: boolean
+          description: Official verification status
+        issues:
+          type: array
+          items:
+            type: string
+          description: Known quality issues
+        evidence:
+          type: array
+          items:
+            type: string
+          description: Quality indicators
+          example: ["Claude Desktop configuration", "Python pip installation"]
+    
+    # Social Proof & Popularity (Discovery)
+    popularity:
+      type: object
+      properties:
+        stars:
+          type: integer
+          description: GitHub stars
+          example: 273
+        forks:
+          type: integer
+          description: GitHub forks
+          example: 31
+        downloads:
+          type: integer
+          description: Package downloads (if available)
+        rating:
+          type: number
+          minimum: 1
+          maximum: 5
+          description: User rating (future)
+    
+    # === INSTALLATION SECTION ===
+    # Installation Methods (Primary)
+    installation:
+      type: object
+      properties:
+        recommended_method:
+          type: string
+          enum: [npm, python, docker, git, live_service]
+          description: Recommended installation approach
+          example: "python"
+        difficulty:
+          type: string
+          enum: [easy, medium, advanced]
+          description: Setup complexity
+          example: "easy"
+        methods:
+          type: array
+          items:
+            $ref: '#/components/schemas/InstallationMethod'
+          description: All available installation options
+    
+    # Environment & Configuration
+    environment:
+      type: object
+      properties:
+        variables:
+          type: array
+          items:
+            $ref: '#/components/schemas/EnvironmentVariable'
+          description: Required and optional environment variables
+        runtime_requirements:
+          type: object
+          properties:
+            node_version:
+              type: string
+              example: ">=18.0.0"
+            python_version:
+              type: string
+              example: ">=3.8"
+            platforms:
+              type: array
+              items:
+                type: string
+              example: ["linux", "darwin", "win32"]
+    
+    # Claude Desktop Integration (Installation)
+    claude_integration:
+      type: object
+      properties:
+        available:
+          type: boolean
+          description: Has ready-to-use Claude config
+        config:
+          type: object
+          description: Complete mcpServers configuration
+          example:
+            mcpServers:
+              baidu-maps:
+                command: "uvx"
+                args: ["mcp-server-baidu-maps"]
+                env:
+                  BAIDU_MAPS_API_KEY: "your-api-key"
+        server_name:
+          type: string
+          description: Name used in Claude Desktop
+          example: "baidu-maps"
+        command:
+          type: string
+          description: Execution command
+          example: "uvx"
+        args:
+          type: array
+          items:
+            type: string
+          description: Command arguments
+          example: ["mcp-server-baidu-maps"]
+        env_vars:
+          type: object
+          additionalProperties:
+            type: string
+          description: Environment variables for Claude config
+    
+    # Documentation & Support (Installation)
+    documentation:
+      type: object
+      properties:
+        readme_content:
+          type: string
+          description: Full README content
+        setup_instructions:
+          type: array
+          items:
+            type: string
+          description: Step-by-step setup guide
+        examples:
+          type: array
+          items:
+            $ref: '#/components/schemas/CodeExample'
+          description: Usage examples and code snippets
+        installation_notes:
+          type: string
+          description: Special installation requirements or warnings
+        troubleshooting:
+          type: array
+          items:
+            type: string
+          description: Common issues and solutions
+    
+    # === TECHNICAL SECTION ===
+    # Capabilities & Features
+    capabilities:
+      type: object
+      properties:
+        tools:
+          type: array
+          items:
+            type: string
+          description: Available MCP tool names
+          example: ["search_location", "get_directions", "nearby_places"]
+        resources:
+          type: array
+          items:
+            type: string
+          description: Available MCP resources
+        prompts:
+          type: array
+          items:
+            type: string
+          description: Available MCP prompts
+        protocol_version:
+          type: string
+          description: Supported MCP protocol version
+          example: "2024-11-05"
+    
+    # Live Service & Availability
+    availability:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [package_only, live_service, both]
+          description: Service availability type
+          example: "package_only"
+        endpoint_verified:
+          type: boolean
+          description: Live endpoint tested and working
+        live_endpoint:
+          type: string
+          format: uri
+          description: Live service URL (if available)
+        primary_package:
+          type: string
+          description: Preferred package registry
+          example: "github"
+        packages_available:
+          type: boolean
+          description: Has installable packages
+    
+    # API & Transport Configuration
+    api:
+      type: object
+      properties:
+        transport:
+          type: string
+          enum: [stdio, http, websocket, sse]
+          description: Primary transport protocol
+          example: "stdio"
+        endpoints:
+          type: array
+          items:
+            type: string
+            format: uri
+          description: API endpoint URLs (documentation/reference)
+        cors_enabled:
+          type: boolean
+          description: CORS support for web usage
+        auth:
+          type: object
+          properties:
+            type:
+              type: string
+              enum: [none, api_key, oauth2, basic, custom]
+              description: Authentication method
+              example: "none"
+            description:
+              type: string
+              description: Authentication details
+              example: "No authentication required"
+            required_scopes:
+              type: array
+              items:
+                type: string
+              description: Required OAuth scopes (if applicable)
+    
+    # === METADATA SECTION ===
+    # Source & Repository Information
+    source:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [github, npm, pypi, docker, other]
+          description: Primary source registry
+        url:
+          type: string
+          format: uri
+          description: Source repository URL
+        language:
+          type: string
+          description: Primary programming language
+          example: "Python"
+        license:
+          type: string
+          description: Software license
+          example: "MIT License"
+        last_updated:
+          type: string
+          format: date-time
+          description: Last source update
+        topics:
+          type: array
+          items:
+            type: string
+          description: Repository topics/tags
+    
+    # Package Information
+    packages:
+      type: array
+      items:
+        $ref: '#/components/schemas/PackageInfo'
+      description: All available packages across registries
+    
+    # Verification & Status
+    verification:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [verified, unverified, pending, rejected]
+          description: Verification status
+        enhanced_at:
+          type: string
+          format: date-time
+          description: Last data enhancement timestamp
+        source_id:
+          type: string
+          description: Original source identifier
+        verification_method:
+          type: string
+          description: How verification was performed
+    
+    # Timestamps
+    created_at:
+      type: string
+      format: date-time
+      description: First discovered/registered
+    updated_at:
+      type: string
+      format: date-time
+      description: Last updated in registry
+
+# Supporting Schemas
+InstallationMethod:
+  type: object
+  properties:
+    type:
+      type: string
+      enum: [npm, python, docker, git, live_service]
+    package:
+      type: string
+      description: Package name
+      example: "mcp-server-baidu-maps"
+    command:
+      type: string
+      description: Installation command
+      example: "pip install mcp-server-baidu-maps"
+    registry:
+      type: string
+      description: Package registry
+      example: "pypi"
+    version:
+      type: string
+      description: Package version
+    complexity:
+      type: string
+      enum: [simple, moderate, complex]
+    requirements:
+      type: array
+      items:
+        type: string
+      description: Prerequisites for this method
+
+EnvironmentVariable:
+  type: object
+  properties:
+    name:
+      type: string
+      description: Variable name
+      example: "BAIDU_MAPS_API_KEY"
+    required:
+      type: boolean
+      description: Whether this variable is required
+    description:
+      type: string
+      description: What this variable does
+    default:
+      type: string
+      description: Default value (if any)
+    example:
+      type: string
+      description: Example value
+    validation:
+      type: string
+      description: Validation pattern or rules
+
+CodeExample:
+  type: object
+  properties:
+    type:
+      type: string
+      enum: [code_block, configuration, usage, claude_prompt]
+      description: Example type
+    language:
+      type: string
+      description: Programming language
+      example: "json"
+    title:
+      type: string
+      description: Example title
+    content:
+      type: string
+      description: Example code or content
+    description:
+      type: string
+      description: What this example demonstrates
+
+PackageInfo:
+  type: object
+  properties:
+    registry_name:
+      type: string
+      enum: [npm, pypi, docker, github, other]
+      description: Package registry
+    name:
+      type: string
+      description: Package name
+    version:
+      type: string
+      description: Package version
+    installation_command:
+      type: string
+      description: How to install this package
+    setup_instructions:
+      type: string
+      description: Additional setup notes
+    download_count:
+      type: integer
+      description: Download statistics (if available)

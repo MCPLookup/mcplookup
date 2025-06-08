@@ -1,0 +1,294 @@
+openapi: 3.0.3
+info:
+  title: MCPLookup.org API
+  version: 1.0.0
+  description: |
+    # MCPLookup.org API
+    This enables intelligent server discovery and installation.
+
+  contact:
+    name: MCPLookup.org Support
+    email: support@mcplookup.org
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://mcplookup.org/api/v1
+    description: Production API v1
+  - url: http://localhost:3000/api/v1
+    description: Development API v1
+
+security:
+  - {}
+  - BearerAuth: []
+
+tags:
+  - name: Discovery
+    description: Find and search MCP servers
+  - name: Installation
+    description: Get installation information
+  - name: Registration
+    description: Register and verify MCP servers
+  - name: Health
+    description: Server health and status monitoring
+
+paths:
+  /servers:
+    get:
+      tags: [Discovery]
+      summary: Search and discover MCP servers
+      description: |
+        Discover MCP servers with intelligent filtering and ranking.
+        Supports search by keywords, categories, and quality metrics.
+      parameters:
+        - name: q
+          in: query
+          description: Search query
+          schema:
+            type: string
+          example: "file operations"
+        - name: category
+          in: query
+          description: Filter by category
+          schema:
+            type: string
+            enum: [development, data, communication, api-integration, utility, other]
+        - name: quality
+          in: query
+          description: Minimum quality level
+          schema:
+            type: string
+            enum: [high, medium, low]
+        - name: installation_method
+          in: query
+          description: Filter by installation method
+          schema:
+            type: string
+            enum: [npm, python, docker, git, live_service]
+        - name: claude_ready
+          in: query
+          description: Only servers with Claude Desktop configs
+          schema:
+            type: boolean
+        - name: limit
+          in: query
+          description: Number of results to return
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+        - name: offset
+          in: query
+          description: Pagination offset
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Server search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  servers:
+                    type: array
+                    items:
+                      $ref: './schemas/mcp-server.yaml#/MCPServer'
+                  total:
+                    type: integer
+                    description: Total number of matching servers
+                  pagination:
+                    type: object
+                    properties:
+                      limit:
+                        type: integer
+                      offset:
+                        type: integer
+                      has_more:
+                        type: boolean
+
+  /servers/{serverId}:
+    get:
+      tags: [Discovery]
+      summary: Get detailed server information
+      description: Get complete information about a specific MCP server
+      parameters:
+        - name: serverId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Server identifier
+          example: "github.com/baidu-maps/mcp"
+      responses:
+        '200':
+          description: Server details
+          content:
+            application/json:
+              schema:
+                $ref: './schemas/mcp-server.yaml#/MCPServer'
+        '404':
+          description: Server not found
+
+  /servers/{serverId}/install:
+    get:
+      tags: [Installation]
+      summary: Get installation instructions
+      description: Get detailed installation instructions for a server
+      parameters:
+        - name: serverId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Server identifier
+        - name: method
+          in: query
+          description: Preferred installation method
+          schema:
+            type: string
+            enum: [npm, python, docker, git, live_service]
+        - name: platform
+          in: query
+          description: Target platform
+          schema:
+            type: string
+            enum: [linux, darwin, win32]
+      responses:
+        '200':
+          description: Installation instructions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  recommended_method:
+                    type: string
+                  installation_steps:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        step:
+                          type: string
+                        command:
+                          type: string
+                        description:
+                          type: string
+                  claude_config:
+                    $ref: './schemas/claude.yaml#/ClaudeIntegration'
+                  environment_setup:
+                    type: array
+                    items:
+                      $ref: './schemas/environment.yaml#/EnvironmentVariable'
+
+  /discover/smart:
+    post:
+      tags: [Discovery]
+      summary: AI-powered smart discovery
+      description: |
+        Use AI to understand natural language queries and find the best matching servers.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                query:
+                  type: string
+                  description: Natural language query
+                  example: "I need to work with files and folders in my project"
+                context:
+                  type: string
+                  description: Additional context about the use case
+                  example: "Building a Node.js application"
+                max_results:
+                  type: integer
+                  default: 10
+                  description: Maximum number of results
+      responses:
+        '200':
+          description: Smart discovery results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  matches:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        server:
+                          $ref: './schemas/mcp-server.yaml#/MCPServer'
+                        relevance_score:
+                          type: number
+                          description: How well this server matches the query (0-1)
+                        match_reasons:
+                          type: array
+                          items:
+                            type: string
+                          description: Why this server was recommended
+                  query_analysis:
+                    type: object
+                    properties:
+                      extracted_keywords:
+                        type: array
+                        items:
+                          type: string
+                      suggested_categories:
+                        type: array
+                        items:
+                          type: string
+                      intent:
+                        type: string
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Optional API key for enhanced features
+
+  schemas:
+    # Main server schema
+    MCPServer:
+      $ref: './schemas/mcp-server.yaml#/MCPServer'
+    
+    # Component schemas
+    QualityMetrics:
+      $ref: './schemas/quality.yaml#/QualityMetrics'
+    PopularityMetrics:
+      $ref: './schemas/popularity.yaml#/PopularityMetrics'
+    InstallationInfo:
+      $ref: './schemas/installation.yaml#/InstallationInfo'
+    InstallationMethod:
+      $ref: './schemas/installation.yaml#/InstallationMethod'
+    EnvironmentConfig:
+      $ref: './schemas/environment.yaml#/EnvironmentConfig'
+    EnvironmentVariable:
+      $ref: './schemas/environment.yaml#/EnvironmentVariable'
+    ClaudeIntegration:
+      $ref: './schemas/claude.yaml#/ClaudeIntegration'
+    DocumentationInfo:
+      $ref: './schemas/documentation.yaml#/DocumentationInfo'
+    CodeExample:
+      $ref: './schemas/documentation.yaml#/CodeExample'
+    ServerCapabilities:
+      $ref: './schemas/capabilities.yaml#/ServerCapabilities'
+    AvailabilityInfo:
+      $ref: './schemas/availability.yaml#/AvailabilityInfo'
+    APIConfiguration:
+      $ref: './schemas/api.yaml#/APIConfiguration'
+    AuthConfiguration:
+      $ref: './schemas/api.yaml#/AuthConfiguration'
+    SourceInfo:
+      $ref: './schemas/source.yaml#/SourceInfo'
+    PackageInfo:
+      $ref: './schemas/packages.yaml#/PackageInfo'
+    VerificationStatus:
+      $ref: './schemas/verification.yaml#/VerificationStatus'

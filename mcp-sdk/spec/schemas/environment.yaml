@@ -1,0 +1,46 @@
+# Environment & Runtime Configuration
+EnvironmentConfig:
+  type: object
+  properties:
+    variables:
+      type: array
+      items:
+        $ref: '#/EnvironmentVariable'
+      description: Required and optional environment variables
+    runtime_requirements:
+      type: object
+      properties:
+        node_version:
+          type: string
+          example: ">=18.0.0"
+        python_version:
+          type: string
+          example: ">=3.8"
+        platforms:
+          type: array
+          items:
+            type: string
+          example: ["linux", "darwin", "win32"]
+
+EnvironmentVariable:
+  type: object
+  properties:
+    name:
+      type: string
+      description: Variable name
+      example: "BAIDU_MAPS_API_KEY"
+    required:
+      type: boolean
+      description: Whether this variable is required
+    description:
+      type: string
+      description: What this variable does
+    default:
+      type: string
+      description: Default value (if any)
+    example:
+      type: string
+      description: Example value
+    validation:
+      type: string
+      description: Validation pattern or rules

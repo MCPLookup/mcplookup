@@ -1,0 +1,48 @@
+{
+  "name": "@mcplookup-org/mcp-sdk",
+  "version": "0.0.1",
+  "description": "Shared SDK and utilities for MCP (Model Context Protocol) development",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest",
+    "lint": "eslint src/**/*.ts",
+    "clean": "if exist dist rmdir /s /q dist",
+    "prepublishOnly": "npm run clean && npm run build",
+    "generate-client": "openapi-typescript spec/openapi-v1.yaml -o src/generated/api-types.ts && npm run build-client",
+    "build-client": "node scripts/build-client.js",
+    "update-spec": "curl -s https://mcplookup.org/api/v1/openapi.yaml > spec/openapi-v1.yaml && npm run generate-client"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "sdk",
+    "client",
+    "api",
+    "mcplookup"
+  ],
+  "author": "MCPLookup.org",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MCPLookup-org/mcp-sdk.git"
+  },
+  "dependencies": {
+    "openapi-fetch": "^0.14.0",
+    "zod": "^3.25.50"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.29",
+    "openapi-typescript": "^7.4.2",
+    "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "http://localhost:4873"
+  }
+}

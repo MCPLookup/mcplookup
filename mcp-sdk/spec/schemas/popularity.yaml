@@ -1,0 +1,24 @@
+# Social Proof & Popularity
+PopularityMetrics:
+  type: object
+  properties:
+    stars:
+      type: integer
+      description: GitHub stars
+      example: 273
+    forks:
+      type: integer
+      description: GitHub forks
+      example: 31
+    downloads:
+      type: integer
+      description: Package downloads (if available)
+    rating:
+      type: number
+      minimum: 1
+      maximum: 5
+      description: User rating (future)
+    last_updated:
+      type: string
+      format: date-time
+      description: Last activity timestamp

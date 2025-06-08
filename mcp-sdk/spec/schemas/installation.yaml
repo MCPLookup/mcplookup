@@ -1,0 +1,49 @@
+# Installation Methods & Configuration
+InstallationInfo:
+  type: object
+  properties:
+    recommended_method:
+      type: string
+      enum: [npm, python, docker, git, live_service]
+      description: Recommended installation approach
+      example: "python"
+    difficulty:
+      type: string
+      enum: [easy, medium, advanced]
+      description: Setup complexity
+      example: "easy"
+    methods:
+      type: array
+      items:
+        $ref: '#/InstallationMethod'
+      description: All available installation options
+
+InstallationMethod:
+  type: object
+  properties:
+    type:
+      type: string
+      enum: [npm, python, docker, git, live_service]
+    package:
+      type: string
+      description: Package name
+      example: "mcp-server-baidu-maps"
+    command:
+      type: string
+      description: Installation command
+      example: "pip install mcp-server-baidu-maps"
+    registry:
+      type: string
+      description: Package registry
+      example: "pypi"
+    version:
+      type: string
+      description: Package version
+    complexity:
+      type: string
+      enum: [simple, moderate, complex]
+    requirements:
+      type: array
+      items:
+        type: string
+      description: Prerequisites for this method
