@@ -1,0 +1,34 @@
+# Quality & Trust Metrics
+QualityMetrics:
+  type: object
+  properties:
+    score:
+      type: number
+      minimum: 0
+      maximum: 170
+      description: Overall quality score
+      example: 120
+    category:
+      type: string
+      enum: [high, medium, low]
+      description: Quality tier
+    trust_score:
+      type: number
+      minimum: 0
+      maximum: 100
+      description: Trust rating
+      example: 50
+    verified:
+      type: boolean
+      description: Official verification status
+    issues:
+      type: array
+      items:
+        type: string
+      description: Known quality issues
+    evidence:
+      type: array
+      items:
+        type: string
+      description: Quality indicators
+      example: ["Claude Desktop configuration", "Python pip installation"]

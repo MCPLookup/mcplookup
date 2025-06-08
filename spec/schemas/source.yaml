@@ -1,0 +1,29 @@
+# Source & Repository Information
+SourceInfo:
+  type: object
+  properties:
+    type:
+      type: string
+      enum: [github, npm, pypi, docker, other]
+      description: Primary source registry
+    url:
+      type: string
+      format: uri
+      description: Source repository URL
+    language:
+      type: string
+      description: Primary programming language
+      example: "Python"
+    license:
+      type: string
+      description: Software license
+      example: "MIT License"
+    last_updated:
+      type: string
+      format: date-time
+      description: Last source update
+    topics:
+      type: array
+      items:
+        type: string
+      description: Repository topics/tags

@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/discover": {
+    "/servers": {
         parameters: {
             query?: never;
             header?: never;
@@ -12,55 +12,30 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Discover MCP servers
-         * @description Find MCP servers using natural language queries, intent-based search, or technical filters.
-         *
-         *     **Enhanced with Transport Capabilities**: Results now include detailed transport metadata
-         *     for intelligent server selection and optimal client connections.
+         * Search and discover MCP servers
+         * @description Discover MCP servers with intelligent filtering and ranking.
+         *     Supports search by keywords, categories, and quality metrics.
          *
          */
         get: {
             parameters: {
                 query?: {
                     /**
-                     * @description Natural language query
-                     * @example file management tools for cloud storage
+                     * @description Search query
+                     * @example file operations
                      */
-                    query?: string;
-                    /**
-                     * @description Specific intent or use case
-                     * @example data_processing
-                     */
-                    intent?: string;
-                    /**
-                     * @description Specific domain to search for
-                     * @example gmail.com
-                     */
-                    domain?: string;
-                    /**
-                     * @description Specific capability to search for
-                     * @example email
-                     */
-                    capability?: string;
-                    /** @description Server category filter */
-                    category?: "communication" | "productivity" | "development" | "finance" | "social" | "storage" | "other";
-                    /** @description Required transport protocol */
-                    transport?: "streamable_http" | "sse" | "stdio";
-                    /** @description Requires CORS support */
-                    cors_required?: boolean;
-                    /** @description Requires SSL/TLS */
-                    ssl_required?: boolean;
-                    /** @description Only return verified servers */
-                    verified_only?: boolean;
-                    /** @description Include health metrics */
-                    include_health?: boolean;
-                    /** @description Include tools list */
-                    include_tools?: boolean;
-                    /** @description Include resources list */
-                    include_resources?: boolean;
-                    /** @description Maximum number of results */
+                    q?: string;
+                    /** @description Filter by category */
+                    category?: "development" | "data" | "communication" | "api-integration" | "utility" | "other";
+                    /** @description Minimum quality level */
+                    quality?: "high" | "medium" | "low";
+                    /** @description Filter by installation method */
+                    installation_method?: "npm" | "python" | "docker" | "git" | "live_service";
+                    /** @description Only servers with Claude Desktop configs */
+                    claude_ready?: boolean;
+                    /** @description Number of results to return */
                     limit?: number;
-                    /** @description Number of results to skip */
+                    /** @description Pagination offset */
                     offset?: number;
                 };
                 header?: never;
@@ -69,41 +44,71 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description Discovery results with transport capabilities */
+                /** @description Server search results */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
                         "application/json": {
-                            servers?: components["schemas"]["MCPServerRecord"][];
+                            servers?: components["schemas"]["MCPServer"][];
                             /** @description Total number of matching servers */
                             total?: number;
-                            /** @description Analysis of the search query */
-                            query_analysis?: Record<string, never>;
-                            /** @description Summary of transport capabilities in results */
-                            transport_summary?: {
-                                /** @description Count by transport protocol */
-                                protocols?: Record<string, never>;
-                                /** @description Number of servers with SSE support */
-                                sse_support?: number;
-                                /** @description Number of servers with session support */
-                                session_support?: number;
-                                /** @description Number of servers with CORS enabled */
-                                cors_enabled?: number;
+                            pagination?: {
+                                limit?: number;
+                                offset?: number;
+                                has_more?: boolean;
                             };
                         };
                     };
                 };
-                /** @description Invalid request parameters */
-                400: {
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/servers/{serverId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get detailed server information
+         * @description Get complete information about a specific MCP server
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /**
+                     * @description Server identifier
+                     * @example github.com/baidu-maps/mcp
+                     */
+                    serverId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Server details */
+                200: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["MCPServer"];
+                    };
                 };
-                /** @description Rate limit exceeded */
-                429: {
+                /** @description Server not found */
+                404: {
                     headers: {
                         [name: string]: unknown;
                     };
@@ -119,418 +124,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/register": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Register a new MCP server
-         * @description Register a new MCP server with automatic transport capabilities discovery.
-         *
-         *     **Enhanced Registration Process**:
-         *     1. Validates MCP endpoint and protocol compliance
-         *     2. Initiates DNS verification challenge
-         *     3. **NEW**: Automatically discovers transport capabilities
-         *     4. Creates complete server record with metadata
-         *     5. Populates tools and resources
-         *
-         *     The registration now includes comprehensive transport metadata discovery.
-         *
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": {
-                        /**
-                         * @description Domain name (must match endpoint domain)
-                         * @example api.example.com
-                         */
-                        domain: string;
-                        /**
-                         * Format: uri
-                         * @description MCP endpoint URL
-                         * @example https://api.example.com/mcp
-                         */
-                        endpoint: string;
-                        /**
-                         * Format: email
-                         * @description Contact email for verification
-                         * @example admin@example.com
-                         */
-                        contact_email: string;
-                        /**
-                         * @description Optional server description
-                         * @example File management and cloud storage tools
-                         */
-                        description?: string;
-                    };
-                };
-            };
-            responses: {
-                /** @description Registration initiated successfully */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @description DNS verification challenge ID */
-                            challenge_id?: string;
-                            /** @description DNS TXT record to create */
-                            dns_record?: string;
-                            /** @description Verification token */
-                            verification_token?: string;
-                            /** @description Verification instructions */
-                            instructions?: string;
-                            /**
-                             * Format: date-time
-                             * @description Challenge expiration time
-                             */
-                            expires_at?: string;
-                        };
-                    };
-                };
-                /** @description Invalid registration request */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Server already registered */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description MCP endpoint validation failed */
-                422: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/register/github": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Auto-register MCP server from GitHub repository
-         * @description Automatically analyze and register an MCP server from a GitHub repository URL.
-         *
-         *     **Intelligent Analysis Process**:
-         *     1. **Repository Analysis**: Fetches repository metadata, file structure, and README content
-         *     2. **MCP Detection**: Searches for Claude Desktop configurations, MCP keywords, and server indicators
-         *     3. **Deployment Viability**: Analyzes NPM packages, Docker support, Python packages, live URLs
-         *     4. **Quality Assessment**: Evaluates documentation quality, installation complexity, and usability
-         *     5. **Smart Decision**: Accepts, warns, or rejects based on comprehensive analysis
-         *
-         *     **Rejection Logic**:
-         *     - Repositories without viable deployment methods (no NPM, Docker, or live URL)
-         *     - Missing MCP server indicators or Claude configurations
-         *     - Poor documentation or unclear installation process
-         *     - Archived or unmaintained repositories
-         *
-         *     **Quality Scoring**:
-         *     - **Confidence Score (0-100)**: Likelihood this is an MCP server
-         *     - **Usability Score (0-100)**: Ease of deployment and usage
-         *     - **Installation Complexity**: simple | moderate | complex | unclear
-         *     - **Documentation Quality**: poor | fair | good | excellent
-         *
-         *     **Force Registration**: Rejected repositories can be force-registered with explicit acknowledgment.
-         *
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": {
-                        /**
-                         * Format: uri
-                         * @description GitHub repository URL
-                         * @example https://github.com/modelcontextprotocol/server-filesystem
-                         */
-                        github_url: string;
-                        /**
-                         * Format: email
-                         * @description Contact email for verification and notifications
-                         * @example developer@example.com
-                         */
-                        contact_email: string;
-                        /**
-                         * @description Force registration despite analysis warnings or rejections
-                         * @default false
-                         */
-                        force_register?: boolean;
-                        /**
-                         * @description Skip detailed analysis for faster processing (not recommended)
-                         * @default false
-                         */
-                        skip_analysis?: boolean;
-                    };
-                };
-            };
-            responses: {
-                /** @description MCP server successfully registered */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @example true */
-                            success?: boolean;
-                            /** @example MCP server successfully registered from GitHub repository */
-                            message?: string;
-                            server?: {
-                                /** @example github.com/modelcontextprotocol/server-filesystem */
-                                domain?: string;
-                                /** @example Filesystem MCP Server */
-                                name?: string;
-                                /** @example MCP server for filesystem operations */
-                                description?: string;
-                                /** Format: uri */
-                                github_url?: string;
-                                /** @enum {string} */
-                                registration_type?: "github_auto";
-                                /** @example false */
-                                verification_required?: boolean;
-                            };
-                            analysis?: components["schemas"]["GitHubAnalysisReport"];
-                            /** @example [
-                             *       "Install the package: npm install -g @modelcontextprotocol/server-filesystem",
-                             *       "Add the Claude Desktop configuration from the README",
-                             *       "Your MCP server is now discoverable in the registry"
-                             *     ] */
-                            next_steps?: string[];
-                            /** @example [
-                             *       "Consider adding Docker support for easier deployment",
-                             *       "Enhance documentation with more usage examples"
-                             *     ] */
-                            recommendations?: string[];
-                        };
-                    };
-                };
-                /** @description Invalid request data */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @example GitHub repository analysis failed */
-                            error?: string;
-                            /** @example Could not analyze the provided GitHub repository. Please ensure it exists and is public. */
-                            details?: string;
-                            analysis_report?: {
-                                /** @example false */
-                                is_mcp_server?: boolean;
-                                /** @example 0 */
-                                confidence_score?: number;
-                                /** @example [
-                                 *       "Repository not accessible or does not exist"
-                                 *     ] */
-                                rejection_reasons?: string[];
-                                /** @enum {string} */
-                                recommended_action?: "reject";
-                            };
-                        };
-                    };
-                };
-                /** @description Authentication required */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Server already registered */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @example Server already registered */
-                            error?: string;
-                            /** @example A server for github.com/owner/repo is already registered */
-                            details?: string;
-                            existing_server?: {
-                                domain?: string;
-                                name?: string;
-                                /** Format: date-time */
-                                registered_at?: string;
-                            };
-                            analysis?: components["schemas"]["GitHubAnalysisReport"];
-                        };
-                    };
-                };
-                /** @description Repository rejected for MCP server registration */
-                422: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @example Repository rejected for MCP server registration */
-                            error?: string;
-                            /** @example This repository does not appear to be a usable MCP server */
-                            details?: string;
-                            analysis?: components["schemas"]["GitHubAnalysisReport"];
-                            /** @example [
-                             *       "No viable deployment method detected (no NPM package, Docker, or live URL)",
-                             *       "No clear indication this is an MCP server",
-                             *       "Missing README documentation"
-                             *     ] */
-                            rejection_reasons?: string[];
-                            /** @example [
-                             *       "Add a comprehensive README.md file with installation and usage instructions",
-                             *       "Include Claude Desktop configuration examples in your README",
-                             *       "Publish your package to NPM for easy installation"
-                             *     ] */
-                            suggestions?: string[];
-                            force_register_option?: {
-                                /** @example You can force registration by setting force_register: true */
-                                message?: string;
-                                /** @example Forced registration may result in a non-functional server listing */
-                                warning?: string;
-                            };
-                        };
-                    };
-                };
-                /** @description Rate limit exceeded */
-                429: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/register/verify/{challengeId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Verify DNS challenge and complete registration
-         * @description Verify DNS challenge and complete server registration with transport discovery.
-         *
-         *     **Enhanced Verification**:
-         *     - Verifies DNS TXT record
-         *     - **NEW**: Discovers transport capabilities automatically
-         *     - Creates complete server record with metadata
-         *     - Populates tools and resources
-         *
-         *     After successful verification, the server is fully registered with comprehensive
-         *     transport capabilities metadata.
-         *
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    /** @description DNS verification challenge ID */
-                    challengeId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Verification successful, server registered */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @description Verification status */
-                            verified?: boolean;
-                            /** @description Complete server record with transport capabilities */
-                            server_record?: components["schemas"]["MCPServerRecord"];
-                            /** @description Transport discovery results */
-                            transport_discovery?: {
-                                /** @description Number of capabilities discovered */
-                                capabilities_discovered?: number;
-                                /** @description Time taken for discovery */
-                                discovery_time_ms?: number;
-                                /** @description HTTP methods tested */
-                                methods_tested?: string[];
-                            };
-                        };
-                    };
-                };
-                /** @description Invalid challenge ID */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Challenge not found or expired */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description DNS verification failed */
-                422: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/register/status/{challengeId}": {
+    "/servers/{serverId}/install": {
         parameters: {
             query?: never;
             header?: never;
@@ -538,48 +132,43 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get registration challenge status
-         * @description Check the status of a DNS verification challenge
+         * Get installation instructions
+         * @description Get detailed installation instructions for a server
          */
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    /** @description Preferred installation method */
+                    method?: "npm" | "python" | "docker" | "git" | "live_service";
+                    /** @description Target platform */
+                    platform?: "linux" | "darwin" | "win32";
+                };
                 header?: never;
                 path: {
-                    /** @description DNS verification challenge ID */
-                    challengeId: string;
+                    /** @description Server identifier */
+                    serverId: string;
                 };
                 cookie?: never;
             };
             requestBody?: never;
             responses: {
-                /** @description Challenge status */
+                /** @description Installation instructions */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
                         "application/json": {
-                            challenge_id?: string;
-                            /** @enum {string} */
-                            status?: "pending" | "verified" | "expired" | "failed";
-                            /** Format: date-time */
-                            created_at?: string;
-                            /** Format: date-time */
-                            expires_at?: string;
-                            /** Format: date-time */
-                            verified_at?: string;
-                            /** @description Required DNS TXT record */
-                            dns_record?: string;
+                            recommended_method?: string;
+                            installation_steps?: {
+                                step?: string;
+                                command?: string;
+                                description?: string;
+                            }[];
+                            claude_config?: components["schemas"]["ClaudeIntegration"];
+                            environment_setup?: components["schemas"]["EnvironmentVariable"][];
                         };
                     };
-                };
-                /** @description Challenge not found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
                 };
             };
         };
@@ -601,9 +190,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Smart AI-powered discovery
-         * @description Advanced discovery using AI to understand natural language queries and provide intelligent server recommendations.
-         *     Uses a three-step process: keywords extraction → search → AI narrowing.
+         * AI-powered smart discovery
+         * @description Use AI to understand natural language queries and find the best matching servers.
          *
          */
         post: {
@@ -618,19 +206,19 @@ export interface paths {
                     "application/json": {
                         /**
                          * @description Natural language query
-                         * @example I need tools for managing customer emails and scheduling meetings
+                         * @example I need to work with files and folders in my project
                          */
                         query?: string;
+                        /**
+                         * @description Additional context about the use case
+                         * @example Building a Node.js application
+                         */
+                        context?: string;
                         /**
                          * @description Maximum number of results
                          * @default 10
                          */
                         max_results?: number;
-                        /**
-                         * @description Include AI reasoning in response
-                         * @default false
-                         */
-                        include_reasoning?: boolean;
                     };
                 };
             };
@@ -642,390 +230,20 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            servers?: components["schemas"]["MCPServerRecord"][];
-                            total?: number;
+                            matches?: {
+                                server?: components["schemas"]["MCPServer"];
+                                /** @description How well this server matches the query (0-1) */
+                                relevance_score?: number;
+                                /** @description Why this server was recommended */
+                                match_reasons?: string[];
+                            }[];
                             query_analysis?: {
                                 extracted_keywords?: string[];
-                                detected_capabilities?: string[];
-                                confidence_score?: number;
-                            };
-                            /** @description AI explanation of results (if requested) */
-                            ai_reasoning?: string;
-                        };
-                    };
-                };
-                /** @description Invalid request parameters */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Rate limit exceeded */
-                429: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/verify": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get user's domain verifications
-         * @description Get all domain verifications for authenticated user
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description User's domain verifications */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            success?: boolean;
-                            verifications?: {
-                                id?: string;
-                                domain?: string;
-                                /** @enum {string} */
-                                status?: "pending" | "verified" | "expired" | "failed";
-                                /** Format: date-time */
-                                created_at?: string;
-                                /** Format: date-time */
-                                verified_at?: string;
-                                /** Format: date-time */
-                                last_check_at?: string;
-                                /** Format: date-time */
-                                expires_at?: string;
-                                failure_reason?: string;
-                            }[];
-                        };
-                    };
-                };
-                /** @description Authentication required */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        put?: never;
-        /**
-         * Start domain verification
-         * @description Start domain ownership verification for authenticated user
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": {
-                        /**
-                         * @description Domain to verify
-                         * @example example.com
-                         */
-                        domain: string;
-                    };
-                };
-            };
-            responses: {
-                /** @description Verification challenge created */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            success?: boolean;
-                            challenge?: {
-                                domain?: string;
-                                slug?: string;
-                                txtRecord?: string;
-                                instructions?: string;
+                                suggested_categories?: string[];
+                                intent?: string;
                             };
                         };
                     };
-                };
-                /** @description Invalid domain format */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Authentication required */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/domain-check": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Check domain ownership
-         * @description Check if authenticated user can register MCP servers for a domain
-         */
-        get: {
-            parameters: {
-                query: {
-                    /**
-                     * @description Domain to check
-                     * @example example.com
-                     */
-                    domain: string;
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Domain ownership status */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            success?: boolean;
-                            domain?: string;
-                            user_id?: string;
-                            can_register?: boolean;
-                            verified?: boolean;
-                            message?: string;
-                            action_required?: string;
-                            verification_url?: string;
-                        };
-                    };
-                };
-                /** @description Invalid domain format */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Authentication required */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/health/{domain}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get server health metrics
-         * @description Get real-time or cached health metrics for a specific MCP server
-         */
-        get: {
-            parameters: {
-                query?: {
-                    /** @description Perform real-time health check */
-                    realtime?: boolean;
-                };
-                header?: never;
-                path: {
-                    /**
-                     * @description Server domain
-                     * @example example.com
-                     */
-                    domain: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Server health metrics */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            domain?: string;
-                            endpoint?: string;
-                            health?: components["schemas"]["HealthMetrics"];
-                            capabilities_working?: boolean;
-                            ssl_valid?: boolean;
-                            trust_score?: number;
-                        };
-                    };
-                };
-                /** @description Server not found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Health check failed */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/onboarding": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get user onboarding state
-         * @description Get the current onboarding progress for authenticated user
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description User onboarding state */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            success?: boolean;
-                            onboarding?: {
-                                /** @enum {string} */
-                                current_step?: "welcome" | "domain_verify" | "server_register" | "dashboard_tour" | "training_impact" | "completed";
-                                progress?: number;
-                                completed_steps?: string[];
-                                needs_onboarding?: boolean;
-                            };
-                        };
-                    };
-                };
-                /** @description Authentication required */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        put?: never;
-        /**
-         * Update onboarding progress
-         * @description Update the user's onboarding step progress
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": {
-                        /** @enum {string} */
-                        step: "welcome" | "domain_verify" | "server_register" | "dashboard_tour" | "training_impact" | "completed";
-                        /** @default false */
-                        completed?: boolean;
-                    };
-                };
-            };
-            responses: {
-                /** @description Onboarding progress updated */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            success?: boolean;
-                            message?: string;
-                        };
-                    };
-                };
-                /** @description Invalid step or request data */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Authentication required */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
                 };
             };
         };
@@ -1039,491 +257,421 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** @description Detailed transport capabilities discovered during verification */
-        TransportCapabilities: {
+        /** @description Complete MCP server record optimized for discovery and installation */
+        MCPServer: {
             /**
-             * @description Primary transport protocol
-             * @enum {string}
+             * @description Unique server identifier
+             * @example github.com/baidu-maps/mcp
              */
-            primary_transport?: "streamable_http" | "sse" | "stdio";
+            id?: string;
             /**
-             * @description Supported HTTP methods
-             * @example [
-             *       "GET",
-             *       "POST",
-             *       "OPTIONS"
-             *     ]
+             * @description Server name
+             * @example Baidu Maps MCP
              */
-            supported_methods?: string[];
-            /**
-             * @description Supported content types
-             * @example [
-             *       "application/json",
-             *       "text/event-stream"
-             *     ]
-             */
-            content_types?: string[];
-            /** @description Server-Sent Events capabilities */
-            sse_support?: {
-                /** @description Supports SSE streaming */
-                supports_sse?: boolean;
-                /** @description Supports GET streaming */
-                supports_get_streaming?: boolean;
-                /** @description Supports POST streaming */
-                supports_post_streaming?: boolean;
-            };
-            /** @description Session management capabilities */
-            session_support?: {
-                /** @description Supports session management */
-                supports_sessions?: boolean;
-                /** @description Session header name */
-                session_header_name?: string;
-                /** @description Indicates session timeout */
-                session_timeout_indicated?: boolean;
-            };
-            /** @description Stream resumability capabilities */
-            resumability?: {
-                /** @description Supports event IDs */
-                supports_event_ids?: boolean;
-                /** @description Supports Last-Event-ID header */
-                supports_last_event_id?: boolean;
-                /** @description Event ID format pattern */
-                event_id_format?: string;
-            };
-            /** @description Connection limit information */
-            connection_limits?: {
-                /** @description Supports multiple connections */
-                supports_multiple_connections?: boolean;
-                /** @description Maximum concurrent connections */
-                max_concurrent_connections?: number;
-            };
-            /** @description Security feature detection */
-            security_features?: {
-                /** @description Validates request origins */
-                origin_validation?: boolean;
-                /** @description Requires SSL/TLS */
-                ssl_required?: boolean;
-                /** @description Custom authentication headers */
-                custom_auth_headers?: string[];
-            };
-            /** @description Performance characteristics */
-            performance?: {
-                /** @description Average response time in milliseconds */
-                avg_response_time_ms?: number;
-                /** @description Streaming latency in milliseconds */
-                streaming_latency_ms?: number;
-                /** @description Supports response compression */
-                supports_compression?: boolean;
-                /** @description Maximum message size in bytes */
-                max_message_size?: number;
-            };
-            /** @description CORS configuration details */
-            cors_details?: {
-                /** @description CORS is enabled */
-                cors_enabled?: boolean;
-                /** @description Allowed origins */
-                allowed_origins?: string[];
-                /** @description Allowed HTTP methods */
-                allowed_methods?: string[];
-                /** @description Allowed headers */
-                allowed_headers?: string[];
-                /** @description Supports credentials */
-                supports_credentials?: boolean;
-            };
-            /** @description Rate limiting information */
-            rate_limits?: {
-                /** @description Requests per minute limit */
-                requests_per_minute?: number;
-                /** @description Burst request limit */
-                burst_limit?: number;
-                /** @description Rate limit header names */
-                rate_limit_headers?: string[];
-            };
-        };
-        /** @description Complete MCP server record with all metadata */
-        MCPServerRecord: {
-            /** @description Server domain */
-            domain?: string;
-            /**
-             * Format: uri
-             * @description MCP endpoint URL
-             */
-            endpoint?: string;
-            /** @description Server display name */
             name?: string;
-            /** @description Server description */
-            description?: string;
-            server_info?: components["schemas"]["MCPServerInfo"];
-            /** @description Available tools */
-            tools?: components["schemas"]["MCPTool"][];
-            /** @description Available resources */
-            resources?: components["schemas"]["MCPResource"][];
             /**
-             * @description Primary transport protocol
+             * @description Human-readable description
+             * @example 百度地图MCP Server for location services
+             */
+            description?: string;
+            /**
+             * @description One-line summary for search results
+             * @example Location services and mapping for Claude
+             */
+            tagline?: string;
+            /**
+             * @description Primary category for filtering
              * @enum {string}
              */
-            transport?: "streamable_http" | "sse" | "stdio";
-            /** @description Detailed transport capabilities */
-            transport_capabilities?: components["schemas"]["TransportCapabilities"];
-            /** @description OpenAPI/Swagger documentation exposed by the server */
-            openapi_documentation?: components["schemas"]["OpenAPIDocumentation"];
-            /** @description CORS enabled */
-            cors_enabled?: boolean;
-            health?: components["schemas"]["HealthMetrics"];
-            verification?: components["schemas"]["Verification"];
-            /** Format: date-time */
+            category?: "development" | "data" | "communication" | "api-integration" | "utility" | "other";
+            /**
+             * @description Technology/language tags
+             * @example [
+             *       "python",
+             *       "maps",
+             *       "geolocation"
+             *     ]
+             */
+            subcategories?: string[];
+            /**
+             * @description Searchable keywords
+             * @example [
+             *       "maps",
+             *       "baidu",
+             *       "location",
+             *       "gps"
+             *     ]
+             */
+            tags?: string[];
+            /**
+             * @description What problems this server solves
+             * @example [
+             *       "Find locations",
+             *       "Get directions",
+             *       "Location search"
+             *     ]
+             */
+            use_cases?: string[];
+            quality?: components["schemas"]["QualityMetrics"];
+            popularity?: components["schemas"]["PopularityMetrics"];
+            installation?: components["schemas"]["InstallationInfo"];
+            environment?: components["schemas"]["EnvironmentConfig"];
+            claude_integration?: components["schemas"]["ClaudeIntegration"];
+            documentation?: components["schemas"]["DocumentationInfo"];
+            capabilities?: components["schemas"]["ServerCapabilities"];
+            availability?: components["schemas"]["AvailabilityInfo"];
+            api?: components["schemas"]["APIConfiguration"];
+            source?: components["schemas"]["SourceInfo"];
+            /** @description All available packages across registries */
+            packages?: components["schemas"]["PackageInfo"][];
+            verification?: components["schemas"]["VerificationStatus"];
+            /**
+             * Format: date-time
+             * @description First discovered/registered
+             */
             created_at?: string;
-            /** Format: date-time */
-            updated_at?: string;
-            /** @description Trust score (0-100) */
-            trust_score?: number;
-        };
-        /** @description MCP server information from initialize response */
-        MCPServerInfo: {
-            /** @description Server name */
-            name?: string;
-            /** @description Server version */
-            version?: string;
-            /** @description Supported MCP protocol version */
-            protocolVersion?: string;
-            /** @description Server capabilities */
-            capabilities?: {
-                /** @description Supports tools */
-                tools?: boolean;
-                /** @description Supports resources */
-                resources?: boolean;
-                /** @description Supports prompts */
-                prompts?: boolean;
-                /** @description Supports logging */
-                logging?: boolean;
-            };
-        };
-        /** @description MCP tool definition */
-        MCPTool: {
-            /** @description Tool name */
-            name?: string;
-            /** @description Tool description */
-            description?: string;
-            /** @description JSON Schema for tool input parameters */
-            inputSchema?: Record<string, never>;
-        };
-        /** @description MCP resource definition */
-        MCPResource: {
-            /** @description Resource URI */
-            uri?: string;
-            /** @description Resource name */
-            name?: string;
-            /** @description Resource description */
-            description?: string;
-            /** @description Resource MIME type */
-            mimeType?: string;
-        };
-        /** @description Server health and performance metrics */
-        HealthMetrics: {
             /**
-             * @description Current health status
+             * Format: date-time
+             * @description Last updated in registry
+             */
+            updated_at?: string;
+        };
+        QualityMetrics: {
+            /**
+             * @description Overall quality score
+             * @example 120
+             */
+            score?: number;
+            /**
+             * @description Quality tier
              * @enum {string}
              */
-            status?: "healthy" | "degraded" | "unhealthy" | "unknown";
-            /** @description Uptime percentage (0-100) */
-            uptime_percentage?: number;
-            /** @description Average response time in milliseconds */
-            avg_response_time_ms?: number;
-            /** @description Error rate (0-1) */
-            error_rate?: number;
+            category?: "high" | "medium" | "low";
+            /**
+             * @description Trust rating
+             * @example 50
+             */
+            trust_score?: number;
+            /** @description Official verification status */
+            verified?: boolean;
+            /** @description Known quality issues */
+            issues?: string[];
+            /**
+             * @description Quality indicators
+             * @example [
+             *       "Claude Desktop configuration",
+             *       "Python pip installation"
+             *     ]
+             */
+            evidence?: string[];
+        };
+        PopularityMetrics: {
+            /**
+             * @description GitHub stars
+             * @example 273
+             */
+            stars?: number;
+            /**
+             * @description GitHub forks
+             * @example 31
+             */
+            forks?: number;
+            /** @description Package downloads (if available) */
+            downloads?: number;
+            /** @description User rating (future) */
+            rating?: number;
             /**
              * Format: date-time
-             * @description Last health check timestamp
+             * @description Last activity timestamp
              */
-            last_check?: string;
-            /** @description Consecutive failure count */
-            consecutive_failures?: number;
+            last_updated?: string;
         };
-        /** @description Server verification status */
-        Verification: {
-            /** @description DNS ownership verified */
-            dns_verified?: boolean;
-            /** @description MCP endpoint verified */
+        InstallationInfo: {
+            /**
+             * @description Recommended installation approach
+             * @example python
+             * @enum {string}
+             */
+            recommended_method?: "npm" | "python" | "docker" | "git" | "live_service";
+            /**
+             * @description Setup complexity
+             * @example easy
+             * @enum {string}
+             */
+            difficulty?: "easy" | "medium" | "advanced";
+            /** @description All available installation options */
+            methods?: components["schemas"]["InstallationMethod"][];
+        };
+        InstallationMethod: {
+            /** @enum {string} */
+            type?: "npm" | "python" | "docker" | "git" | "live_service";
+            /**
+             * @description Package name
+             * @example mcp-server-baidu-maps
+             */
+            package?: string;
+            /**
+             * @description Installation command
+             * @example pip install mcp-server-baidu-maps
+             */
+            command?: string;
+            /**
+             * @description Package registry
+             * @example pypi
+             */
+            registry?: string;
+            /** @description Package version */
+            version?: string;
+            /** @enum {string} */
+            complexity?: "simple" | "moderate" | "complex";
+            /** @description Prerequisites for this method */
+            requirements?: string[];
+        };
+        EnvironmentConfig: {
+            /** @description Required and optional environment variables */
+            variables?: components["schemas"]["EnvironmentVariable"][];
+            runtime_requirements?: {
+                /** @example >=18.0.0 */
+                node_version?: string;
+                /** @example >=3.8 */
+                python_version?: string;
+                /** @example [
+                 *       "linux",
+                 *       "darwin",
+                 *       "win32"
+                 *     ] */
+                platforms?: string[];
+            };
+        };
+        EnvironmentVariable: {
+            /**
+             * @description Variable name
+             * @example BAIDU_MAPS_API_KEY
+             */
+            name?: string;
+            /** @description Whether this variable is required */
+            required?: boolean;
+            /** @description What this variable does */
+            description?: string;
+            /** @description Default value (if any) */
+            default?: string;
+            /** @description Example value */
+            example?: string;
+            /** @description Validation pattern or rules */
+            validation?: string;
+        };
+        ClaudeIntegration: {
+            /** @description Has ready-to-use Claude config */
+            available?: boolean;
+            /**
+             * @description Complete mcpServers configuration
+             * @example {
+             *       "mcpServers": {
+             *         "baidu-maps": {
+             *           "command": "uvx",
+             *           "args": [
+             *             "mcp-server-baidu-maps"
+             *           ],
+             *           "env": {
+             *             "BAIDU_MAPS_API_KEY": "your-api-key"
+             *           }
+             *         }
+             *       }
+             *     }
+             */
+            config?: Record<string, never>;
+            /**
+             * @description Name used in Claude Desktop
+             * @example baidu-maps
+             */
+            server_name?: string;
+            /**
+             * @description Execution command
+             * @example uvx
+             */
+            command?: string;
+            /**
+             * @description Command arguments
+             * @example [
+             *       "mcp-server-baidu-maps"
+             *     ]
+             */
+            args?: string[];
+            /** @description Environment variables for Claude config */
+            env_vars?: {
+                [key: string]: string;
+            };
+        };
+        DocumentationInfo: {
+            /** @description Full README content */
+            readme_content?: string;
+            /** @description Step-by-step setup guide */
+            setup_instructions?: string[];
+            /** @description Usage examples and code snippets */
+            examples?: components["schemas"]["CodeExample"][];
+            /** @description Special installation requirements or warnings */
+            installation_notes?: string;
+            /** @description Common issues and solutions */
+            troubleshooting?: string[];
+        };
+        CodeExample: {
+            /**
+             * @description Example type
+             * @enum {string}
+             */
+            type?: "code_block" | "configuration" | "usage" | "claude_prompt";
+            /**
+             * @description Programming language
+             * @example json
+             */
+            language?: string;
+            /** @description Example title */
+            title?: string;
+            /** @description Example code or content */
+            content?: string;
+            /** @description What this example demonstrates */
+            description?: string;
+        };
+        ServerCapabilities: {
+            /**
+             * @description Available MCP tool names
+             * @example [
+             *       "search_location",
+             *       "get_directions",
+             *       "nearby_places"
+             *     ]
+             */
+            tools?: string[];
+            /** @description Available MCP resources */
+            resources?: string[];
+            /** @description Available MCP prompts */
+            prompts?: string[];
+            /**
+             * @description Supported MCP protocol version
+             * @example 2024-11-05
+             */
+            protocol_version?: string;
+            /**
+             * @description High-level feature descriptions
+             * @example [
+             *       "File operations",
+             *       "API calls",
+             *       "Data analysis"
+             *     ]
+             */
+            features?: string[];
+        };
+        AvailabilityInfo: {
+            /**
+             * @description Service availability type
+             * @example package_only
+             * @enum {string}
+             */
+            status?: "package_only" | "live_service" | "both";
+            /** @description Live endpoint tested and working */
             endpoint_verified?: boolean;
-            /** @description SSL certificate verified */
-            ssl_verified?: boolean;
-            /**
-             * Format: date-time
-             * @description Last verification timestamp
-             */
-            last_verification?: string;
-            /** @description Verification method used */
-            verification_method?: string;
-            /**
-             * Format: date-time
-             * @description Initial verification timestamp
-             */
-            verified_at?: string;
-        };
-        /** @description OpenAPI/Swagger documentation exposed by MCP servers */
-        OpenAPIDocumentation: {
-            /**
-             * Format: date-time
-             * @description When the OpenAPI spec was discovered
-             */
-            discovered_at?: string;
             /**
              * Format: uri
-             * @description URL where the OpenAPI spec was found
+             * @description Live service URL (if available)
              */
-            spec_url?: string;
+            live_endpoint?: string;
             /**
-             * @description How the spec was discovered
-             * @enum {string}
+             * @description Preferred package registry
+             * @example github
              */
-            discovery_method?: "endpoint_scan" | "manual" | "header_hint" | "well_known";
-            /**
-             * @description OpenAPI specification version
-             * @example 3.0.3
-             */
-            openapi_version?: string;
-            /**
-             * @description Format of the specification
-             * @enum {string}
-             */
-            spec_format?: "json" | "yaml";
-            /** @description API information from OpenAPI spec */
-            api_info?: {
-                /** @description API title */
-                title?: string;
-                /** @description API version */
-                version?: string;
-                /** @description API description */
-                description?: string;
-                contact?: {
-                    name?: string;
-                    /** Format: email */
-                    email?: string;
-                    /** Format: uri */
-                    url?: string;
-                };
-                license?: {
-                    name?: string;
-                    /** Format: uri */
-                    url?: string;
-                };
-            };
-            /** @description Server definitions from OpenAPI spec */
-            servers?: {
-                /** @description Server URL */
-                url?: string;
-                /** @description Server description */
-                description?: string;
-                /** @description Server variables */
-                variables?: Record<string, never>;
-            }[];
-            /** @description Summary of API endpoints and operations */
-            endpoints_summary?: {
-                /** @description Total number of API paths */
-                total_paths?: number;
-                /** @description Total number of operations */
-                total_operations?: number;
-                /**
-                 * @description Count by HTTP method
-                 * @example {
-                 *       "GET": 10,
-                 *       "POST": 5,
-                 *       "PUT": 3
-                 *     }
-                 */
-                methods?: {
-                    [key: string]: number;
-                };
-                /** @description Available tags */
-                tags?: string[];
-                /** @description Whether API requires authentication */
-                has_authentication?: boolean;
-                /** @description Authentication scheme types */
-                auth_schemes?: string[];
-            };
-            /** @description Hash of the specification for change detection */
-            spec_hash?: string;
-            /** @description OpenAPI specification validation status */
-            validation?: {
-                /** @description Whether the OpenAPI spec is valid */
-                is_valid?: boolean;
-                /** @description Validation error messages */
-                validation_errors?: string[];
-                /**
-                 * Format: date-time
-                 * @description Last validation timestamp
-                 */
-                last_validated?: string;
-            };
+            primary_package?: string;
+            /** @description Has installable packages */
+            packages_available?: boolean;
         };
-        /** @description Comprehensive GitHub repository analysis report for MCP server registration */
-        GitHubAnalysisReport: {
-            /** @description Repository metadata */
-            repository?: {
-                /**
-                 * @description Repository owner
-                 * @example modelcontextprotocol
-                 */
-                owner?: string;
-                /**
-                 * @description Repository name
-                 * @example server-filesystem
-                 */
-                repo?: string;
-                /**
-                 * @description Number of stars
-                 * @example 42
-                 */
-                stars?: number;
-                /**
-                 * @description Primary programming language
-                 * @example TypeScript
-                 */
-                language?: string;
-                /**
-                 * @description Repository topics/tags
-                 * @example [
-                 *       "mcp",
-                 *       "filesystem",
-                 *       "claude"
-                 *     ]
-                 */
-                topics?: string[];
-                /**
-                 * @description License identifier
-                 * @example MIT
-                 */
-                license?: string;
-            };
-            /** @description Available deployment methods */
-            deployment_options?: {
-                /** @description Available as NPM package */
-                npm_package?: boolean;
-                /** @description Docker support available */
-                docker_support?: boolean;
-                /** @description Contains Dockerfile */
-                has_dockerfile?: boolean;
-                /** @description Contains docker-compose configuration */
-                has_docker_compose?: boolean;
-                /** @description Live URL detected in repository */
-                live_url_detected?: boolean;
-                /** @description GitHub Actions CI/CD configured */
-                github_actions?: boolean;
-                /** @description Python package structure detected */
-                python_package?: boolean;
-                /** @description Rust crate structure detected */
-                rust_crate?: boolean;
-                /** @description Go module structure detected */
-                go_module?: boolean;
-            };
-            /** @description MCP-specific features detected */
-            mcp_features?: {
-                /** @description Contains Claude Desktop configuration */
-                has_claude_config?: boolean;
-                /**
-                 * @description NPM package name if available
-                 * @example @modelcontextprotocol/server-filesystem
-                 */
-                npm_package?: string | null;
-                /**
-                 * @description Installation command
-                 * @example npm install -g @modelcontextprotocol/server-filesystem
-                 */
-                installation_command?: string | null;
-                /**
-                 * @description Required environment variables
-                 * @example [
-                 *       "API_KEY",
-                 *       "BASE_URL"
-                 *     ]
-                 */
-                environment_variables?: string[];
-                /**
-                 * @description Suggested authentication type
-                 * @enum {string}
-                 */
-                suggested_auth_type?: "none" | "api_key" | "oauth2" | "basic";
-            };
-            /** @description Quality and usability assessment */
-            quality_assessment?: {
-                /**
-                 * @description Confidence this is an MCP server (0-100)
-                 * @example 85
-                 */
-                confidence_score?: number;
-                /**
-                 * @description Ease of deployment and usage (0-100)
-                 * @example 90
-                 */
-                usability_score?: number;
-                /**
-                 * @description Installation complexity assessment
-                 * @example simple
-                 * @enum {string}
-                 */
-                installation_complexity?: "simple" | "moderate" | "complex" | "unclear";
-                /**
-                 * @description Documentation quality assessment
-                 * @example excellent
-                 * @enum {string}
-                 */
-                documentation_quality?: "poor" | "fair" | "good" | "excellent";
-                /**
-                 * @description Recommended registration action
-                 * @example accept
-                 * @enum {string}
-                 */
-                recommended_action?: "accept" | "accept_with_warnings" | "reject" | "needs_review";
-            };
-            /** @description Repository file structure analysis */
-            file_analysis?: {
-                /** @description Contains README file */
-                has_readme?: boolean;
-                /** @description Contains package.json */
-                has_package_json?: boolean;
-                /** @description Contains Dockerfile */
-                has_dockerfile?: boolean;
-                /** @description Contains requirements.txt (Python) */
-                has_requirements_txt?: boolean;
-                /** @description Contains Cargo.toml (Rust) */
-                has_cargo_toml?: boolean;
-                /** @description Contains go.mod (Go) */
-                has_go_mod?: boolean;
-                /** @description Filenames contain MCP-related keywords */
-                has_mcp_keywords?: boolean;
-                /** @description Configuration files found */
-                config_files?: string[];
-                /** @description Documentation files found */
-                documentation_files?: string[];
-            };
-            /** @description Analysis feedback and recommendations */
-            feedback?: {
-                /**
-                 * @description Positive aspects found
-                 * @example [
-                 *       "Contains Claude Desktop configuration",
-                 *       "Available as NPM package",
-                 *       "Comprehensive documentation"
-                 *     ]
-                 */
-                positive_indicators?: string[];
-                /**
-                 * @description Warning flags identified
-                 * @example [
-                 *       "No Claude Desktop configuration found",
-                 *       "Complex setup with many environment variables required"
-                 *     ]
-                 */
-                warning_flags?: string[];
-                /**
-                 * @description Reasons for rejection (if applicable)
-                 * @example [
-                 *       "No viable deployment method detected",
-                 *       "No clear indication this is an MCP server"
-                 *     ]
-                 */
-                rejection_reasons?: string[];
-            };
+        APIConfiguration: {
+            /**
+             * @description Primary transport protocol
+             * @example stdio
+             * @enum {string}
+             */
+            transport?: "stdio" | "http" | "websocket" | "sse";
+            /** @description API endpoint URLs (documentation/reference) */
+            endpoints?: string[];
+            /** @description CORS support for web usage */
+            cors_enabled?: boolean;
+            auth?: components["schemas"]["AuthConfiguration"];
+        };
+        AuthConfiguration: {
+            /**
+             * @description Authentication method
+             * @example none
+             * @enum {string}
+             */
+            type?: "none" | "api_key" | "oauth2" | "basic" | "custom";
+            /**
+             * @description Authentication details
+             * @example No authentication required
+             */
+            description?: string;
+            /** @description Required OAuth scopes (if applicable) */
+            required_scopes?: string[];
+        };
+        SourceInfo: {
+            /**
+             * @description Primary source registry
+             * @enum {string}
+             */
+            type?: "github" | "npm" | "pypi" | "docker" | "other";
+            /**
+             * Format: uri
+             * @description Source repository URL
+             */
+            url?: string;
+            /**
+             * @description Primary programming language
+             * @example Python
+             */
+            language?: string;
+            /**
+             * @description Software license
+             * @example MIT License
+             */
+            license?: string;
+            /**
+             * Format: date-time
+             * @description Last source update
+             */
+            last_updated?: string;
+            /** @description Repository topics/tags */
+            topics?: string[];
+        };
+        PackageInfo: {
+            /**
+             * @description Package registry
+             * @enum {string}
+             */
+            registry_name?: "npm" | "pypi" | "docker" | "github" | "other";
+            /** @description Package name */
+            name?: string;
+            /** @description Package version */
+            version?: string;
+            /** @description How to install this package */
+            installation_command?: string;
+            /** @description Additional setup notes */
+            setup_instructions?: string;
+            /** @description Download statistics (if available) */
+            download_count?: number;
+        };
+        VerificationStatus: {
+            /**
+             * @description Verification status
+             * @enum {string}
+             */
+            status?: "verified" | "unverified" | "pending" | "rejected";
+            /**
+             * Format: date-time
+             * @description Last data enhancement timestamp
+             */
+            enhanced_at?: string;
+            /** @description Original source identifier */
+            source_id?: string;
+            /** @description How verification was performed */
+            verification_method?: string;
         };
     };
     responses: never;

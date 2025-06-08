@@ -1,0 +1,46 @@
+# Documentation & Support
+DocumentationInfo:
+  type: object
+  properties:
+    readme_content:
+      type: string
+      description: Full README content
+    setup_instructions:
+      type: array
+      items:
+        type: string
+      description: Step-by-step setup guide
+    examples:
+      type: array
+      items:
+        $ref: '#/CodeExample'
+      description: Usage examples and code snippets
+    installation_notes:
+      type: string
+      description: Special installation requirements or warnings
+    troubleshooting:
+      type: array
+      items:
+        type: string
+      description: Common issues and solutions
+
+CodeExample:
+  type: object
+  properties:
+    type:
+      type: string
+      enum: [code_block, configuration, usage, claude_prompt]
+      description: Example type
+    language:
+      type: string
+      description: Programming language
+      example: "json"
+    title:
+      type: string
+      description: Example title
+    content:
+      type: string
+      description: Example code or content
+    description:
+      type: string
+      description: What this example demonstrates

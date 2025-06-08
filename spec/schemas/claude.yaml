@@ -1,0 +1,36 @@
+# Claude Desktop Integration
+ClaudeIntegration:
+  type: object
+  properties:
+    available:
+      type: boolean
+      description: Has ready-to-use Claude config
+    config:
+      type: object
+      description: Complete mcpServers configuration
+      example:
+        mcpServers:
+          baidu-maps:
+            command: "uvx"
+            args: ["mcp-server-baidu-maps"]
+            env:
+              BAIDU_MAPS_API_KEY: "your-api-key"
+    server_name:
+      type: string
+      description: Name used in Claude Desktop
+      example: "baidu-maps"
+    command:
+      type: string
+      description: Execution command
+      example: "uvx"
+    args:
+      type: array
+      items:
+        type: string
+      description: Command arguments
+      example: ["mcp-server-baidu-maps"]
+    env_vars:
+      type: object
+      additionalProperties:
+        type: string
+      description: Environment variables for Claude config

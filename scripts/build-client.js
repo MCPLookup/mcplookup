@@ -32,112 +32,113 @@ export class MCPLookupAPIClient {
   }
 
   /**
-   * Discover MCP servers using various search criteria
+   * Search and discover MCP servers
    */
-  async discover(params: {
-    query?: string;
-    intent?: string;
-    domain?: string;
-    capability?: string;
-    category?: 'communication' | 'productivity' | 'development' | 'finance' | 'social' | 'storage' | 'other';
-    transport?: 'streamable_http' | 'sse' | 'stdio';
-    cors_required?: boolean;
-    ssl_required?: boolean;
-    verified_only?: boolean;
-    include_health?: boolean;
-    include_tools?: boolean;
-    include_resources?: boolean;
+  async searchServers(params?: {
+    q?: string;
+    category?: 'development' | 'data' | 'communication' | 'api-integration' | 'utility' | 'other';
+    quality?: 'high' | 'medium' | 'low';
+    installation_method?: 'npm' | 'python' | 'docker' | 'git' | 'live_service';
+    claude_ready?: boolean;
     limit?: number;
     offset?: number;
-  } = {}) {
-    const { data, error } = await this.client.GET('/discover', {
+  }) {
+    const { data, error } = await this.client.GET('/servers', {
       params: { query: params }
     });
     
     if (error) {
-      throw new Error(\`Discovery failed: \${JSON.stringify(error)}\`);
+      throw new Error(\`Search failed: \${error}\`);
     }
     
     return data;
   }
 
   /**
-   * Smart AI-powered discovery using natural language
+   * Get detailed information about a specific server
    */
-  async discoverSmart(params: {
+  async getServer(serverId: string) {
+    const { data, error } = await this.client.GET('/servers/{serverId}', {
+      params: { path: { serverId } }
+    });
+    
+    if (error) {
+      throw new Error(\`Failed to get server: \${error}\`);
+    }
+    
+    return data;
+  }
+
+  /**
+   * Get installation instructions for a server
+   */
+  async getInstallInstructions(
+    serverId: string, 
+    params?: {
+      method?: 'npm' | 'python' | 'docker' | 'git' | 'live_service';
+      platform?: 'linux' | 'darwin' | 'win32';
+    }
+  ) {
+    const { data, error } = await this.client.GET('/servers/{serverId}/install', {
+      params: { 
+        path: { serverId },
+        query: params 
+      }
+    });
+    
+    if (error) {
+      throw new Error(\`Failed to get installation instructions: \${error}\`);
+    }
+    
+    return data;
+  }
+
+  /**
+   * AI-powered smart discovery
+   */
+  async smartDiscover(params: {
     query: string;
+    context?: string;
     max_results?: number;
-    include_reasoning?: boolean;
   }) {
     const { data, error } = await this.client.POST('/discover/smart', {
       body: params
     });
     
     if (error) {
-      throw new Error(\`Smart discovery failed: \${JSON.stringify(error)}\`);
+      throw new Error(\`Smart discovery failed: \${error}\`);
     }
     
     return data;
   }
 
   /**
-   * Register a new MCP server
+   * Update the base URL for the client
    */
-  async register(params: {
-    domain: string;
-    endpoint: string;
-    contact_email: string;
-    description?: string;
-  }) {
-    const { data, error } = await this.client.POST('/register', {
-      body: params
+  setBaseUrl(url: string) {
+    this.baseUrl = url;
+    this.client = createClient<paths>({ 
+      baseUrl: url,
+      headers: this.client.defaults?.headers || {}
     });
-    
-    if (error) {
-      throw new Error(\`Registration failed: \${JSON.stringify(error)}\`);
-    }
-    
-    return data;
-  }
-
-  /**
-   * Get server health metrics
-   */
-  async getServerHealth(domain: string, realtime: boolean = false) {
-    const { data, error } = await this.client.GET('/health/{domain}', {
-      params: { 
-        path: { domain },
-        query: { realtime }
-      }
-    });
-    
-    if (error) {
-      throw new Error(\`Health check failed: \${JSON.stringify(error)}\`);
-    }
-    
-    return data;
   }
 
   /**
    * Set API key for authenticated requests
    */
   setApiKey(apiKey: string) {
-    this.client = createClient<paths>({ 
+    this.client = createClient<paths>({
       baseUrl: this.baseUrl,
       headers: { Authorization: \`Bearer \${apiKey}\` }
     });
   }
-}
-
-// Export default instance for convenience
-export const mcpLookupClient = new MCPLookupAPIClient();
-`;
+}`;
 
 // Write the client file
 const clientPath = join(__dirname, '../src/generated/api-client.ts');
 writeFileSync(clientPath, clientContent);
 
-console.log('✅ API client generated successfully\!');
+console.log('✅ API client generated successfully!');
 console.log('📁 Generated files:');
 console.log('  - src/generated/api-types.ts (OpenAPI types)');
 console.log('  - src/generated/api-client.ts (API client)');

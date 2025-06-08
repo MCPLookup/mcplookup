@@ -1,0 +1,30 @@
+# Server Capabilities & Features
+ServerCapabilities:
+  type: object
+  properties:
+    tools:
+      type: array
+      items:
+        type: string
+      description: Available MCP tool names
+      example: ["search_location", "get_directions", "nearby_places"]
+    resources:
+      type: array
+      items:
+        type: string
+      description: Available MCP resources
+    prompts:
+      type: array
+      items:
+        type: string
+      description: Available MCP prompts
+    protocol_version:
+      type: string
+      description: Supported MCP protocol version
+      example: "2024-11-05"
+    features:
+      type: array
+      items:
+        type: string
+      description: High-level feature descriptions
+      example: ["File operations", "API calls", "Data analysis"]

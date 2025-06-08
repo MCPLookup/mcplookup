@@ -1,0 +1,23 @@
+# Package Information
+PackageInfo:
+  type: object
+  properties:
+    registry_name:
+      type: string
+      enum: [npm, pypi, docker, github, other]
+      description: Package registry
+    name:
+      type: string
+      description: Package name
+    version:
+      type: string
+      description: Package version
+    installation_command:
+      type: string
+      description: How to install this package
+    setup_instructions:
+      type: string
+      description: Additional setup notes
+    download_count:
+      type: integer
+      description: Download statistics (if available)

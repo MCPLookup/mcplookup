@@ -1,0 +1,18 @@
+# Verification & Status
+VerificationStatus:
+  type: object
+  properties:
+    status:
+      type: string
+      enum: [verified, unverified, pending, rejected]
+      description: Verification status
+    enhanced_at:
+      type: string
+      format: date-time
+      description: Last data enhancement timestamp
+    source_id:
+      type: string
+      description: Original source identifier
+    verification_method:
+      type: string
+      description: How verification was performed

@@ -1,0 +1,111 @@
+# MCP Server Schema - Core server record for discovery and installation
+MCPServer:
+  type: object
+  description: Complete MCP server record optimized for discovery and installation
+  properties:
+    # === DISCOVERY SECTION ===
+    # Core Identity & Search
+    id:
+      type: string
+      description: Unique server identifier
+      example: "github.com/baidu-maps/mcp"
+    name:
+      type: string
+      description: Server name
+      example: "Baidu Maps MCP"
+    description:
+      type: string
+      description: Human-readable description
+      example: "百度地图MCP Server for location services"
+    tagline:
+      type: string
+      description: One-line summary for search results
+      example: "Location services and mapping for Claude"
+    
+    # Categorization & Discovery
+    category:
+      type: string
+      enum: [development, data, communication, api-integration, utility, other]
+      description: Primary category for filtering
+    subcategories:
+      type: array
+      items:
+        type: string
+      description: Technology/language tags
+      example: ["python", "maps", "geolocation"]
+    tags:
+      type: array
+      items:
+        type: string
+      description: Searchable keywords
+      example: ["maps", "baidu", "location", "gps"]
+    use_cases:
+      type: array
+      items:
+        type: string
+      description: What problems this server solves
+      example: ["Find locations", "Get directions", "Location search"]
+    
+    # Quality & Trust (Discovery)
+    quality:
+      $ref: './quality.yaml#/QualityMetrics'
+    
+    # Social Proof & Popularity (Discovery)
+    popularity:
+      $ref: './popularity.yaml#/PopularityMetrics'
+    
+    # === INSTALLATION SECTION ===
+    # Installation Methods (Primary)
+    installation:
+      $ref: './installation.yaml#/InstallationInfo'
+    
+    # Environment & Configuration
+    environment:
+      $ref: './environment.yaml#/EnvironmentConfig'
+    
+    # Claude Desktop Integration (Installation)
+    claude_integration:
+      $ref: './claude.yaml#/ClaudeIntegration'
+    
+    # Documentation & Support (Installation)
+    documentation:
+      $ref: './documentation.yaml#/DocumentationInfo'
+    
+    # === TECHNICAL SECTION ===
+    # Capabilities & Features
+    capabilities:
+      $ref: './capabilities.yaml#/ServerCapabilities'
+    
+    # Live Service & Availability
+    availability:
+      $ref: './availability.yaml#/AvailabilityInfo'
+    
+    # API & Transport Configuration
+    api:
+      $ref: './api.yaml#/APIConfiguration'
+    
+    # === METADATA SECTION ===
+    # Source & Repository Information
+    source:
+      $ref: './source.yaml#/SourceInfo'
+    
+    # Package Information
+    packages:
+      type: array
+      items:
+        $ref: './packages.yaml#/PackageInfo'
+      description: All available packages across registries
+    
+    # Verification & Status
+    verification:
+      $ref: './verification.yaml#/VerificationStatus'
+    
+    # Timestamps
+    created_at:
+      type: string
+      format: date-time
+      description: First discovered/registered
+    updated_at:
+      type: string
+      format: date-time
+      description: Last updated in registry
