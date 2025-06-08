@@ -247,10 +247,7 @@ export function GitHubAutoRegister() {
                         </Icon>
                         <Text fontSize="sm">{result.analysis.repository.stars}</Text>
                       </HStack>
-                      <HStack gap={1}>
-                        <Icon color="blue.500">
-                          {React.createElement(getLanguageIcon(result.analysis.repository.language))}
-                        </Icon>
+                      <HStack gap={1}>                        <Icon color="blue.500" as={getLanguageIcon(result.analysis.repository.language)} />
                         <Text fontSize="sm">{result.analysis.repository.language}</Text>
                       </HStack>
                     </HStack>

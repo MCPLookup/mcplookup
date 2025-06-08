@@ -2,6 +2,7 @@
 // Tests for server-side and client-side auth utilities
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import type { Session } from 'next-auth'
 
 // Mock next-auth
 vi.mock('../../../auth', () => ({
@@ -33,16 +34,18 @@ describe('Auth.js v5 Server-side Utilities', () => {
 
   describe('getServerSession', () => {
     it('should return session when authenticated', async () => {
-      const mockSession = {
+      const mockSession: Session = {
         user: {
           id: '1',
           email: 'test@example.com',
           name: 'Test User'
-        }
+        },
+        expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
       }
 
       const { auth } = await import('../../../auth')
-      vi.mocked(auth).mockResolvedValue(mockSession)
+      const mockedAuth = vi.mocked(auth)
+      mockedAuth.mockResolvedValue(mockSession)
 
       const { getServerSession } = await import('./server')
       const session = await getServerSession()
@@ -53,7 +56,8 @@ describe('Auth.js v5 Server-side Utilities', () => {
 
     it('should return null when not authenticated', async () => {
       const { auth } = await import('../../../auth')
-      vi.mocked(auth).mockResolvedValue(null)
+      const mockedAuth = vi.mocked(auth)
+      mockedAuth.mockResolvedValue(null)
 
       const { getServerSession } = await import('./server')
       const session = await getServerSession()
@@ -63,7 +67,8 @@ describe('Auth.js v5 Server-side Utilities', () => {
 
     it('should handle errors gracefully', async () => {
       const { auth } = await import('../../../auth')
-      vi.mocked(auth).mockRejectedValue(new Error('Auth error'))
+      const mockedAuth = vi.mocked(auth)
+      mockedAuth.mockRejectedValue(new Error('Auth error'))
 
       const { getServerSession } = await import('./server')
       const session = await getServerSession()
@@ -74,17 +79,19 @@ describe('Auth.js v5 Server-side Utilities', () => {
 
   describe('getCurrentUser', () => {
     it('should return user data when authenticated', async () => {
-      const mockSession = {
+      const mockSession: Session = {
         user: {
           id: '1',
           email: 'test@example.com',
           name: 'Test User',
           image: 'https://example.com/avatar.jpg'
-        }
+        },
+        expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
       }
 
       const { auth } = await import('../../../auth')
-      vi.mocked(auth).mockResolvedValue(mockSession)
+      const mockedAuth = vi.mocked(auth)
+      mockedAuth.mockResolvedValue(mockSession)
 
       const { getCurrentUser } = await import('./server')
       const user = await getCurrentUser()
@@ -100,7 +107,8 @@ describe('Auth.js v5 Server-side Utilities', () => {
 
     it('should return null when not authenticated', async () => {
       const { auth } = await import('../../../auth')
-      vi.mocked(auth).mockResolvedValue(null)
+      const mockedAuth = vi.mocked(auth)
+      mockedAuth.mockResolvedValue(null)
 
       const { getCurrentUser } = await import('./server')
       const user = await getCurrentUser()
@@ -111,12 +119,14 @@ describe('Auth.js v5 Server-side Utilities', () => {
 
   describe('isAuthenticated', () => {
     it('should return true when user is authenticated', async () => {
-      const mockSession = {
-        user: { id: '1', email: 'test@example.com', name: 'Test User' }
+      const mockSession: Session = {
+        user: { id: '1', email: 'test@example.com', name: 'Test User' },
+        expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
       }
 
       const { auth } = await import('../../../auth')
-      vi.mocked(auth).mockResolvedValue(mockSession)
+      const mockedAuth = vi.mocked(auth)
+      mockedAuth.mockResolvedValue(mockSession)
 
       const { isAuthenticated } = await import('./server')
       const result = await isAuthenticated()
@@ -126,7 +136,8 @@ describe('Auth.js v5 Server-side Utilities', () => {
 
     it('should return false when user is not authenticated', async () => {
       const { auth } = await import('../../../auth')
-      vi.mocked(auth).mockResolvedValue(null)
+      const mockedAuth = vi.mocked(auth)
+      mockedAuth.mockResolvedValue(null)
 
       const { isAuthenticated } = await import('./server')
       const result = await isAuthenticated()
@@ -137,12 +148,14 @@ describe('Auth.js v5 Server-side Utilities', () => {
 
   describe('requireAuth', () => {
     it('should return session when authenticated', async () => {
-      const mockSession = {
-        user: { id: '1', email: 'test@example.com', name: 'Test User' }
+      const mockSession: Session = {
+        user: { id: '1', email: 'test@example.com', name: 'Test User' },
+        expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
       }
 
       const { auth } = await import('../../../auth')
-      vi.mocked(auth).mockResolvedValue(mockSession)
+      const mockedAuth = vi.mocked(auth)
+      mockedAuth.mockResolvedValue(mockSession)
 
       const { requireAuth } = await import('./server')
       const session = await requireAuth()
@@ -152,7 +165,8 @@ describe('Auth.js v5 Server-side Utilities', () => {
 
     it('should redirect when not authenticated', async () => {
       const { auth } = await import('../../../auth')
-      vi.mocked(auth).mockResolvedValue(null)
+      const mockedAuth = vi.mocked(auth)
+      mockedAuth.mockResolvedValue(null)
 
       const { redirect } = await import('next/navigation')
 
@@ -165,16 +179,18 @@ describe('Auth.js v5 Server-side Utilities', () => {
 
   describe('isAdmin', () => {
     it('should return true for admin email', async () => {
-      const mockSession = {
+      const mockSession: Session = {
         user: {
           id: '1',
           email: 'admin@mcplookup.org',
           name: 'Admin User'
-        }
+        },
+        expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
       }
 
       const { auth } = await import('../../../auth')
-      vi.mocked(auth).mockResolvedValue(mockSession)
+      const mockedAuth = vi.mocked(auth)
+      mockedAuth.mockResolvedValue(mockSession)
 
       const { isAdmin } = await import('./server')
       const result = await isAdmin()
@@ -183,16 +199,18 @@ describe('Auth.js v5 Server-side Utilities', () => {
     })
 
     it('should return false for non-admin email', async () => {
-      const mockSession = {
+      const mockSession: Session = {
         user: {
           id: '1',
           email: 'user@example.com',
           name: 'Regular User'
-        }
+        },
+        expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
       }
 
       const { auth } = await import('../../../auth')
-      vi.mocked(auth).mockResolvedValue(mockSession)
+      const mockedAuth = vi.mocked(auth)
+      mockedAuth.mockResolvedValue(mockSession)
 
       const { isAdmin } = await import('./server')
       const result = await isAdmin()
@@ -202,7 +220,8 @@ describe('Auth.js v5 Server-side Utilities', () => {
 
     it('should return false when not authenticated', async () => {
       const { auth } = await import('../../../auth')
-      vi.mocked(auth).mockResolvedValue(null)
+      const mockedAuth = vi.mocked(auth)
+      mockedAuth.mockResolvedValue(null)
 
       const { isAdmin } = await import('./server')
       const result = await isAdmin()
@@ -219,18 +238,21 @@ describe('Auth.js v5 Client-side Utilities', () => {
 
   describe('useAuth', () => {
     it('should return auth state when authenticated', async () => {
-      const mockSession = {
+      const mockSession: Session = {
         user: {
           id: '1',
           email: 'test@example.com',
           name: 'Test User'
-        }
+        },
+        expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
       }
 
       const { useSession } = await import('next-auth/react')
-      vi.mocked(useSession).mockReturnValue({
+      const mockedUseSession = vi.mocked(useSession)
+      mockedUseSession.mockReturnValue({
         data: mockSession,
-        status: 'authenticated'
+        status: 'authenticated',
+        update: vi.fn()
       })
 
       const { useAuth } = await import('./client')
@@ -249,9 +271,11 @@ describe('Auth.js v5 Client-side Utilities', () => {
 
     it('should return loading state', async () => {
       const { useSession } = await import('next-auth/react')
-      vi.mocked(useSession).mockReturnValue({
+      const mockedUseSession = vi.mocked(useSession)
+      mockedUseSession.mockReturnValue({
         data: null,
-        status: 'loading'
+        status: 'loading',
+        update: vi.fn()
       })
 
       const { useAuth } = await import('./client')
@@ -264,9 +288,11 @@ describe('Auth.js v5 Client-side Utilities', () => {
 
     it('should return unauthenticated state', async () => {
       const { useSession } = await import('next-auth/react')
-      vi.mocked(useSession).mockReturnValue({
+      const mockedUseSession = vi.mocked(useSession)
+      mockedUseSession.mockReturnValue({
         data: null,
-        status: 'unauthenticated'
+        status: 'unauthenticated',
+        update: vi.fn()
       })
 
       const { useAuth } = await import('./client')

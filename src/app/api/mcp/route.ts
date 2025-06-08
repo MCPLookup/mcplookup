@@ -338,7 +338,7 @@ function createAuthenticatedMcpHandler() {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "Authorization": `Bearer ${authResult.context?.apiKey || "internal"}`
+              "Authorization": `Bearer ${authResult.context?.apiKeyId || "internal"}`
             },
             body: JSON.stringify({
               github_url: args.github_url,
@@ -856,7 +856,6 @@ function createAuthenticatedMcpHandler() {
                 'Add new productivity server to registry'
               ]
             },
-            },
             {
               name: "register_mcp_server_from_github",
               description: "Automatically analyze and register an MCP server from a GitHub repository URL with intelligent analysis and quality assessment.",
@@ -866,6 +865,7 @@ function createAuthenticatedMcpHandler() {
                 "Register https://github.com/owner/mcp-server-repo",
                 "Auto-register MCP server from GitHub with analysis"
               ]
+            },
             {
               name: 'verify_domain_ownership',
               description: 'Check DNS verification status for domain registration.',

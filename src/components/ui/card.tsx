@@ -32,10 +32,16 @@ export const CardFooter = React.forwardRef<HTMLDivElement, CardFooterProps>(
   }
 )
 
-// Export as namespace for dot notation usage
-export const Card = {
+// Individual exports for direct import
+export const Card = Object.assign(CardRoot, {
   Root: CardRoot,
   Body: CardBody,
   Header: CardHeader,
   Footer: CardFooter,
-}
+})
+
+export const CardContent = CardBody  
+export const CardTitle = CardHeader
+export const CardDescription = CardBody
+
+export default Card

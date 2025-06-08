@@ -5,7 +5,7 @@ import type { Adapter } from "next-auth/adapters"
 import { createStorage } from "../services/storage/factory"
 import type { IStorage } from "../services/storage/unified-storage"
 import { isSuccessResult } from "../services/storage/unified-storage"
-import bcrypt from 'bcryptjs'
+import bcrypt from 'bcrypt'
 
 export function createStorageAdapter(): Adapter {
   const storage = createStorage()

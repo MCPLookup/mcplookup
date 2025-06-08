@@ -1,7 +1,7 @@
 // Integration between GitHub Auto-Registration and our GitHub Enhancement Pipeline
 // This connects the UI registration with our existing GitHub analysis tools
 
-import { extractEnhancedClaudeConfig } from './claude-config-extractor.js';
+// import { extractEnhancedClaudeConfig } from './claude-config-extractor.js';
 
 export interface GitHubAnalysisResult {
   // Repository metadata
@@ -250,9 +250,11 @@ export class GitHubRepositoryAnalyzer {
       suggested_auth_type: 'none' as 'none' | 'api_key' | 'oauth2' | 'basic'
     };
     
-    // Use our existing Claude config extractor
+    // Use our existing Claude config extractor (temporarily disabled)
     if (readmeContent) {
       try {
+        // TODO: Re-enable when claude-config-extractor is available
+        /*
         const claudeConfigResult = await extractEnhancedClaudeConfig(
           `${owner}/${repo}`,
           readmeContent,
@@ -264,6 +266,7 @@ export class GitHubRepositoryAnalyzer {
           analysis.claude_configs = claudeConfigResult.claude_configs;
           analysis.environment_variables = claudeConfigResult.analysis.unique_env_vars;
         }
+        */
       } catch (error) {
         console.warn('Claude config extraction failed:', error);
       }
@@ -419,5 +422,3 @@ export class GitHubRepositoryAnalyzer {
     };
   }
 }
-
-export { GitHubRepositoryAnalyzer };

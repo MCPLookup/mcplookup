@@ -6,6 +6,7 @@ import { Footer } from "@/components/layout/footer"
 import { Box, Text, VStack, HStack, Badge, Button, Input, Card } from "@chakra-ui/react"
 import { DiscoveryInterface } from "@/components/mcplookup"
 import { LinkButton } from "@/components/ui/link-button"
+import { mcpClientService } from "@/lib/services/mcp-client"
 import Link from "next/link"
 
 // Force dynamic rendering
@@ -33,62 +34,34 @@ interface MCPServer {
 }
 
 export default function DiscoverPage() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [searchType, setSearchType] = useState<"domain" | "capability" | "smart">("smart")
-  const [includePackageOnly, setIncludePackageOnly] = useState(false)
   const [servers, setServers] = useState<MCPServer[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) return
-
-    setLoading(true)
+  const handleSearchResults = (results: any) => {
+    // Convert SDK results to MCPServer format
+    const convertedServers = (results.servers || []).map((server: any) => ({
+      domain: server.domain || server.name,
+      endpoint: server.endpoint || `https://${server.domain}/mcp`,
+      name: server.name || server.domain,
+      description: server.description || '',
+      capabilities: server.capabilities?.use_cases || [],
+      verified: server.verification?.dns_verified || false,
+      health: server.health?.status === 'healthy' ? 'healthy' : 
+              server.health?.status === 'degraded' ? 'degraded' : 'down',
+      trust_score: server.trust_score || 0,
+      response_time_ms: server.health?.avg_response_time_ms || 0,
+      tools: server.capabilities?.tools || [],
+      resources: server.capabilities?.resources || []
+    }))
+    
+    setServers(convertedServers)
     setError(null)
+  }
 
-    try {
-      const endpoint = searchType === "smart" ? '/api/v1/discover/smart' : '/api/v1/discover'
-      
-      let response
-      if (searchType === "smart") {
-        response = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            intent: searchQuery,
-            context: { max_results: 20 },
-            availability_filter: {
-              include_live: true,
-              include_package_only: includePackageOnly,
-              include_deprecated: false,
-              include_offline: false,
-              live_servers_only: false
-            }
-          })
-        })
-      } else {
-        const params = new URLSearchParams({
-          q: searchQuery,
-          type: searchType,
-          limit: '20',
-          include_package_only: includePackageOnly.toString()
-        })
-        response = await fetch(`${endpoint}?${params}`)
-      }
-
-      if (!response.ok) {
-        throw new Error(`Search failed: ${response.status}`)
-      }
-
-      const data = await response.json()
-      setServers(data.servers || [])
-    } catch (err) {
-      console.error('Search error:', err)
-      setError("Failed to search for servers. Please try again.")
-      setServers([])
-    } finally {
-      setLoading(false)
-    }
+  const handleSearchError = (errorMessage: string) => {
+    setError(errorMessage)
+    setServers([])
   }
 
   const getHealthColor = (health: string) => {
@@ -141,6 +114,8 @@ export default function DiscoverPage() {
                 'What git and version control tools are available?',
                 'Find development and coding utilities'
               ]}
+              onSearchResults={handleSearchResults}
+              onSearchError={handleSearchError}
             />
           </Box>
 
@@ -331,7 +306,7 @@ export default function DiscoverPage() {
           )}
 
           {/* No Results */}
-          {!loading && servers.length === 0 && searchQuery && (
+          {!loading && servers.length === 0 && error === null && (
             <Box textAlign="center" py={12}>
               <Text color="gray.600">No servers found. Try a different search term.</Text>
             </Box>

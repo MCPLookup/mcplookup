@@ -3,7 +3,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { schemas } from '../generated/server-schemas';
+// import { schemas } from '../generated/server-schemas';
 
 export type ValidationError = {
   field: string;

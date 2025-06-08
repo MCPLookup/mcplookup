@@ -40,7 +40,7 @@ export function ManualRegister() {
   };
 
   const addCapability = () => {
-    if (capabilityInput.trim() && \!formData.capabilities.includes(capabilityInput.trim())) {
+    if (capabilityInput.trim() && !formData.capabilities.includes(capabilityInput.trim())) {
       setFormData(prev => ({
         ...prev,
         capabilities: [...prev.capabilities, capabilityInput.trim()]
@@ -52,7 +52,7 @@ export function ManualRegister() {
   const removeCapability = (capability: string) => {
     setFormData(prev => ({
       ...prev,
-      capabilities: prev.capabilities.filter(c => c \!== capability)
+      capabilities: prev.capabilities.filter(c => c !== capability)
     }));
   };
 
@@ -72,7 +72,7 @@ export function ManualRegister() {
 
       const data = await response.json();
 
-      if (\!response.ok) {
+      if (!response.ok) {
         throw new Error(data.details || data.error || 'Registration failed');
       }
 
@@ -93,7 +93,7 @@ export function ManualRegister() {
   };
 
   const checkVerification = async () => {
-    if (\!verification) return;
+    if (!verification) return;
 
     setLoading(true);
     try {
@@ -130,8 +130,8 @@ export function ManualRegister() {
             <p className="text-gray-600">
               Your MCP server has been successfully registered and is now discoverable.
             </p>
-            <Button asChild>
-              <a href={`/servers/${formData.domain}`}>View Server Details</a>
+            <Button onClick={() => window.location.href = `/servers/${formData.domain}`}>
+              View Server Details
             </Button>
           </div>
         </CardContent>
@@ -139,7 +139,7 @@ export function ManualRegister() {
     );
   }
 
-  if (verification && \!verification.verified) {
+  if (verification && !verification.verified) {
     return (
       <Card>
         <CardHeader>
@@ -167,13 +167,13 @@ export function ManualRegister() {
             </div>
           </div>
 
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
+          <Alert.Root>
+            <Alert.Icon />
             <AlertDescription>
               Add this TXT record to your domain's DNS settings. The record name should be your domain root.
               DNS propagation may take up to 24 hours.
             </AlertDescription>
-          </Alert>
+          </Alert.Root>
 
           <div className="flex gap-2">
             <Button onClick={checkVerification} disabled={loading}>
@@ -276,10 +276,10 @@ export function ManualRegister() {
           </div>
 
           {error && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
+            <Alert.Root status="error">
+              <Alert.Icon />
               <AlertDescription>{error}</AlertDescription>
-            </Alert>
+            </Alert.Root>
           )}
 
           <Button type="submit" disabled={loading} className="w-full">

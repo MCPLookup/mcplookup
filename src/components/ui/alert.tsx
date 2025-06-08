@@ -40,3 +40,6 @@ export const Alert = {
   Title: AlertTitle,
   Description: AlertDescription,
 }
+
+// Export as default component for direct JSX usage
+export default AlertRoot

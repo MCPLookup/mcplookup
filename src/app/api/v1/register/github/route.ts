@@ -8,6 +8,7 @@ import { registerRateLimit, addRateLimitHeaders } from '@/lib/security/rate-limi
 import { apiKeyMiddleware, recordApiUsage } from '@/lib/auth/api-key-middleware';
 import { createStorage } from '@/lib/services/storage';
 import { isSuccessResult } from '@/lib/services/storage/unified-storage';
+import { MCPServerRecord } from '@/lib/schemas/discovery';
 
 // Enhanced GitHub URL validation schema
 const GitHubAutoRegisterSchema = z.object({
@@ -176,7 +177,7 @@ export async function POST(request: NextRequest) {
 
     // Check if this repository is already registered
     const storage = createStorage();
-    const existingServer = await storage.getServer(analysis.suggested_domain);
+    const existingServer = await storage.get<MCPServerRecord>('servers', analysis.suggested_domain);
     
     if (isSuccessResult(existingServer) && existingServer.data) {
       return NextResponse.json(
@@ -198,7 +199,7 @@ export async function POST(request: NextRequest) {
     const mcpServerRecord = createMCPServerRecordFromAnalysis(analysis, validatedRequest, userId);
 
     // Store the server record
-    const storeResult = await storage.storeServer(mcpServerRecord);
+    const storeResult = await storage.set('servers', mcpServerRecord.domain, mcpServerRecord);
     
     if (!isSuccessResult(storeResult)) {
       throw new Error('Failed to store server record');
