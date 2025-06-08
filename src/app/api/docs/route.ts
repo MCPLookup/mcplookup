@@ -9,9 +9,9 @@ import { join } from 'path';
 
 export async function GET(request: NextRequest) {
   try {
-    // Read the OpenAPI specification
-    const openApiPath = join(process.cwd(), 'openapi.yaml');
-    const openApiSpec = readFileSync(openApiPath, 'utf8');
+    // Read the OpenAPI specification from the SDK
+    const sdkPath = join(process.cwd(), '..', 'mcp-sdk', 'spec', 'openapi.yaml');
+    const openApiSpec = readFileSync(sdkPath, 'utf8');
 
     // Parse YAML to JSON for Swagger UI
     const yaml = await import('js-yaml');

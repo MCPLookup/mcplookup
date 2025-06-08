@@ -12,13 +12,118 @@ interface SearchMode {
 interface DiscoveryInterfaceProps {
   searchModes: SearchMode[]
   quickSearches: string[]
+  onSearchResults?: (results: any) => void
+  onSearchError?: (error: string) => void
 }
 
-export function DiscoveryInterface({ searchModes, quickSearches }: DiscoveryInterfaceProps) {
+export function DiscoveryInterface({ 
+  searchModes, 
+  quickSearches, 
+  onSearchResults, 
+  onSearchError 
+}: DiscoveryInterfaceProps) {
   const [activeMode, setActiveMode] = useState(searchModes[0]?.id || "smart")
   const [searchQuery, setSearchQuery] = useState("")
+  const [loading, setLoading] = useState(false)
+
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return
+
+    setLoading(true)
+    
+    try {
+      let results
+
+      switch (activeMode) {
+        case 'smart':
+          // Call backend API for smart discovery
+          const smartResponse = await fetch('/api/discover/smart', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              query: searchQuery,
+              max_results: 20
+            })
+          })
+          results = await smartResponse.json()
+          break
+
+        case 'domain':
+          // Call backend API for domain search
+          const domainResponse = await fetch('/api/discover/search', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              q: `domain:${searchQuery}`,
+              limit: 20
+            })
+          })
+          results = await domainResponse.json()
+          break
+
+        case 'capability':
+          // Call backend API for capability search
+          const capabilityResponse = await fetch('/api/discover/search', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              q: searchQuery,
+              limit: 20
+            })
+          })
+          results = await capabilityResponse.json()
+          break
+
+        default:
+          // Fallback to general search
+          const defaultResponse = await fetch('/api/discover/search', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              q: searchQuery,
+              limit: 20
+            })
+          })
+          results = await defaultResponse.json()
+      }
+
+      onSearchResults?.(results)
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Search failed'
+      onSearchError?.(errorMessage)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const currentMode = searchModes.find(mode => mode.id === activeMode) || searchModes[0]
+
+  const handleQuickSearch = async (query: string) => {
+    setSearchQuery(query)
+    setActiveMode('smart') // Quick searches use smart mode
+    
+    setLoading(true)
+    
+    try {
+      const response = await fetch('/api/discover/smart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query,
+          max_results: 20
+        })
+      })
+      
+      const results = await response.json()
+      onSearchResults?.(results)
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Search failed'
+      onSearchError?.(errorMessage)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <VStack gap={6} w="full">
@@ -40,6 +145,7 @@ export function DiscoveryInterface({ searchModes, quickSearches }: DiscoveryInte
             placeholder={currentMode.placeholder}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             size="lg"
             bg="white"
             borderColor="gray.300"
@@ -50,6 +156,9 @@ export function DiscoveryInterface({ searchModes, quickSearches }: DiscoveryInte
             colorPalette="blue"
             size="lg"
             px={8}
+            onClick={handleSearch}
+            loading={loading}
+            disabled={!searchQuery.trim()}
             _hover={{ transform: "translateY(-1px)" }}
             transition="all 0.2s"
           >
@@ -71,7 +180,8 @@ export function DiscoveryInterface({ searchModes, quickSearches }: DiscoveryInte
               size="sm"
               justifyContent="flex-start"
               colorPalette="gray"
-              onClick={() => setSearchQuery(search)}
+              onClick={() => handleQuickSearch(search)}
+              loading={loading}
               _hover={{ bg: "gray.50", borderColor: "blue.300" }}
             >
               <Text fontSize="sm" color="gray.600">

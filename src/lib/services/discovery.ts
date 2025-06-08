@@ -1,7 +1,13 @@
 // Discovery Service - Core discovery logic with semantic intent matching
-// NO SQL - Uses external APIs and in-memory processing
+// ENHANCED WITH MCP SDK - Uses SDK for consistent package discovery
 
 import { DiscoveryRequest, DiscoveryResponse, MCPServerRecord, CapabilityCategory } from '../schemas/discovery';
+import { 
+  InstallationResolver,
+  InstallationContext,
+  ResolvedPackage,
+  MCPLookupAPIClient
+} from '@mcplookup-org/mcp-sdk';
 
 export interface IDiscoveryService {
   discoverServers(request: any): Promise<DiscoveryResponse>;
@@ -12,12 +18,15 @@ export interface IDiscoveryService {
 
 /**
  * Main Discovery Service Implementation
+ * ENHANCED WITH MCP SDK - Uses SDK for package resolution and discovery
  * Pluggable, serverless-ready, no SQL dependencies
  */
 export class DiscoveryService implements IDiscoveryService {
   private registryService: IRegistryService;
   private healthService: IHealthService;
   private intentService: IIntentService;
+  private installationResolver: InstallationResolver;
+  private apiClient: MCPLookupAPIClient;
 
   constructor(
     registryService: IRegistryService,
@@ -27,10 +36,13 @@ export class DiscoveryService implements IDiscoveryService {
     this.registryService = registryService;
     this.healthService = healthService;
     this.intentService = intentService;
+    this.installationResolver = new InstallationResolver();
+    this.apiClient = new MCPLookupAPIClient();
   }
 
   /**
    * Main discovery method - handles all discovery patterns
+   * ENHANCED: Now integrates SDK for smart package resolution
    */
   async discoverServers(request: any): Promise<DiscoveryResponse> {
     const startTime = Date.now();
@@ -44,6 +56,15 @@ export class DiscoveryService implements IDiscoveryService {
       if (request.offset !== undefined && (isNaN(request.offset) || request.offset < 0)) {
         throw new Error('Invalid offset parameter');
       }
+
+      // ENHANCED: Try SDK-powered discovery first for natural language queries
+      if (request.query || request.intent) {
+        const sdkResults = await this.discoverWithSDK(request, filtersApplied);
+        if (sdkResults.length > 0) {
+          return this.formatDiscoveryResponse(sdkResults, request, filtersApplied, startTime);
+        }
+      }
+
       // Get base server list
       let servers = await this.getBaseServerList(request, filtersApplied);
 
@@ -64,32 +85,7 @@ export class DiscoveryService implements IDiscoveryService {
       // Sort results
       servers = this.sortResults(servers, request.sort_by || 'relevance');
 
-      // Apply pagination
-      const totalCount = servers.length;
-      const offset = request.offset || 0;
-      const limit = request.limit || 10;
-      const paginatedServers = servers.slice(offset, offset + limit);
-
-      // Enhance results with real-time data if requested
-      const enhancedServers = await this.enhanceResults(paginatedServers, request);
-
-      const queryTime = Date.now() - startTime;
-
-      // Return format matching DiscoveryResponseSchema
-      return {
-        servers: enhancedServers,
-        pagination: {
-          total_count: totalCount,
-          returned_count: enhancedServers.length,
-          offset: offset,
-          has_more: offset + limit < totalCount
-        },
-        query_metadata: {
-          query_time_ms: queryTime,
-          cache_hit: false,
-          filters_applied: filtersApplied
-        }
-      };
+      return this.formatDiscoveryResponse(servers, request, filtersApplied, startTime);
 
     } catch (error) {
       throw new Error(`Discovery failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -235,6 +231,208 @@ export class DiscoveryService implements IDiscoveryService {
    */
   async discoverByCapability(capability: string): Promise<MCPServerRecord[]> {
     return await this.registryService.getServersByCapability(capability);
+  }
+
+  // ========================================================================
+  // SDK-ENHANCED METHODS
+  // ========================================================================
+
+  /**
+   * SDK-powered discovery - combines local registry with smart package resolution
+   */
+  private async discoverWithSDK(request: any, filtersApplied: string[]): Promise<MCPServerRecord[]> {
+    const query = request.query || request.intent;
+    filtersApplied.push('sdk_enhanced_discovery');
+
+    try {
+      // Step 1: Try to resolve the query as a package using SDK
+      let resolvedPackage: ResolvedPackage | null = null;
+      try {
+        resolvedPackage = await this.installationResolver.resolvePackage(query);
+        filtersApplied.push('sdk_package_resolution');
+      } catch (error) {
+        // Not a direct package reference, continue with semantic search
+      }
+
+      // Step 2: Search our registry using SDK's API client
+      const apiResults = await this.apiClient.searchServers({
+        q: query,
+        limit: request.limit || 10,
+        offset: request.offset || 0,
+        category: request.category,
+        installation_method: request.installation_method,
+        claude_ready: request.claude_ready
+      });
+
+      // Step 3: Convert API results to MCPServerRecord format
+      const convertedServers = this.convertAPIResultsToMCPServerRecords(apiResults);
+
+      // Step 4: If we have a resolved package, enhance the first matching result
+      if (resolvedPackage && convertedServers.length > 0) {
+        convertedServers[0] = await this.enhanceServerWithSDKData(convertedServers[0], resolvedPackage);
+        filtersApplied.push('sdk_package_enhancement');
+      }
+
+      return convertedServers;
+
+    } catch (error) {
+      // Fallback to traditional discovery if SDK methods fail
+      console.warn('SDK discovery failed, falling back to traditional methods:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Convert API search results to internal MCPServerRecord format
+   */
+  private convertAPIResultsToMCPServerRecords(apiResults: any): MCPServerRecord[] {
+    if (!apiResults?.servers) return [];
+
+    return apiResults.servers.map((server: any) => ({
+      // Core identification
+      name: server.name || server.title || 'Unknown',
+      domain: server.domain || server.package_name || server.name,
+      description: server.description || '',
+
+      // Package information
+      npm_package: server.package_name || server.npm_package,
+      docker_image: server.docker_image,
+      python_package: server.python_package,
+
+      // Capabilities
+      capabilities: {
+        tools: server.tools || [],
+        use_cases: server.use_cases || [],
+        categories: server.categories || [server.category].filter(Boolean)
+      },
+
+      // Verification status
+      verification: {
+        dns_verified: server.verified || false,
+        status: server.verified ? 'verified' : 'unverified'
+      },
+
+      // Installation
+      installation: {
+        methods: server.installation_methods || [],
+        difficulty: server.complexity || 'medium'
+      },
+
+      // Health (placeholder - would be populated by health service)
+      health: {
+        status: 'unknown',
+        last_checked: new Date().toISOString()
+      },
+
+      // Metadata
+      created_at: server.created_at || new Date().toISOString(),
+      updated_at: server.updated_at || new Date().toISOString(),
+      category: server.category || 'other',
+      transport: server.transport || 'stdio'
+    }));
+  }
+
+  /**
+   * Enhance a server record with detailed SDK package information
+   */
+  private async enhanceServerWithSDKData(
+    server: MCPServerRecord,
+    resolvedPackage: ResolvedPackage
+  ): Promise<MCPServerRecord> {
+    // Create installation context for generating enhanced installation info
+    const context: InstallationContext = {
+      mode: 'bridge',
+      platform: process.platform as 'linux' | 'darwin' | 'win32',
+      client: 'mcplookup-web',
+      verbose: true
+    };
+
+    try {
+      // Get detailed installation instructions from SDK
+      const instructions = await this.installationResolver.getInstallationInstructions(
+        resolvedPackage,
+        context
+      );
+
+      // Enhanced server record with SDK data
+      return {
+        ...server,
+        name: resolvedPackage.displayName || resolvedPackage.packageName || server.name,
+        description: resolvedPackage.description || server.description,
+        npm_package: resolvedPackage.packageName,
+        
+        // Enhanced verification
+        verification: {
+          ...server.verification,
+          dns_verified: resolvedPackage.verified || false,
+          status: resolvedPackage.verified ? 'verified' : 'unverified'
+        },
+
+        // Enhanced installation with SDK-generated instructions
+        installation: {
+          methods: instructions.steps || server.installation?.methods || [],
+          difficulty: this.mapSDKComplexityToServerDifficulty(resolvedPackage),
+          sdk_instructions: {
+            command: instructions.command,
+            args: instructions.args,
+            env_vars: instructions.env_vars,
+            steps: instructions.steps
+          }
+        },
+
+        // Enhanced metadata
+        sdk_enhanced: true,
+        package_type: resolvedPackage.type,
+        repository_url: resolvedPackage.repositoryUrl
+      };
+
+    } catch (error) {
+      console.warn('Failed to enhance server with SDK data:', error);
+      return server;
+    }
+  }
+
+  /**
+   * Map SDK complexity to server difficulty levels
+   */
+  private mapSDKComplexityToServerDifficulty(resolvedPackage: ResolvedPackage): string {
+    // This would be enhanced based on SDK package analysis
+    if (resolvedPackage.type === 'npm') return 'easy';
+    if (resolvedPackage.type === 'docker') return 'medium';
+    return 'medium';
+  }
+
+  /**
+   * Format discovery response with pagination and metadata
+   */
+  private formatDiscoveryResponse(
+    servers: MCPServerRecord[],
+    request: any,
+    filtersApplied: string[],
+    startTime: number
+  ): DiscoveryResponse {
+    // Apply pagination
+    const totalCount = servers.length;
+    const offset = request.offset || 0;
+    const limit = request.limit || 10;
+    const paginatedServers = servers.slice(offset, offset + limit);
+
+    const queryTime = Date.now() - startTime;
+
+    return {
+      servers: paginatedServers,
+      pagination: {
+        total_count: totalCount,
+        returned_count: paginatedServers.length,
+        offset: offset,
+        has_more: offset + limit < totalCount
+      },
+      query_metadata: {
+        query_time_ms: queryTime,
+        cache_hit: false,
+        filters_applied: filtersApplied
+      }
+    };
   }
 
   // ========================================================================
