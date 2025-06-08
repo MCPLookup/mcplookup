@@ -10,6 +10,11 @@ build/
 .next/
 out/
 
+# Next.js specific
+.next/cache/
+.next/static/
+.next/server/
+
 # Environment files
 .env
 .env.local
