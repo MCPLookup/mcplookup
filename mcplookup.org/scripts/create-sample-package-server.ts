@@ -22,8 +22,7 @@ export const samplePackageOnlyServer: MCPServerRecord = {
     live_endpoint: undefined,
     endpoint_verified: false,
     packages_available: true,
-    primary_package: 'npm',
-    deprecation_reason: 'No live endpoint available - requires local installation'
+    primary_package: 'npm'
   },
 
   // Package Management (MCP Registry Compatibility)

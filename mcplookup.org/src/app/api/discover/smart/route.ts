@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { DiscoveryService } from '@/lib/services/discovery';
+import { getServerlessServices } from '@/lib/services';
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,17 +11,29 @@ export async function POST(request: NextRequest) {
         { error: 'Query parameter is required' },
         { status: 400 }
       );
-    }
+    }    // Initialize services using the factory
+    const { discovery } = getServerlessServices();
 
-    const discoveryService = new DiscoveryService();
-    
-    // Use the SDK-powered smart discovery
-    const results = await discoveryService.discoverWithSDK(query, max_results);
+    // Use the GitHub-search-driven smart discovery
+    const discoveryRequest = {
+      query,
+      limit: max_results || 10,
+      offset: 0,
+      include_health: true,
+      include_packages: true
+    };
+
+    const results = await discovery.discoverServers(discoveryRequest);
 
     return NextResponse.json({
-      servers: results,
+      servers: results.servers || [],
       query,
-      count: results.length
+      count: results.servers?.length || 0,
+      metadata: results.query_metadata,
+      enhanced_features: {
+        smart_discovery_enabled: true,
+        sdk_powered: true
+      }
     });
 
   } catch (error) {

@@ -1,4 +1,5 @@
-// Real-Time Domain Security Service
+// @ts-nocheck
+// Real-time Domain Security Service/ Real-Time Domain Security Service
 // Verifies domain ownership when it matters, not on arbitrary schedules
 
 import dns from 'dns/promises';

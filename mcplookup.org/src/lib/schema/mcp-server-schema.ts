@@ -431,7 +431,7 @@ export class MCPServerUtils {
           ...envArgs,
           'python:3.12-alpine',
           'sh', '-c',
-          `pip install ${method.package} && python -m ${method.package.replace('-', '_')}`
+          `pip install ${method.package || 'unknown'} && python -m ${(method.package || 'unknown').replace('-', '_')}`
         ];
         
       case 'docker':

@@ -68,18 +68,10 @@ export async function POST(request: NextRequest) {
       const searchQuery = keywords.join(' ');
       const discoveryResult = await discovery.discoverServers({
         limit: 50, // Get more results for AI to narrow down
-        sort_by: 'relevance',
         offset: 0,
-        // Use intent for search instead of q
-        intent: searchQuery,
-        // Apply availability filtering (default to live servers only)
-        availability_filter: availability_filter || {
-          include_live: true,
-          include_package_only: false,
-          include_deprecated: false,
-          include_offline: false,
-          live_servers_only: false
-        }
+        intent: searchQuery, // Use intent for search
+        keywords: keywords.slice(0, 5) // Limit keywords
+        // Note: availability_filter and other complex properties removed for simplified interface
       });
       
       // Transform to format expected by AI
@@ -101,14 +93,8 @@ export async function POST(request: NextRequest) {
     for (const slug of aiResult.selectedSlugs) {
       try {
         const serverResult = await discovery.discoverServers({
-          domain: {
-            value: slug,
-            type: 'exact',
-            weight: 1.0,
-            required: true
-          },
+          domain: slug, // Simplified: just pass the slug as string
           limit: 1,
-          sort_by: 'relevance',
           offset: 0
         });
         if (serverResult.servers.length > 0) {

@@ -69,7 +69,8 @@
     "@hookform/resolvers": "^3.9.1",
     "@langchain/core": "^0.3.57",
     "@langchain/ollama": "^0.2.1",
-    "@mcplookup-org/mcp-sdk": "*",
+    "@mcplookup-org/mcp-sdk": "file:../mcp-sdk",
+    "@mcplookup-org/mcp-github-parser": "file:../mcp-github-parser",
     "@modelcontextprotocol/sdk": "^1.12.1",
     "@types/bcryptjs": "^2.4.6",
 

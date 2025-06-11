@@ -1,5 +1,6 @@
 // Enhanced GitHub Auto-Registration with Comprehensive Analysis & Rejection Logic
 // POST /api/v1/register/github - Intelligent MCP server analysis and registration
+// Now powered by @mcplookup-org/mcp-github-parser
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
@@ -9,6 +10,17 @@ import { apiKeyMiddleware, recordApiUsage } from '@/lib/auth/api-key-middleware'
 import { createStorage } from '@/lib/services/storage';
 import { isSuccessResult } from '@/lib/services/storage/unified-storage';
 import { MCPServerRecord } from '@/lib/schemas/discovery';
+import { userServerService } from '@/lib/services/user-servers';
+import { notificationService } from '@/lib/services/notifications';
+
+// Import the new GitHub parser
+import { GitHubClient } from '@mcplookup-org/mcp-github-parser';
+import {
+  GitHubRepoWithInstallation,
+  GitHubRepository,
+  InstallationMethod,
+  ComputedMetrics
+} from '@mcplookup-org/mcp-sdk';
 
 // Enhanced GitHub URL validation schema
 const GitHubAutoRegisterSchema = z.object({
@@ -135,15 +147,15 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const validatedRequest = GitHubAutoRegisterSchema.parse(body);
 
-    // Comprehensive GitHub repository analysis
-    const analysis = await analyzeGitHubRepositoryComprehensive(
+    // Comprehensive GitHub repository analysis using new mcp-github-parser
+    const analysisResult = await analyzeGitHubRepositoryWithParser(
       validatedRequest.github_url,
       !validatedRequest.skip_analysis
     );
-    
-    if (!analysis) {
+
+    if (!analysisResult) {
       return NextResponse.json(
-        { 
+        {
           error: 'GitHub repository analysis failed',
           details: 'Could not analyze the provided GitHub repository. Please ensure it exists and is public.',
           analysis_report: {
@@ -156,6 +168,8 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    const { parserResult, analysis } = analysisResult;
 
     // Check if repository should be rejected
     if (analysis.analysis_report.recommended_action === 'reject' && !validatedRequest.force_register) {
@@ -195,14 +209,45 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create MCPServerRecord from GitHub analysis
-    const mcpServerRecord = createMCPServerRecordFromAnalysis(analysis, validatedRequest, userId);
+    // Create MCPServerRecord from GitHub analysis using rich parser data
+    const mcpServerRecord = createMCPServerRecordFromParserResult(parserResult, analysis, validatedRequest, userId);
 
     // Store the server record
     const storeResult = await storage.set('servers', mcpServerRecord.domain, mcpServerRecord);
     
     if (!isSuccessResult(storeResult)) {
       throw new Error('Failed to store server record');
+    }
+
+    // Link server to user profile
+    if (userId) {
+      try {
+        await userServerService.registerServerForUser(userId, {
+          domain: mcpServerRecord.domain,
+          name: mcpServerRecord.name,
+          description: mcpServerRecord.description,
+          type: 'github',
+          github_repo: analysis.full_name,
+          capabilities: analysis.suggested_capabilities,
+          category: analysis.suggested_capabilities[0] || 'other',
+          language: analysis.language,
+          registration_type: 'github_auto'
+        });
+
+        // Send notification to user
+        await notificationService.sendNotification(
+          userId,
+          'github_server_registered',
+          {
+            server_name: mcpServerRecord.name,
+            github_repo: analysis.full_name,
+            domain: mcpServerRecord.domain
+          }
+        );
+      } catch (error) {
+        console.error('Failed to link server to user profile:', error);
+        // Don't fail the registration if profile linking fails
+      }
     }
 
     // Prepare comprehensive response
@@ -297,12 +342,12 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * Comprehensive GitHub repository analysis with rejection logic
+ * Comprehensive GitHub repository analysis using mcp-github-parser
  */
-async function analyzeGitHubRepositoryComprehensive(
-  githubUrl: string, 
+async function analyzeGitHubRepositoryWithParser(
+  githubUrl: string,
   deepAnalysis: boolean = true
-): Promise<GitHubRepoAnalysis | null> {
+): Promise<{ parserResult: GitHubRepoWithInstallation; analysis: GitHubRepoAnalysis } | null> {
   try {
     // Extract owner/repo from URL
     const urlParts = githubUrl.replace('https://github.com/', '').split('/');
@@ -310,66 +355,16 @@ async function analyzeGitHubRepositoryComprehensive(
     const repo = urlParts[1];
     const full_name = `${owner}/${repo}`;
 
-    // Fetch repository data from GitHub API
-    const repoResponse = await fetch(`https://api.github.com/repos/${full_name}`, {
-      headers: {
-        'Accept': 'application/vnd.github.v3+json',
-        'User-Agent': 'MCPLookup-AutoRegister/1.0',
-        ...(process.env.GITHUB_TOKEN && { 'Authorization': `token ${process.env.GITHUB_TOKEN}` })
-      }
-    });
+    // Initialize GitHub parser client
+    const githubClient = new GitHubClient(process.env.GITHUB_TOKEN);
 
-    if (!repoResponse.ok) {
-      return null;
-    }
+    // Use the new parser for comprehensive analysis
+    const parserResult: GitHubRepoWithInstallation = await githubClient.getFullRepositoryData(full_name);
 
-    const repoData = await repoResponse.json();
+    // Transform parser result to our API format (for backward compatibility)
+    const analysis = transformParserResultToAnalysis(parserResult, owner, repo);
 
-    // Fetch file structure for analysis
-    const fileAnalysis = deepAnalysis ? await analyzeRepositoryFiles(full_name) : getBasicFileAnalysis();
-    
-    // Fetch README for detailed analysis
-    const readmeContent = deepAnalysis ? await fetchGitHubReadme(full_name) : null;
-    
-    // Analyze deployment options
-    const deploymentOptions = await analyzeDeploymentOptions(full_name, fileAnalysis, repoData);
-    
-    // Perform MCP-specific analysis
-    const mcpAnalysis = analyzeMCPContent(readmeContent || '', repoData, fileAnalysis);
-    
-    // Generate comprehensive analysis report
-    const analysisReport = generateAnalysisReport(repoData, fileAnalysis, mcpAnalysis, deploymentOptions, readmeContent);
-
-    return {
-      owner,
-      repo,
-      full_name,
-      description: repoData.description || '',
-      stars: repoData.stargazers_count || 0,
-      language: repoData.language || '',
-      topics: repoData.topics || [],
-      license: repoData.license?.spdx_id || null,
-      
-      // MCP analysis results
-      has_mcp_config: mcpAnalysis.has_mcp_config,
-      claude_configs: mcpAnalysis.claude_configs,
-      npm_package: mcpAnalysis.npm_package,
-      installation_command: mcpAnalysis.installation_command,
-      environment_variables: mcpAnalysis.environment_variables,
-      
-      // Enhanced analysis
-      deployment_options: deploymentOptions,
-      analysis_report: analysisReport,
-      file_analysis: fileAnalysis,
-      
-      // Suggested registration data
-      suggested_domain: `github.com/${full_name}`,
-      suggested_endpoint: mcpAnalysis.suggested_endpoint,
-      suggested_name: formatRepositoryName(repoData.name),
-      suggested_description: repoData.description || `MCP server from ${full_name}`,
-      suggested_capabilities: inferCapabilities(repoData, readmeContent || '', mcpAnalysis),
-      suggested_auth_type: mcpAnalysis.suggested_auth_type
-    };
+    return { parserResult, analysis };
 
   } catch (error) {
     console.error('GitHub repository analysis failed:', error);
@@ -378,7 +373,278 @@ async function analyzeGitHubRepositoryComprehensive(
 }
 
 /**
+ * Transform mcp-github-parser result to our API format
+ */
+function transformParserResultToAnalysis(
+  parserResult: GitHubRepoWithInstallation,
+  owner: string,
+  repo: string
+): GitHubRepoAnalysis {
+  const repository = parserResult.repository;
+  const computed = parserResult.computed;
+  const installationMethods = parserResult.installationMethods;
+
+  // Extract deployment options from installation methods
+  const deploymentOptions = extractDeploymentOptionsFromMethods(installationMethods);
+
+  // Generate analysis report from computed metrics
+  const analysisReport = generateAnalysisReportFromComputed(computed, repository, installationMethods);
+
+  // Extract file analysis from parser result
+  const fileAnalysis = extractFileAnalysisFromParser(parserResult);
+
+  // Extract MCP-specific analysis
+  const mcpAnalysis = extractMCPAnalysisFromParser(parserResult);
+
+  return {
+    owner,
+    repo,
+    full_name: repository.fullName,
+    description: repository.description || '',
+    stars: repository.stars,
+    language: repository.language || '',
+    topics: repository.topics,
+    license: repository.license?.spdxId || null,
+
+    // MCP analysis results
+    has_mcp_config: mcpAnalysis.has_mcp_config,
+    claude_configs: mcpAnalysis.claude_configs,
+    npm_package: mcpAnalysis.npm_package,
+    installation_command: mcpAnalysis.installation_command,
+    environment_variables: mcpAnalysis.environment_variables,
+
+    // Enhanced analysis
+    deployment_options: deploymentOptions,
+    analysis_report: analysisReport,
+    file_analysis: fileAnalysis,
+
+    // Suggested registration data
+    suggested_domain: `github.com/${repository.fullName}`,
+    suggested_endpoint: mcpAnalysis.suggested_endpoint,
+    suggested_name: formatRepositoryName(repository.name),
+    suggested_description: repository.description || `MCP server from ${repository.fullName}`,
+    suggested_capabilities: computed?.mcpTools || [],
+    suggested_auth_type: computed?.requiresEnvironmentVars ? 'api_key' : 'none'
+  };
+}
+
+/**
+ * Extract deployment options from installation methods
+ */
+function extractDeploymentOptionsFromMethods(methods: any[]): DeploymentOptions {
+  const options: DeploymentOptions = {
+    npm_package: false,
+    docker_support: false,
+    has_dockerfile: false,
+    has_docker_compose: false,
+    live_url_detected: false,
+    github_actions: false,
+    vercel_config: false,
+    netlify_config: false,
+    python_package: false,
+    rust_crate: false,
+    go_module: false
+  };
+
+  methods.forEach(method => {
+    if (method.subtype === 'npm' || method.platform === 'nodejs') {
+      options.npm_package = true;
+    }
+    if (method.subtype === 'docker_run' || method.subtype === 'docker_build') {
+      options.docker_support = true;
+      options.has_dockerfile = true;
+    }
+    if (method.subtype === 'pip' || method.platform === 'python') {
+      options.python_package = true;
+    }
+    if (method.platform === 'rust') {
+      options.rust_crate = true;
+    }
+    if (method.platform === 'go') {
+      options.go_module = true;
+    }
+  });
+
+  return options;
+}
+
+/**
+ * Generate analysis report from computed metrics
+ */
+function generateAnalysisReportFromComputed(
+  computed: ComputedMetrics | undefined,
+  repository: GitHubRepository,
+  methods: any[]
+): AnalysisReport {
+  if (!computed) {
+    return {
+      is_mcp_server: false,
+      confidence_score: 0,
+      usability_score: 0,
+      rejection_reasons: ['No analysis data available'],
+      warning_flags: [],
+      positive_indicators: [],
+      installation_complexity: 'unclear',
+      documentation_quality: 'poor',
+      recommended_action: 'reject'
+    };
+  }
+
+  const confidenceScore = Math.round((computed.mcpConfidence || 0) * 100);
+  const usabilityScore = calculateUsabilityScore(computed, repository, methods);
+
+  const rejectionReasons: string[] = [];
+  const warningFlags: string[] = [];
+  const positiveIndicators: string[] = [];
+
+  // Determine rejection reasons
+  if (!computed.isMcpServer) {
+    rejectionReasons.push('Not identified as an MCP server');
+  }
+  if ((computed.mcpConfidence || 0) < 0.5) {
+    rejectionReasons.push('Low confidence in MCP classification');
+  }
+  if (methods.length === 0) {
+    rejectionReasons.push('No installation methods found');
+  }
+
+  // Determine warning flags
+  if (computed.installationDifficulty === 'hard') {
+    warningFlags.push('Complex installation process');
+  }
+  if (computed.requiresEnvironmentVars) {
+    warningFlags.push('Requires environment variables');
+  }
+  if (!computed.hasDocumentation) {
+    warningFlags.push('Limited documentation');
+  }
+
+  // Determine positive indicators
+  if (computed.isMcpServer) {
+    positiveIndicators.push('Identified as MCP server');
+  }
+  if (computed.hasExamples) {
+    positiveIndicators.push('Includes usage examples');
+  }
+  if (computed.hasDocumentation) {
+    positiveIndicators.push('Well documented');
+  }
+  if (repository.stars > 10) {
+    positiveIndicators.push(`${repository.stars} GitHub stars`);
+  }
+
+  // Determine recommended action
+  let recommendedAction: 'accept' | 'accept_with_warnings' | 'reject' | 'needs_review' = 'reject';
+
+  if (computed.isMcpServer && (computed.mcpConfidence || 0) > 0.7 && methods.length > 0) {
+    recommendedAction = warningFlags.length > 0 ? 'accept_with_warnings' : 'accept';
+  } else if (computed.isMcpServer && (computed.mcpConfidence || 0) > 0.5) {
+    recommendedAction = 'needs_review';
+  }
+
+  return {
+    is_mcp_server: computed.isMcpServer || false,
+    confidence_score: confidenceScore,
+    usability_score: usabilityScore,
+    rejection_reasons: rejectionReasons,
+    warning_flags: warningFlags,
+    positive_indicators: positiveIndicators,
+    installation_complexity: computed.complexity || 'unclear',
+    documentation_quality: computed.hasDocumentation ? 'good' : 'poor',
+    recommended_action: recommendedAction
+  };
+}
+
+/**
+ * Calculate usability score based on various factors
+ */
+function calculateUsabilityScore(
+  computed: ComputedMetrics,
+  repository: GitHubRepository,
+  methods: any[]
+): number {
+  let score = 0;
+
+  // Base score from MCP confidence
+  score += (computed.mcpConfidence || 0) * 40;
+
+  // Installation methods availability
+  score += Math.min(methods.length * 10, 30);
+
+  // Documentation quality
+  if (computed.hasDocumentation) score += 15;
+  if (computed.hasExamples) score += 10;
+
+  // Repository quality indicators
+  if (repository.stars > 5) score += 5;
+  if (repository.license) score += 5;
+
+  return Math.min(Math.round(score), 100);
+}
+
+/**
+ * Extract file analysis from parser result
+ */
+function extractFileAnalysisFromParser(parserResult: GitHubRepoWithInstallation) {
+  const files = parserResult.files || [];
+
+  return {
+    has_readme: files.some(f => f.path.toLowerCase().includes('readme')),
+    has_package_json: files.some(f => f.path === 'package.json'),
+    has_dockerfile: files.some(f => f.path.toLowerCase() === 'dockerfile'),
+    has_requirements_txt: files.some(f => f.path === 'requirements.txt'),
+    has_cargo_toml: files.some(f => f.path === 'Cargo.toml'),
+    has_go_mod: files.some(f => f.path === 'go.mod'),
+    has_mcp_keywords: files.some(f => f.path.toLowerCase().includes('mcp')),
+    config_files: files.filter(f =>
+      f.path.includes('config') ||
+      f.path.endsWith('.json') ||
+      f.path.endsWith('.yaml') ||
+      f.path.endsWith('.yml')
+    ).map(f => f.path),
+    documentation_files: files.filter(f =>
+      f.path.includes('doc') ||
+      f.path.includes('guide') ||
+      f.path.endsWith('.md')
+    ).map(f => f.path)
+  };
+}
+
+/**
+ * Extract MCP-specific analysis from parser result
+ */
+function extractMCPAnalysisFromParser(parserResult: GitHubRepoWithInstallation) {
+  const computed = parserResult.computed;
+  const methods = parserResult.installationMethods;
+
+  // Find Claude Desktop configuration
+  const claudeMethod = methods.find(m => m.type === 'claude_desktop');
+
+  // Extract npm package info
+  const npmMethod = methods.find(m => m.subtype === 'npm');
+
+  // Extract environment variables
+  const envVars: string[] = [];
+  methods.forEach(method => {
+    if (method.environment_vars) {
+      envVars.push(...Object.keys(method.environment_vars));
+    }
+  });
+
+  return {
+    has_mcp_config: !!claudeMethod,
+    claude_configs: claudeMethod ? [claudeMethod.mcp_config] : [],
+    npm_package: npmMethod?.dependencies ? Object.keys(npmMethod.dependencies)[0] : null,
+    installation_command: methods[0]?.commands?.[0] || null,
+    environment_variables: [...new Set(envVars)],
+    suggested_endpoint: null, // Not available from parser
+    suggested_auth_type: computed?.requiresEnvironmentVars ? 'api_key' : 'none'
+  };
+}
+
+/**
  * Analyze repository files to understand structure and capabilities
+ * @deprecated - Now handled by mcp-github-parser
  */
 async function analyzeRepositoryFiles(fullName: string) {
   const fileAnalysis = {
@@ -969,7 +1235,118 @@ function formatRepositoryName(repoName: string): string {
 }
 
 /**
- * Create MCPServerRecord from comprehensive analysis
+ * Create MCPServerRecord from mcp-github-parser result (NEW - uses rich parser data)
+ */
+function createMCPServerRecordFromParserResult(
+  parserResult: GitHubRepoWithInstallation,
+  analysis: GitHubRepoAnalysis,
+  request: any,
+  userId: string
+) {
+  const now = new Date().toISOString();
+  const repository = parserResult.repository;
+  const computed = parserResult.computed;
+  const installationMethods = parserResult.installationMethods;
+
+  return {
+    // Identity
+    domain: `github.com/${repository.fullName}`,
+    endpoint: null, // Most GitHub MCP servers are package-only
+    name: formatRepositoryName(repository.name),
+    description: repository.description || `MCP server from ${repository.fullName}`,
+
+    // Availability (enhanced with parser data)
+    availability: {
+      status: 'package_only', // GitHub repos are typically package-only
+      packages_available: installationMethods.length > 0,
+      primary_package: determinePrimaryPackage(installationMethods),
+      endpoint_verified: false
+    },
+
+    // Package information (rich installation methods from parser)
+    packages: transformInstallationMethodsToPackages(installationMethods, repository),
+
+    // Repository information (rich GitHub data)
+    repository: {
+      url: repository.htmlUrl,
+      source: 'github',
+      id: repository.id.toString(),
+      stars: repository.stars,
+      forks: repository.forks,
+      language: repository.language,
+      topics: repository.topics,
+      license: repository.license?.spdxId,
+      last_commit: repository.pushedAt
+    },
+
+    // Version information
+    version_info: {
+      version: 'latest',
+      is_latest: true,
+      release_date: repository.updatedAt
+    },
+
+    // Capabilities (enhanced with AI analysis)
+    capabilities: {
+      category: mapMCPClassificationToCategory(computed?.mcpClassification),
+      subcategories: computed?.tags || [],
+      intent_keywords: [
+        repository.name.toLowerCase(),
+        ...repository.topics,
+        ...(computed?.mcpTools || [])
+      ],
+      use_cases: computed?.mcpTools || []
+    },
+
+    // Authentication (from parser analysis)
+    auth: {
+      type: computed?.requiresEnvironmentVars ? 'api_key' : 'none',
+      description: computed?.requiresEnvironmentVars
+        ? 'Requires environment variables for API access'
+        : 'No authentication required'
+    },
+
+    // Technical details
+    cors_enabled: true,
+    transport: 'stdio' as const,
+
+    // Metadata (enhanced)
+    created_at: now,
+    updated_at: now,
+    verification_status: 'unverified' as const,
+    trust_score: Math.round(computed?.mcpConfidence ? computed.mcpConfidence * 100 : 50),
+    maintainer: {
+      name: repository.owner.login,
+      url: `https://github.com/${repository.owner.login}`
+    },
+
+    // Rich analysis data (preserve for discovery)
+    mcp_analysis: {
+      is_mcp_server: computed?.isMcpServer || false,
+      classification: computed?.mcpClassification,
+      confidence: computed?.mcpConfidence || 0,
+      reasoning: computed?.mcpReasoning,
+      complexity: computed?.complexity,
+      installation_difficulty: computed?.installationDifficulty,
+      maturity_level: computed?.maturityLevel,
+      supported_platforms: computed?.supportedPlatforms || [],
+      tools: computed?.mcpTools || [],
+      resources: computed?.mcpResources || [],
+      prompts: computed?.mcpPrompts || [],
+      requires_claude_desktop: computed?.requiresClaudeDesktop || false,
+      has_documentation: computed?.hasDocumentation || false,
+      has_examples: computed?.hasExamples || false
+    },
+
+    // Source tracking
+    registration_source: 'github_auto_enhanced',
+    parser_version: parserResult.parsingMetadata?.parserVersion,
+    analysis_report: analysis.analysis_report // Keep for backward compatibility
+  };
+}
+
+/**
+ * Create MCPServerRecord from comprehensive analysis (LEGACY - for backward compatibility)
  */
 function createMCPServerRecordFromAnalysis(analysis: GitHubRepoAnalysis, request: any, userId: string) {
   const now = new Date().toISOString();
@@ -1043,7 +1420,53 @@ function createMCPServerRecordFromAnalysis(analysis: GitHubRepoAnalysis, request
 }
 
 /**
- * Generate package information based on analysis
+ * Helper functions for new parser result transformation
+ */
+
+function determinePrimaryPackage(methods: any[]): string {
+  if (methods.find(m => m.subtype === 'npm')) return 'npm';
+  if (methods.find(m => m.subtype === 'pip')) return 'pypi';
+  if (methods.find(m => m.subtype === 'docker_run')) return 'docker';
+  return 'github';
+}
+
+function mapMCPClassificationToCategory(classification?: string): string {
+  const categoryMap: Record<string, string> = {
+    'mcp_server': 'development',
+    'mcp_framework': 'development',
+    'mcp_sdk': 'development',
+    'mcp_tool': 'productivity',
+    'mcp_example': 'development',
+    'mcp_template': 'development'
+  };
+  return categoryMap[classification || ''] || 'other';
+}
+
+function transformInstallationMethodsToPackages(methods: any[], repository: any) {
+  return methods.map(method => ({
+    registry_name: method.subtype === 'npm' ? 'npm' :
+                   method.subtype === 'pip' ? 'pypi' :
+                   method.subtype === 'docker_run' ? 'docker' : 'github',
+    name: method.subtype === 'npm' ? repository.name :
+          method.subtype === 'pip' ? repository.name :
+          method.subtype === 'docker_run' ? `ghcr.io/${repository.fullName}` :
+          repository.fullName,
+    version: 'latest',
+    installation_command: method.commands?.[0] || `git clone ${repository.cloneUrl}`,
+    startup_command: method.commands?.[1],
+    setup_instructions: method.description,
+    environment_variables: method.environment_vars ?
+      Object.keys(method.environment_vars).map(name => ({
+        name,
+        description: `Environment variable for ${method.title}`,
+        is_required: true
+      })) : [],
+    runtime_hint: method.platform
+  }));
+}
+
+/**
+ * Generate package information based on analysis (LEGACY)
  */
 function generatePackageInfo(analysis: GitHubRepoAnalysis) {
   const packages = [];

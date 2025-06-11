@@ -38,7 +38,7 @@ const nextConfig = {
   },
   // Enable TypeScript path mapping
   webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
-    // Handle bcrypt for client-side builds
+    // Handle Node.js modules for client-side builds
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
@@ -46,7 +46,31 @@ const nextConfig = {
         net: false,
         tls: false,
         crypto: false,
+        stream: false,
+        events: false,
+        timers: false,
+        'node:crypto': false,
+        'node:events': false,
+        'node:net': false,
+        'node:tls': false,
+        'node:timers/promises': false,
+        'node:stream': false,
+        'node:buffer': false,
+        'node:util': false,
+        'node:url': false,
+        'node:querystring': false,
+        'node:path': false,
+        'node:os': false,
+        redis: false,
+        '@redis/client': false,
       };
+
+      // Exclude Node.js modules from client bundle
+      config.externals = [
+        ...(config.externals || []),
+        'redis',
+        '@redis/client',
+      ];
     }
 
     // Important: return the modified config

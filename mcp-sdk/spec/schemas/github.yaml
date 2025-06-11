@@ -1,0 +1,176 @@
+# GitHub Repository and Analysis Types
+
+GitHubRepository:
+  type: object
+  description: Complete GitHub repository information
+  properties:
+    id:
+      type: number
+      description: GitHub repository ID
+    fullName:
+      type: string
+      description: Full repository name (owner/repo)
+      example: "baidu-maps/mcp"
+    name:
+      type: string
+      description: Repository name
+      example: "mcp"
+    description:
+      type: string
+      description: Repository description
+    htmlUrl:
+      type: string
+      format: uri
+      description: Repository URL
+    cloneUrl:
+      type: string
+      format: uri
+      description: Clone URL
+    stars:
+      type: number
+      description: Star count
+    forks:
+      type: number
+      description: Fork count
+    language:
+      type: string
+      description: Primary language
+    topics:
+      type: array
+      items:
+        type: string
+      description: Repository topics
+    license:
+      type: object
+      properties:
+        name:
+          type: string
+        spdxId:
+          type: string
+    owner:
+      type: object
+      properties:
+        login:
+          type: string
+        type:
+          type: string
+    createdAt:
+      type: string
+      format: date-time
+    updatedAt:
+      type: string
+      format: date-time
+    pushedAt:
+      type: string
+      format: date-time
+  required:
+    - id
+    - fullName
+    - name
+    - htmlUrl
+    - cloneUrl
+    - stars
+    - forks
+
+FileContent:
+  type: object
+  description: Downloaded file content
+  properties:
+    path:
+      type: string
+      description: File path
+    content:
+      type: string
+      description: File content
+    encoding:
+      type: string
+      description: File encoding
+  required:
+    - path
+    - content
+
+ComputedMetrics:
+  type: object
+  description: AI-computed analysis and classification
+  properties:
+    isMcpServer:
+      type: boolean
+      description: Whether this is identified as an MCP server
+    mcpClassification:
+      type: string
+      description: MCP server classification
+    mcpConfidence:
+      type: number
+      description: Confidence score (0-1)
+      minimum: 0
+      maximum: 1
+    mcpReasoning:
+      type: string
+      description: AI reasoning for classification
+    complexity:
+      type: string
+      enum: [simple, moderate, complex]
+      description: Installation complexity
+    installationDifficulty:
+      type: string
+      enum: [easy, medium, hard]
+      description: Installation difficulty
+    maturityLevel:
+      type: string
+      enum: [experimental, beta, stable, mature]
+      description: Project maturity
+    supportedPlatforms:
+      type: array
+      items:
+        type: string
+      description: Supported platforms
+    mcpTools:
+      type: array
+      items:
+        type: string
+      description: Detected MCP tools
+    mcpResources:
+      type: array
+      items:
+        type: string
+      description: Detected MCP resources
+    mcpPrompts:
+      type: array
+      items:
+        type: string
+      description: Detected MCP prompts
+    requiresClaudeDesktop:
+      type: boolean
+      description: Whether it requires Claude Desktop
+    requiresEnvironmentVars:
+      type: boolean
+      description: Whether it requires environment variables
+    hasDocumentation:
+      type: boolean
+      description: Whether it has documentation
+    hasExamples:
+      type: boolean
+      description: Whether it has examples
+
+ParsingMetadata:
+  type: object
+  description: Parser metadata and version info
+  properties:
+    parserVersion:
+      type: string
+      description: Parser version used
+    analyzedAt:
+      type: string
+      format: date-time
+      description: When analysis was performed
+    processingTime:
+      type: number
+      description: Processing time in milliseconds
+    confidence:
+      type: number
+      description: Overall confidence score
+      minimum: 0
+      maximum: 1
+  required:
+    - parserVersion
+    - analyzedAt

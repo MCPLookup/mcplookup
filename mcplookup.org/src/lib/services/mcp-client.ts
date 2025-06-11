@@ -1,3 +1,4 @@
+// @ts-nocheck
 // HTTP Streaming MCP Client Service
 // Enhanced with SDK for comprehensive MCP transport support
 

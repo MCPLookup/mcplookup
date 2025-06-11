@@ -255,11 +255,25 @@ components:
       description: Optional API key for enhanced features
 
   schemas:
-    # Main server schema
+    # === UNIFIED MAIN TYPES ===
     MCPServer:
       $ref: './schemas/mcp-server.yaml#/MCPServer'
+    GitHubRepoWithInstallation:
+      $ref: './schemas/mcp-server.yaml#/GitHubRepoWithInstallation'
+    StoredServerData:
+      $ref: './schemas/mcp-server.yaml#/StoredServerData'
     
-    # Component schemas
+    # === GITHUB TYPES ===
+    GitHubRepository:
+      $ref: './schemas/github.yaml#/GitHubRepository'
+    FileContent:
+      $ref: './schemas/github.yaml#/FileContent'
+    ComputedMetrics:
+      $ref: './schemas/github.yaml#/ComputedMetrics'
+    ParsingMetadata:
+      $ref: './schemas/github.yaml#/ParsingMetadata'
+    
+    # === COMPONENT SCHEMAS ===
     QualityMetrics:
       $ref: './schemas/quality.yaml#/QualityMetrics'
     PopularityMetrics:

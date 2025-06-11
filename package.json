@@ -2,11 +2,13 @@
   "name": "mcplookup",
   "version": "0.0.1",
   "private": true,
-  "description": "MCPLookup.org - The universal MCP discovery service ecosystem","workspaces": [
+  "description": "MCPLookup.org - The universal MCP discovery service ecosystem",
+  "workspaces": [
     "mcp-sdk",
-    "mcp-server", 
+    "mcp-server",
     "mcpl-cli",
-    "mcplookup.org"
+    "mcplookup.org",
+    "mcp-github-parser"
   ],
   "scripts": {
     "build": "turbo build",
@@ -19,21 +21,30 @@
     "dev:sdk": "turbo dev --filter=@mcplookup-org/mcp-sdk",
     "dev:server": "turbo dev --filter=@mcplookup-org/mcp-server",
     "dev:cli": "turbo dev --filter=@mcplookup-org/mcpl-cli",
+    "dev:parser": "turbo dev --filter=@mcplookup-org/mcp-github-parser",
     "build:sdk": "turbo build --filter=@mcplookup-org/mcp-sdk",
+    "build:parser": "turbo build --filter=@mcplookup-org/mcp-github-parser",
+    "demo:parser": "turbo demo:enhanced --filter=@mcplookup-org/mcp-github-parser",
     "publish:packages": "turbo build --filter='@mcplookup-org/*' && npm publish --workspaces --access public"
   },
   "devDependencies": {
-    "turbo": "^2.0.0",
     "@types/node": "^20.0.0",
+    "turbo": "^2.0.0",
     "typescript": "^5.0.0"
-  },  "engines": {
+  },
+  "engines": {
     "node": ">=18.0.0",
     "npm": ">=8.0.0"
   },
-  "packageManager": "npm@11.4.1",  "repository": {
+  "packageManager": "npm@11.4.1",
+  "repository": {
     "type": "git",
     "url": "https://github.com/MCPLookup/mcplookup.git"
   },
   "author": "MCPLookup.org",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "ioredis": "^5.6.1",
+    "node-fetch": "^3.3.2"
+  }
 }

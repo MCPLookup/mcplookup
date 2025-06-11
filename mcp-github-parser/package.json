@@ -1,0 +1,60 @@
+{
+  "name": "@mcplookup-org/mcp-github-parser",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "A comprehensive tool for analyzing GitHub repositories and extracting MCP (Model Context Protocol) server information, installation methods, and configuration details.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": ["mcp", "github", "parser", "model-context-protocol", "ai", "analysis", "installation"],
+  "author": "MCPLookup.org",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MCPLookup/mcplookup.git",
+    "directory": "mcp-github-parser"
+  },
+  "homepage": "https://mcplookup.org",
+  "bugs": {
+    "url": "https://github.com/MCPLookup/mcplookup/issues"
+  },"scripts": {
+    "build": "tsc --build",
+    "clean": "rm -rf dist",
+    "dev": "tsc --build --watch",
+    "test": "npx tsx test-enhanced-analysis-with-progress.js",
+    "type-check": "tsc --noEmit",
+    "lint": "echo 'Linting not configured yet'",
+
+    "example:basic": "npx tsx examples/basic-usage.ts",
+    "example:progress": "npx tsx examples/progress-tracking.ts",
+    "example:batch": "npx tsx examples/batch-analysis.ts",
+
+    "demo": "npx tsx examples/progress-tracking.ts",
+    "demo:basic": "npx tsx examples/basic-usage.ts",
+    "demo:batch": "npx tsx examples/batch-analysis.ts",
+    "demo:enhanced": "npx tsx test-enhanced-analysis-with-progress.js"
+  },
+  "dependencies": {
+    "@mcplookup-org/mcp-sdk": "file:../mcp-sdk",
+    "dotenv": "^16.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0",
+    "tsx": "^4.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

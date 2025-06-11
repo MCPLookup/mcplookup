@@ -1,10 +1,29 @@
 /**
- * Comprehensive MCP Server Types
- * Purpose: Discovery + Installation
- * Based on Redis analysis of 2,635 servers
+ * Unified MCP Server Types
+ * Purpose: Discovery + Installation + GitHub Integration
+ * Source of truth for all MCP server data structures
  */
 
-// === DISCOVERY INTERFACES ===
+// Import all the component types
+import type { GitHubRepository, FileContent } from './github-repository.js';
+import type {
+  InstallationMethod,
+  InstallationSubtype,
+  MCPConfig
+} from './installation.js';
+import type {
+  MCPClassification,
+  ComputedMetrics,
+  ParsingMetadata
+} from './mcp-classification.js';
+
+// Re-export all types for convenience
+export * from './github-repository.js';
+export * from './installation.js';
+export * from './mcp-classification.js';
+export * from './progress.js';
+
+// === ADDITIONAL INTERFACES ===
 
 export interface MCPServerQuality {
   score: number;                    // 0-170 quality score
@@ -17,27 +36,56 @@ export interface MCPServerQuality {
 
 export interface MCPServerPopularity {
   stars: number;                    // GitHub stars
-  forks: number;                    // GitHub forks  
+  forks: number;                    // GitHub forks
   downloads?: number;               // Package downloads
   rating?: number;                  // 1-5 user rating
 }
 
-// === INSTALLATION INTERFACES ===
+export interface MCPServerCapabilities {
+  tools: string[];                  // Available tool names
+  resources: string[];              // Available resource types
+  prompts: string[];                // Available prompts
+  protocol_version?: string;        // MCP protocol version
+  
+  // Additional fields for compatibility
+  category?: string;                // Primary category
+  subcategories?: string[];         // Technology/language tags
+  intent_keywords?: string[];       // Search keywords
+  use_cases?: string[];             // What problems this solves
+}
 
-export interface InstallationMethod {
-  type: 'npm' | 'python' | 'docker' | 'git' | 'live_service';
-  package?: string;                 // Package name
-  command: string;                  // Installation command
-  registry?: string;                // Package registry
-  version?: string;                 // Package version
-  complexity: 'simple' | 'moderate' | 'complex';
-  requirements?: string[];          // Prerequisites
+export interface MCPServerAvailability {
+  status: 'package_only' | 'live_service' | 'both';
+  endpoint_verified: boolean;
+  live_endpoint?: string;           // Live service URL
+  primary_package: string;          // Preferred registry
+  packages_available: boolean;
+}
+
+export interface MCPServerAPI {
+  transport: 'stdio' | 'http' | 'websocket' | 'sse';
+  endpoints: string[];              // Documentation/reference URLs
+  cors_enabled: boolean;
+  auth: {
+    type: 'none' | 'api_key' | 'oauth2' | 'basic' | 'custom';
+    description: string;
+    required_scopes?: string[];
+  };
 }
 
 export interface MCPServerInstallation {
-  recommended_method: 'npm' | 'python' | 'docker' | 'git' | 'live_service';
-  difficulty: 'easy' | 'medium' | 'advanced';
+  recommended_method: InstallationSubtype;
+  difficulty: 'easy' | 'medium' | 'hard';
   methods: InstallationMethod[];
+}
+
+export interface MCPServerEnvironment {
+  variables: EnvironmentVariable[];
+  runtime_requirements: {
+    node_version?: string;
+    python_version?: string;
+    platforms: string[];
+  };
 }
 
 export interface EnvironmentVariable {
@@ -46,15 +94,541 @@ export interface EnvironmentVariable {
   description?: string;
   default?: string;
   example?: string;
-  validation?: string;              // Validation pattern
+  validation?: string;
 }
 
-export interface MCPServerEnvironment {
-  variables: EnvironmentVariable[];
-  runtime_requirements: {
-    node_version?: string;          // ">=18.0.0"
-    python_version?: string;        // ">=3.8"
-    platforms: string[];            // ["linux", "darwin", "win32"]
+export interface ClaudeDesktopConfig {
+  available: boolean;
+  config?: {
+    mcpServers: {
+      [serverName: string]: {
+        command: string;
+        args: string[];
+        env?: Record<string, string>;
+      };
+    };
+  };
+  server_name?: string;
+  command?: string;
+  args?: string[];
+  env_vars?: Record<string, string>;
+}
+
+export interface CodeExample {
+  type: 'code_block' | 'configuration' | 'usage' | 'claude_prompt';
+  language: string;
+  title?: string;
+  content: string;
+  description?: string;
+}
+
+export interface MCPServerDocumentation {
+  readme_content?: string;
+  setup_instructions: string[];
+  examples: CodeExample[];
+  installation_notes?: string;
+  troubleshooting: string[];
+}
+
+export interface MCPServerSource {
+  type: 'github' | 'npm' | 'pypi' | 'docker' | 'other';
+  url: string;
+  language: string;
+  license?: string;
+  last_updated: string;
+  topics: string[];
+}
+
+export interface PackageInfo {
+  registry_name: 'npm' | 'pypi' | 'docker' | 'github' | 'other';
+  name: string;
+  version: string;
+  installation_command: string;
+  setup_instructions?: string;
+  download_count?: number;
+}
+
+export interface MCPServerVerification {
+  status: 'verified' | 'unverified' | 'pending' | 'rejected';
+  enhanced_at: string;
+  source_id: string;
+  verification_method?: string;
+  
+  // Additional verification fields for compatibility
+  endpoint_verified?: boolean;
+  dns_verified?: boolean;
+  ssl_verified?: boolean;
+  last_verification?: string;
+}
+
+// === MAIN UNIFIED MCP SERVER INTERFACE ===
+
+/**
+ * Unified MCP Server interface that combines GitHub repository data
+ * with comprehensive installation methods and analysis
+ * USE THIS EVERYWHERE - replaces MCPServerRecord, GitHubRepoAnalysis, etc.
+ */
+export interface MCPServer {
+  // === CORE IDENTITY ===
+  id: string;                       // "github.com/owner/repo"
+  domain: string;                   // Same as id for compatibility
+  name: string;                     // "Repository Name"
+  description: string;              // Human-readable description
+  endpoint?: string;                // Optional live endpoint URL
+  tagline?: string;                 // One-line summary
+
+  // === GITHUB REPOSITORY DATA ===
+  repository: GitHubRepository;     // Complete GitHub repository info
+  files?: FileContent[];            // Downloaded key files (README, package.json, etc.)
+
+  // === CATEGORIZATION & DISCOVERY ===
+  category: 'development' | 'data' | 'communication' | 'api-integration' | 'utility' | 'other';
+  subcategories: string[];          // ["python", "maps", "geolocation"]
+  tags: string[];                   // Searchable keywords
+  use_cases: string[];              // What problems this solves
+
+  // === QUALITY & TRUST ===
+  quality: MCPServerQuality;
+  popularity: MCPServerPopularity;
+
+  // === INSTALLATION & SETUP ===
+  installation: MCPServerInstallation;
+  environment: MCPServerEnvironment;
+  claude_integration: ClaudeDesktopConfig;
+  documentation: MCPServerDocumentation;
+
+  // === TECHNICAL CAPABILITIES ===
+  capabilities: MCPServerCapabilities;
+  availability: MCPServerAvailability;
+  api: MCPServerAPI;
+
+  // === FLAT PROPERTIES (for backward compatibility) ===
+  // These flatten nested properties for easier access
+  trust_score: number;              // 0-100 trust rating  
+  verification_status: 'verified' | 'unverified' | 'pending' | 'rejected';
+  cors_enabled: boolean;            // Flattened from api.cors_enabled
+  transport: 'stdio' | 'http' | 'websocket' | 'sse'; // Flattened from api.transport
+  
+  // Health & Status
+  health?: {
+    status: 'healthy' | 'unhealthy' | 'unknown';
+    last_check?: string;
+    uptime_percentage?: number;
+    avg_response_time_ms?: number;
+    response_time_ms?: number;      // Alternative name for compatibility
+  };
+
+  // Availability (flattened)
+  packages_available: boolean;      // Flattened from availability.packages_available
+  primary_package: string;          // Flattened from availability.primary_package
+  endpoint_verified: boolean;       // Flattened from availability.endpoint_verified
+
+  // Authentication (flattened) 
+  auth?: {
+    type: 'none' | 'api_key' | 'oauth2' | 'basic' | 'custom';
+    description: string;
+    required_scopes?: string[];
+  };
+
+  // === ANALYSIS & CLASSIFICATION ===
+  computed?: ComputedMetrics;       // AI-computed analysis
+  parsingMetadata?: ParsingMetadata; // Analysis metadata
+
+  // === METADATA ===
+  source: MCPServerSource;
+  packages: PackageInfo[];
+  verification: MCPServerVerification;
+
+  // === TIMESTAMPS ===
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * GitHub Repository with Installation Analysis
+ * This is the direct output from the GitHub parser
+ */
+export interface GitHubRepoWithInstallation {
+  repository: GitHubRepository;
+  files?: FileContent[];
+  installationMethods: InstallationMethod[];
+  parsingMetadata: ParsingMetadata;
+  computed?: ComputedMetrics;
+}
+
+/**
+ * Storage format for complete server data
+ */
+export interface StoredServerData {
+  server: MCPServer;
+  metadata: {
+    discoveredAt: string;
+    lastAnalyzed: string;
+    sourceQuery?: string;
+    registrationSource: 'github_auto' | 'manual' | 'api';
+  };
+  original?: {
+    githubRepo: GitHubRepoWithInstallation;
+    parserVersion: string;
+  };
+}
+
+// === TRANSFORMATION FUNCTIONS ===
+
+/**
+ * Transform GitHub parser output to MCPServer format
+ */
+export function transformGitHubRepoToMCPServer(
+  githubRepo: GitHubRepoWithInstallation,
+  additionalData?: Partial<MCPServer>
+): MCPServer {
+  const repo = githubRepo.repository;
+
+  return {
+    // Core Identity
+    id: repo.fullName,
+    domain: `github.com/${repo.fullName}`, // Add required domain
+    name: repo.name,
+    description: repo.description || '',
+    endpoint: undefined, // GitHub repos typically don't have live endpoints
+    tagline: generateTagline(repo),
+
+    // GitHub Repository Data
+    repository: repo,
+    files: githubRepo.files,
+
+    // Categorization (derived from computed metrics or defaults)
+    category: mapToCategory(githubRepo.computed?.primaryLanguage, githubRepo.computed?.tags),
+    subcategories: githubRepo.computed?.tags || extractSubcategories(repo),
+    tags: githubRepo.computed?.tags || extractTags(repo),
+    use_cases: extractUseCases(repo, githubRepo.computed),
+
+    // Quality & Trust
+    quality: {
+      score: calculateQualityScore(repo, githubRepo),
+      category: calculateQualityCategory(repo, githubRepo),
+      trust_score: calculateTrustScore(repo),
+      verified: false, // Default to unverified
+      issues: [],
+      evidence: extractQualityEvidence(repo, githubRepo)
+    },
+
+    popularity: {
+      stars: repo.stars,
+      forks: repo.forks,
+      downloads: undefined, // TODO: Extract from package data
+      rating: undefined
+    },
+
+    // Installation & Setup
+    installation: {
+      recommended_method: determineRecommendedMethod(githubRepo.installationMethods),
+      difficulty: githubRepo.computed?.installationDifficulty || 'medium',
+      methods: githubRepo.installationMethods
+    },
+
+    environment: extractEnvironment(githubRepo),
+    claude_integration: extractClaudeIntegration(githubRepo),
+    documentation: extractDocumentation(githubRepo),
+
+    // Technical Capabilities
+    capabilities: {
+      tools: githubRepo.computed?.mcpTools || [],
+      resources: githubRepo.computed?.mcpResources || [],
+      prompts: githubRepo.computed?.mcpPrompts || [],
+      protocol_version: undefined
+    },
+
+    availability: {
+      status: 'package_only',
+      endpoint_verified: false,
+      live_endpoint: undefined,
+      primary_package: 'github',
+      packages_available: true
+    },
+
+    api: {
+      transport: 'stdio',
+      endpoints: [],
+      cors_enabled: false,
+      auth: {
+        type: 'none',
+        description: 'No authentication required'
+      }
+    },
+
+    // === FLAT PROPERTIES (for backward compatibility) ===
+    trust_score: calculateTrustScore(repo),
+    verification_status: 'unverified',
+    cors_enabled: false,
+    transport: 'stdio',
+    packages_available: true,
+    primary_package: 'github',
+    endpoint_verified: false,
+    health: {
+      status: 'unknown',
+      last_check: undefined,
+      uptime_percentage: undefined,
+      avg_response_time_ms: undefined
+    },
+
+    // Analysis & Classification
+    computed: githubRepo.computed,
+    parsingMetadata: githubRepo.parsingMetadata,
+
+    // Metadata
+    source: {
+      type: 'github',
+      url: repo.htmlUrl,
+      language: repo.language || 'Unknown',
+      license: repo.license?.name,
+      last_updated: repo.updatedAt,
+      topics: repo.topics
+    },
+
+    packages: [], // TODO: Extract from installation methods
+
+    verification: {
+      status: 'unverified',
+      enhanced_at: new Date().toISOString(),
+      source_id: repo.fullName
+    },
+
+    // Timestamps
+    created_at: repo.createdAt,
+    updated_at: repo.updatedAt,
+
+    // Override with any additional data
+    ...additionalData
+  };
+}
+
+// === HELPER FUNCTIONS ===
+
+function generateTagline(repo: GitHubRepository): string | undefined {
+  if (repo.description && repo.description.length < 100) {
+    return repo.description;
+  }
+
+  const language = repo.language;
+  const topics = repo.topics.slice(0, 2);
+
+  if (language && topics.length > 0) {
+    return `${language} server for ${topics.join(' and ')}`;
+  }
+
+  return undefined;
+}
+
+function mapToCategory(
+  primaryLanguage?: string,
+  tags?: string[]
+): MCPServer['category'] {
+  const allTags = [...(tags || []), primaryLanguage].filter(Boolean).map(t => t!.toLowerCase());
+
+  if (allTags.some(tag => ['api', 'integration', 'webhook', 'rest'].includes(tag))) {
+    return 'api-integration';
+  }
+  if (allTags.some(tag => ['data', 'database', 'storage', 'analytics'].includes(tag))) {
+    return 'data';
+  }
+  if (allTags.some(tag => ['chat', 'email', 'notification', 'messaging'].includes(tag))) {
+    return 'communication';
+  }
+  if (allTags.some(tag => ['dev', 'development', 'tool', 'cli'].includes(tag))) {
+    return 'development';
+  }
+  if (allTags.some(tag => ['utility', 'util', 'helper', 'tool'].includes(tag))) {
+    return 'utility';
+  }
+
+  return 'other';
+}
+
+function extractSubcategories(repo: GitHubRepository): string[] {
+  const subcats = new Set<string>();
+
+  // Add language
+  if (repo.language) {
+    subcats.add(repo.language.toLowerCase());
+  }
+
+  // Add topics
+  repo.topics.forEach(topic => subcats.add(topic));
+
+  return Array.from(subcats);
+}
+
+function extractTags(repo: GitHubRepository): string[] {
+  const tags = new Set<string>();
+
+  // Add language
+  if (repo.language) {
+    tags.add(repo.language.toLowerCase());
+  }
+
+  // Add topics
+  repo.topics.forEach(topic => tags.add(topic));
+
+  // Add derived tags from name/description
+  const text = `${repo.name} ${repo.description || ''}`.toLowerCase();
+  if (text.includes('mcp')) tags.add('mcp');
+  if (text.includes('claude')) tags.add('claude');
+  if (text.includes('server')) tags.add('server');
+
+  return Array.from(tags);
+}
+
+function extractUseCases(repo: GitHubRepository, computed?: ComputedMetrics): string[] {
+  const useCases: string[] = [];
+
+  if (computed?.mcpClassification === 'mcp_server') {
+    useCases.push('MCP server integration');
+  }
+
+  if (repo.description) {
+    // Extract use cases from description
+    const desc = repo.description.toLowerCase();
+    if (desc.includes('api')) useCases.push('API integration');
+    if (desc.includes('data')) useCases.push('Data processing');
+    if (desc.includes('tool')) useCases.push('Development tools');
+  }
+
+  return useCases;
+}
+
+function calculateQualityScore(repo: GitHubRepository, githubRepo: GitHubRepoWithInstallation): number {
+  let score = 0;
+
+  // GitHub metrics
+  score += Math.min(repo.stars / 10, 50); // Max 50 points for stars
+  score += Math.min(repo.forks / 5, 20);  // Max 20 points for forks
+
+  // Installation methods
+  score += Math.min(githubRepo.installationMethods.length * 10, 30); // Max 30 points
+
+  // Documentation
+  if (repo.hasWiki) score += 10;
+  if (githubRepo.files?.some(f => f.path.toLowerCase().includes('readme'))) score += 20;
+
+  // Recency
+  const daysSinceUpdate = (Date.now() - new Date(repo.updatedAt).getTime()) / (1000 * 60 * 60 * 24);
+  if (daysSinceUpdate < 30) score += 20;
+  else if (daysSinceUpdate < 90) score += 10;
+
+  // MCP specific
+  if (githubRepo.computed?.isMcpServer) score += 30;
+
+  return Math.min(score, 170);
+}
+
+function calculateQualityCategory(repo: GitHubRepository, githubRepo: GitHubRepoWithInstallation): 'high' | 'medium' | 'low' {
+  const score = calculateQualityScore(repo, githubRepo);
+  if (score >= 100) return 'high';
+  if (score >= 50) return 'medium';
+  return 'low';
+}
+
+function calculateTrustScore(repo: GitHubRepository): number {
+  let score = 0;
+
+  // Repository age and activity
+  const ageInDays = (Date.now() - new Date(repo.createdAt).getTime()) / (1000 * 60 * 60 * 24);
+  if (ageInDays > 365) score += 20; // Mature project
+
+  // Stars and forks indicate community trust
+  score += Math.min(repo.stars / 50, 30);
+  score += Math.min(repo.forks / 20, 20);
+
+  // Organization vs individual
+  if (repo.owner.type === 'Organization') score += 15;
+
+  // License
+  if (repo.license) score += 15;
+
+  return Math.min(score, 100);
+}
+
+function extractQualityEvidence(repo: GitHubRepository, githubRepo: GitHubRepoWithInstallation): string[] {
+  const evidence: string[] = [];
+
+  if (repo.stars > 100) evidence.push(`${repo.stars} GitHub stars`);
+  if (repo.forks > 20) evidence.push(`${repo.forks} forks`);
+  if (repo.license) evidence.push(`${repo.license.name} license`);
+  if (githubRepo.installationMethods.length > 0) {
+    evidence.push(`${githubRepo.installationMethods.length} installation methods`);
+  }
+  if (repo.hasWiki) evidence.push('Has documentation wiki');
+  if (githubRepo.computed?.hasDocumentation) evidence.push('Comprehensive documentation');
+
+  return evidence;
+}
+
+function determineRecommendedMethod(methods: InstallationMethod[]): InstallationSubtype {
+  // Priority order for recommendation
+  if (methods.find(m => m.subtype === 'npm')) return 'npm';
+  if (methods.find(m => m.subtype === 'pip')) return 'pip';
+  if (methods.find(m => m.subtype === 'docker_run')) return 'docker_run';
+  if (methods.find(m => m.subtype === 'git_clone')) return 'git_clone';
+
+  // Default to the first method's subtype or package_manager
+  return methods[0]?.subtype || 'package_manager';
+}
+
+function extractEnvironment(githubRepo: GitHubRepoWithInstallation): MCPServerEnvironment {
+  const variables: EnvironmentVariable[] = [];
+
+  // Extract environment variables from installation methods
+  githubRepo.installationMethods.forEach(method => {
+    if (method.environment_vars) {
+      Object.entries(method.environment_vars).forEach(([name, value]) => {
+        if (!variables.find(v => v.name === name)) {
+          variables.push({
+            name,
+            required: true,
+            description: `Environment variable for ${method.title}`,
+            example: value
+          });
+        }
+      });
+    }
+  });
+
+  return {
+    variables,
+    runtime_requirements: {
+      platforms: githubRepo.computed?.supportedPlatforms || ['cross_platform']
+    }
+  };
+}
+
+function extractClaudeIntegration(githubRepo: GitHubRepoWithInstallation): ClaudeDesktopConfig {
+  // Look for Claude Desktop configuration in installation methods
+  const claudeMethod = githubRepo.installationMethods.find(m => m.type === 'claude_desktop');
+
+  if (claudeMethod && claudeMethod.mcp_config) {
+    return {
+      available: true,
+      server_name: claudeMethod.mcp_config.server_name,
+      command: claudeMethod.mcp_config.command,
+      args: claudeMethod.mcp_config.args,
+      env_vars: claudeMethod.mcp_config.env
+    };
+  }
+
+  return {
+    available: false
+  };
+}
+
+function extractDocumentation(githubRepo: GitHubRepoWithInstallation): MCPServerDocumentation {
+  const readmeFile = githubRepo.files?.find(f => f.path.toLowerCase().includes('readme'));
+
+  return {
+    readme_content: readmeFile?.content,
+    setup_instructions: githubRepo.installationMethods.map(m => m.description),
+    examples: [],
+    troubleshooting: []
   };
 }
 
@@ -146,350 +720,30 @@ export interface MCPServerVerification {
   verification_method?: string;
 }
 
-// === MAIN SERVER INTERFACE ===
+// === UTILITY TYPES FOR SDK USAGE ===
 
-export interface MCPServer {
-  // === DISCOVERY SECTION ===
-  // Core Identity & Search
-  id: string;                       // "github.com/baidu-maps/mcp"
-  name: string;                     // "Baidu Maps MCP"
-  description: string;              // Human-readable description
-  tagline?: string;                 // One-line summary
-  
-  // Categorization & Discovery
-  category: 'development' | 'data' | 'communication' | 'api-integration' | 'utility' | 'other';
-  subcategories: string[];          // ["python", "maps", "geolocation"]
-  tags: string[];                   // Searchable keywords
-  use_cases: string[];              // What problems this solves
-  
-  // Quality & Trust (Discovery)
-  quality: MCPServerQuality;
-  
-  // Social Proof & Popularity (Discovery)
-  popularity: MCPServerPopularity;
-  
-  // === INSTALLATION SECTION ===
-  installation: MCPServerInstallation;
-  environment: MCPServerEnvironment;
-  claude_integration: ClaudeDesktopConfig;
-  documentation: MCPServerDocumentation;
-  
-  // === TECHNICAL SECTION ===
-  capabilities: MCPServerCapabilities;
-  availability: MCPServerAvailability;
-  api: MCPServerAPI;
-  
-  // === METADATA SECTION ===
-  source: MCPServerSource;
-  packages: PackageInfo[];
-  verification: MCPServerVerification;
-  
-  // Timestamps
-  created_at: string;
-  updated_at: string;
+export interface InstallationContext {
+  mode: 'direct' | 'bridge';
+  platform: 'linux' | 'darwin' | 'win32';
+  globalInstall?: boolean;
+  client: string;
+  dryRun?: boolean;
+  verbose?: boolean;
 }
 
-// === TRANSFORMATION FUNCTIONS ===
-
-/**
- * Transform Redis hash data to MCPServer schema
- */
-export function transformRedisToMCPServer(redisData: Record<string, string>): MCPServer {
-  return {
-    // Discovery Section
-    id: redisData._key || redisData.domain,
-    name: redisData.name,
-    description: redisData.description,
-    tagline: generateTagline(redisData),
-    
-    category: mapCategory(redisData['capabilities.category']),
-    subcategories: safeJsonParse(redisData['capabilities.subcategories'], []),
-    tags: extractTags(redisData),
-    use_cases: safeJsonParse(redisData['capabilities.use_cases'], []),
-    
-    quality: {
-      score: parseFloat(redisData['quality.score']) || 0,
-      category: redisData['quality.category'] as any || 'low',
-      trust_score: parseFloat(redisData.trust_score) || 0,
-      verified: redisData.verification_status === 'verified',
-      issues: safeJsonParse(redisData['quality.issues'], []),
-      evidence: safeJsonParse(redisData['quality.evidence'], [])
-    },
-    
-    popularity: {
-      stars: parseInt(redisData['repository.stars']) || parseInt(redisData['_source_data.stargazers_count']) || 0,
-      forks: parseInt(redisData['repository.forks']) || parseInt(redisData['_source_data.forks_count']) || 0,
-      downloads: undefined // TODO: Extract from package data
-    },
-    
-    // Installation Section
-    installation: extractInstallation(redisData),
-    environment: extractEnvironment(redisData),
-    claude_integration: extractClaudeIntegration(redisData),
-    documentation: extractDocumentation(redisData),
-    
-    // Technical Section
-    capabilities: {
-      tools: extractToolNames(redisData),
-      resources: [], // TODO: Extract from examples/docs
-      prompts: [], // TODO: Extract from examples/docs
-      protocol_version: undefined // TODO: Extract if available
-    },
-    
-    availability: {
-      status: redisData['availability.status'] as any || 'package_only',
-      endpoint_verified: redisData['availability.endpoint_verified'] === 'true',
-      live_endpoint: redisData['availability.live_endpoint'] || undefined,
-      primary_package: redisData['availability.primary_package'] || 'github',
-      packages_available: redisData['availability.packages_available'] === 'true'
-    },
-    
-    api: {
-      transport: redisData.transport as any || 'stdio',
-      endpoints: safeJsonParse(redisData['structured.api.endpoints'], []),
-      cors_enabled: redisData.cors_enabled === 'true',
-      auth: {
-        type: redisData['auth.type'] as any || 'none',
-        description: redisData['auth.description'] || 'No authentication required'
-      }
-    },
-    
-    // Metadata Section
-    source: {
-      type: redisData._source || redisData['_source_data.source'] as any || 'github',
-      url: redisData['repository.url'] || redisData['_source_data.html_url'],
-      language: redisData['_source_data.language'] || 'Unknown',
-      license: redisData['repository.license'] || redisData['_source_data.license'],
-      last_updated: redisData['_source_data.updated_at'] || redisData.updated_at,
-      topics: safeJsonParse(redisData['_source_data.topics'], [])
-    },
-    
-    packages: safeJsonParse(redisData.packages, []),
-    
-    verification: {
-      status: redisData.verification_status as any || 'unverified',
-      enhanced_at: redisData.enhanced_filtered_at,
-      source_id: redisData._source_id
-    },
-    
-    created_at: redisData.created_at || redisData['_source_data.created_at'],
-    updated_at: redisData.updated_at || redisData['_source_data.updated_at']
-  };
+export interface ResolvedPackage {
+  packageName: string;
+  displayName: string;
+  description?: string;
+  type: 'npm' | 'python' | 'docker' | 'git';
+  source: 'direct' | 'smart_search' | 'registry_search';
+  verified?: boolean;
+  version?: string;
+  repositoryUrl?: string;
+  installation?: any;
+  claude_integration?: any;
 }
 
-// Helper functions
-function safeJsonParse(value: string | undefined, fallback: any = null) {
-  if (!value) return fallback;
-  try {
-    return JSON.parse(value);
-  } catch {
-    return fallback;
-  }
-}
+// MCPServer interface is defined above
 
-function generateTagline(redisData: Record<string, string>): string | undefined {
-  // Generate tagline from description or capabilities
-  const desc = redisData.description;
-  if (desc && desc.length < 100) return desc;
-  
-  const category = redisData['capabilities.category'];
-  const subcats = safeJsonParse(redisData['capabilities.subcategories'], []);
-  
-  if (category && subcats.length > 0) {
-    return `${category} server for ${subcats.slice(0, 2).join(' and ')}`;
-  }
-  
-  return undefined;
-}
-
-function mapCategory(category: string): MCPServer['category'] {
-  const map: Record<string, MCPServer['category']> = {
-    'development': 'development',
-    'data': 'data', 
-    'communication': 'communication',
-    'api-integration': 'api-integration',
-    'utility': 'utility'
-  };
-  return map[category] || 'other';
-}
-
-function extractTags(redisData: Record<string, string>): string[] {
-  const tags = new Set<string>();
-  
-  // Add subcategories as tags
-  const subcats = safeJsonParse(redisData['capabilities.subcategories'], []);
-  subcats.forEach((tag: string) => tags.add(tag));
-  
-  // Add topics as tags
-  const topics = safeJsonParse(redisData['_source_data.topics'], []);
-  topics.forEach((tag: string) => tags.add(tag));
-  
-  // Add language as tag
-  const language = redisData['_source_data.language'];
-  if (language) tags.add(language.toLowerCase());
-  
-  return Array.from(tags);
-}
-
-function extractInstallation(redisData: Record<string, string>): MCPServerInstallation {
-  const methods: InstallationMethod[] = [];
-  
-  // Extract structured installation methods
-  const structuredMethods = safeJsonParse(redisData['structured.installation.methods'], []);
-  structuredMethods.forEach((method: any) => {
-    methods.push({
-      type: method.type,
-      package: method.package,
-      command: method.command,
-      complexity: 'simple' // TODO: Determine complexity
-    });
-  });
-  
-  // Add package-based methods
-  const packages = safeJsonParse(redisData.packages, []);
-  packages.forEach((pkg: any) => {
-    if (pkg.installation_command) {
-      methods.push({
-        type: pkg.registry_name === 'github' ? 'git' : pkg.registry_name,
-        package: pkg.name,
-        command: pkg.installation_command,
-        version: pkg.version,
-        complexity: 'simple'
-      });
-    }
-  });
-  
-  // Determine recommended method
-  let recommended: any = 'git';
-  if (methods.find(m => m.type === 'npm')) recommended = 'npm';
-  if (methods.find(m => m.type === 'python')) recommended = 'python';
-  
-  return {
-    recommended_method: recommended,
-    difficulty: 'easy', // TODO: Calculate based on complexity
-    methods
-  };
-}
-
-function extractEnvironment(redisData: Record<string, string>): MCPServerEnvironment {
-  const variables: EnvironmentVariable[] = [];
-  
-  // Extract structured environment variables
-  const structuredEnv = safeJsonParse(redisData['structured.environment.variables'], []);
-  if (Array.isArray(structuredEnv)) {
-    structuredEnv.forEach((varName: string) => {
-      variables.push({
-        name: varName,
-        required: true, // Assume required unless specified
-        description: undefined
-      });
-    });
-  }
-  
-  // Extract Claude config environment variables
-  const claudeConfig = safeJsonParse(redisData['_source_data.claude_config'], null);
-  if (claudeConfig?.mcpServers) {
-    Object.values(claudeConfig.mcpServers).forEach((server: any) => {
-      if (server.env) {
-        Object.keys(server.env).forEach(envVar => {
-          if (!variables.find(v => v.name === envVar)) {
-            variables.push({
-              name: envVar,
-              required: true,
-              description: `Required for ${claudeConfig.mcpServers[Object.keys(claudeConfig.mcpServers)[0]]}`
-            });
-          }
-        });
-      }
-    });
-  }
-  
-  return {
-    variables,
-    runtime_requirements: {
-      node_version: redisData['_source_data.package_json.engines.node'],
-      python_version: extractPythonVersion(redisData),
-      platforms: ['linux', 'darwin', 'win32'] // Default to all platforms
-    }
-  };
-}
-
-function extractClaudeIntegration(redisData: Record<string, string>): ClaudeDesktopConfig {
-  const claudeConfig = safeJsonParse(redisData['_source_data.claude_config'], null);
-  const hasConfig = redisData['_source_data.has_claude_config'] === 'true';
-  
-  if (!claudeConfig || !hasConfig) {
-    return { available: false };
-  }
-  
-  const serverNames = Object.keys(claudeConfig.mcpServers || {});
-  if (serverNames.length === 0) {
-    return { available: true, config: claudeConfig };
-  }
-  
-  const firstServerName = serverNames[0];
-  const serverConfig = claudeConfig.mcpServers[firstServerName];
-  
-  return {
-    available: true,
-    config: claudeConfig,
-    server_name: firstServerName,
-    command: serverConfig.command,
-    args: serverConfig.args || [],
-    env_vars: serverConfig.env || {}
-  };
-}
-
-function extractDocumentation(redisData: Record<string, string>): MCPServerDocumentation {
-  const examples: CodeExample[] = [];
-  
-  // Extract structured examples
-  const structuredExamples = safeJsonParse(redisData['structured.examples'], []);
-  structuredExamples.forEach((example: any) => {
-    examples.push({
-      type: example.type || 'code_block',
-      language: example.language || 'text',
-      content: example.content,
-      description: example.description
-    });
-  });
-  
-  return {
-    readme_content: redisData['_source_data.readme_content'],
-    setup_instructions: extractSetupInstructions(redisData['_source_data.readme_content']),
-    examples,
-    installation_notes: extractInstallationNotes(redisData['_source_data.readme_content']),
-    troubleshooting: extractTroubleshooting(redisData['_source_data.readme_content'])
-  };
-}
-
-function extractToolNames(redisData: Record<string, string>): string[] {
-  // Extract tool names from examples and documentation
-  // TODO: Implement tool name extraction
-  return [];
-}
-
-function extractPythonVersion(redisData: Record<string, string>): string | undefined {
-  const subcats = safeJsonParse(redisData['capabilities.subcategories'], []);
-  if (subcats.includes('python')) {
-    return '>=3.8'; // Reasonable default
-  }
-  return undefined;
-}
-
-function extractSetupInstructions(readme: string | undefined): string[] {
-  // TODO: Extract setup instructions from README
-  return [];
-}
-
-function extractInstallationNotes(readme: string | undefined): string | undefined {
-  // TODO: Extract installation notes from README  
-  return undefined;
-}
-
-function extractTroubleshooting(readme: string | undefined): string[] {
-  // TODO: Extract troubleshooting from README
-  return [];
-}
-
-export default MCPServer;
+// End of file

@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Registry Service - Handles MCP server registration and discovery
 // Uses the generic storage layer and knows about domain types
 

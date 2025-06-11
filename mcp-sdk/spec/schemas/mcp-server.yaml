@@ -1,13 +1,16 @@
 # MCP Server Schema - Core server record for discovery and installation
 MCPServer:
   type: object
-  description: Complete MCP server record optimized for discovery and installation
+  description: Complete MCP server record - USE THIS EVERYWHERE (replaces MCPServerRecord, GitHubRepoAnalysis, etc.)
   properties:
-    # === DISCOVERY SECTION ===
-    # Core Identity & Search
+    # === CORE IDENTITY ===
     id:
       type: string
       description: Unique server identifier
+      example: "github.com/baidu-maps/mcp"
+    domain:
+      type: string
+      description: Domain (same as id for compatibility)
       example: "github.com/baidu-maps/mcp"
     name:
       type: string
@@ -17,10 +20,40 @@ MCPServer:
       type: string
       description: Human-readable description
       example: "百度地图MCP Server for location services"
-    tagline:
+    endpoint:
       type: string
-      description: One-line summary for search results
-      example: "Location services and mapping for Claude"
+      format: uri
+      description: Optional live endpoint URL
+      example: "https://api.baidu-maps.com/mcp"
+    
+    # === GITHUB REPOSITORY DATA ===
+    repository:
+      $ref: './github.yaml#/GitHubRepository'
+    files:
+      type: array
+      items:
+        $ref: './github.yaml#/FileContent'
+      description: Downloaded key files (README, package.json, etc.)
+    
+    # === AI ANALYSIS & CLASSIFICATION ===
+    computed:
+      $ref: './github.yaml#/ComputedMetrics'
+      description: AI-computed analysis and classification
+    parsingMetadata:
+      $ref: './github.yaml#/ParsingMetadata'
+      description: Parser metadata and version info
+    
+    # === INSTALLATION METHODS ===
+    installationMethods:
+      type: array
+      items:
+        $ref: './installation.yaml#/InstallationMethod'
+      description: Complete installation methods from parser
+    packages:
+      type: array
+      items:
+        $ref: './packages.yaml#/PackageInfo'
+      description: All available packages across registries
     
     # Categorization & Discovery
     category:
@@ -46,66 +79,119 @@ MCPServer:
       description: What problems this server solves
       example: ["Find locations", "Get directions", "Location search"]
     
-    # Quality & Trust (Discovery)
-    quality:
-      $ref: './quality.yaml#/QualityMetrics'
-    
-    # Social Proof & Popularity (Discovery)
-    popularity:
-      $ref: './popularity.yaml#/PopularityMetrics'
-    
-    # === INSTALLATION SECTION ===
-    # Installation Methods (Primary)
-    installation:
-      $ref: './installation.yaml#/InstallationInfo'
-    
-    # Environment & Configuration
-    environment:
-      $ref: './environment.yaml#/EnvironmentConfig'
-    
-    # Claude Desktop Integration (Installation)
-    claude_integration:
-      $ref: './claude.yaml#/ClaudeIntegration'
-    
-    # Documentation & Support (Installation)
-    documentation:
-      $ref: './documentation.yaml#/DocumentationInfo'
-    
-    # === TECHNICAL SECTION ===
-    # Capabilities & Features
+    # === CAPABILITIES & FEATURES ===
     capabilities:
       $ref: './capabilities.yaml#/ServerCapabilities'
+      
+    # Quality & Trust
+    quality:
+      $ref: './quality.yaml#/QualityMetrics'
+    popularity:
+      $ref: './popularity.yaml#/PopularityMetrics'
+    trust_score:
+      type: number
+      description: Trust score (0-100)
+      minimum: 0
+      maximum: 100
+    verification_status:
+      type: string
+      enum: [verified, unverified, pending, rejected]
+      description: Verification status
     
-    # Live Service & Availability
+    # === AVAILABILITY ===
     availability:
       $ref: './availability.yaml#/AvailabilityInfo'
     
-    # API & Transport Configuration
-    api:
-      $ref: './api.yaml#/APIConfiguration'
-    
-    # === METADATA SECTION ===
-    # Source & Repository Information
-    source:
-      $ref: './source.yaml#/SourceInfo'
-    
-    # Package Information
-    packages:
-      type: array
-      items:
-        $ref: './packages.yaml#/PackageInfo'
-      description: All available packages across registries
-    
-    # Verification & Status
-    verification:
-      $ref: './verification.yaml#/VerificationStatus'
-    
-    # Timestamps
+    # === METADATA ===
     created_at:
       type: string
       format: date-time
       description: First discovered/registered
     updated_at:
       type: string
+      format: date-time
+      description: Last updated
+    maintainer:
+      type: object
+      properties:
+        name:
+          type: string
+        url:
+          type: string
+          format: uri
+      description: Repository maintainer info
+  
+  required:
+    - id
+    - domain
+    - name
+    - description
+    - category
+    - quality
+    - trust_score
+    - verification_status
+    - availability
+    - created_at
+    - updated_at
+
+# === GITHUB PARSER OUTPUT ===
+GitHubRepoWithInstallation:
+  type: object
+  description: Direct output from mcp-github-parser - use as-is
+  properties:
+    repository:
+      $ref: './github.yaml#/GitHubRepository'
+    files:
+      type: array
+      items:
+        $ref: './github.yaml#/FileContent'
+    installationMethods:
+      type: array
+      items:
+        $ref: './installation.yaml#/InstallationMethod'
+    parsingMetadata:
+      $ref: './github.yaml#/ParsingMetadata'
+    computed:
+      $ref: './github.yaml#/ComputedMetrics'
+  required:
+    - repository
+    - installationMethods
+    - parsingMetadata
+
+# === STORAGE FORMAT ===
+StoredServerData:
+  type: object
+  description: Storage format for complete server data
+  properties:
+    server:
+      $ref: '#/MCPServer'
+    metadata:
+      type: object
+      properties:
+        discoveredAt:
+          type: string
+          format: date-time
+        lastAnalyzed:
+          type: string
+          format: date-time
+        sourceQuery:
+          type: string
+        registrationSource:
+          type: string
+          enum: [github_auto, manual, api]
+      required:
+        - discoveredAt
+        - lastAnalyzed
+        - registrationSource
+    original:
+      type: object
+      properties:
+        githubRepo:
+          $ref: '#/GitHubRepoWithInstallation'
+        parserVersion:
+          type: string
+  required:
+    - server
+    - metadata
       format: date-time
       description: Last updated in registry

@@ -163,9 +163,7 @@ export class ServiceFactory {
   getDiscoveryService(): DiscoveryService {
     if (!this.discoveryService) {
       this.discoveryService = new DiscoveryService(
-        this.getRegistryService(),
-        this.getHealthService(),
-        this.getIntentService()
+        this.getRegistryService()
       );
     }
     return this.discoveryService;

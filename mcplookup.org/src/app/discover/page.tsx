@@ -3,56 +3,38 @@
 import React, { useState } from "react"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
-import { Box, Text, VStack, HStack, Badge, Button, Input, Card } from "@chakra-ui/react"
+import { Box, Text, VStack, HStack } from "@chakra-ui/react"
 import { DiscoveryInterface } from "@/components/mcplookup"
 import { LinkButton } from "@/components/ui/link-button"
+import { ServerGrid, BaseServer } from "@/components/servers"
 import { mcpClientService } from "@/lib/services/mcp-client"
-import Link from "next/link"
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
 
-interface MCPServer {
-  domain: string
-  endpoint: string
-  name?: string
-  description?: string
-  capabilities: string[]
-  verified: boolean
-  health: "healthy" | "degraded" | "down"
-  trust_score: number
-  response_time_ms: number
-  tools?: Array<{
-    name: string
-    description: string
-  }>
-  resources?: Array<{
-    name: string
-    description: string
-    uri: string
-  }>
-}
-
 export default function DiscoverPage() {
-  const [servers, setServers] = useState<MCPServer[]>([])
+  const [servers, setServers] = useState<BaseServer[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const handleSearchResults = (results: any) => {
-    // Convert SDK results to MCPServer format
-    const convertedServers = (results.servers || []).map((server: any) => ({
+    // Convert SDK results to BaseServer format
+    const convertedServers = (results.servers || []).map((server: any): BaseServer => ({
+      id: server.id || server.domain,
       domain: server.domain || server.name,
-      endpoint: server.endpoint || `https://${server.domain}/mcp`,
       name: server.name || server.domain,
       description: server.description || '',
+      status: server.health?.status === 'healthy' ? 'active' : 
+              server.health?.status === 'degraded' ? 'pending' : 'inactive',
+      ownership_status: server.ownership_status || 'unowned',
+      type: server.type || 'github',
+      github_repo: server.github_repo,
+      github_stars: server.github_stars,
+      registered_at: server.created_at || new Date().toISOString(),
+      language: server.language,
       capabilities: server.capabilities?.use_cases || [],
-      verified: server.verification?.dns_verified || false,
-      health: server.health?.status === 'healthy' ? 'healthy' : 
-              server.health?.status === 'degraded' ? 'degraded' : 'down',
-      trust_score: server.trust_score || 0,
-      response_time_ms: server.health?.avg_response_time_ms || 0,
-      tools: server.capabilities?.tools || [],
-      resources: server.capabilities?.resources || []
+      author: server.author,
+      verification_badges: server.verification?.dns_verified ? ['verified'] : []
     }))
     
     setServers(convertedServers)
@@ -185,126 +167,15 @@ export default function DiscoverPage() {
                 Found {servers.length} MCP servers
               </Text>
 
-              <Box
-                display="grid"
-                gridTemplateColumns={{ base: "1fr", md: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" }}
-                gap={6}
-                w="full"
-              >
-                {servers.map((server, index) => (
-                  <Card.Root
-                    key={server.domain}
-                    bg="white"
-                    borderWidth="1px"
-                    borderColor="gray.200"
-                    _hover={{
-                      borderColor: "blue.300",
-                      shadow: "lg",
-                      transform: "translateY(-2px)"
-                    }}
-                    transition="all 0.2s"
-                  >
-                    <Card.Body p={6}>
-                      <VStack align="stretch" gap={4}>
-                        {/* Server Header */}
-                        <VStack align="stretch" gap={2}>
-                          <HStack justify="space-between" align="start">
-                            <Text fontSize="md" fontWeight="semibold" color="gray.900" lineClamp={1}>
-                              {server.name || server.domain}
-                            </Text>
-                            {server.verified && (
-                              <Badge colorPalette="green" size="sm">✓ Verified</Badge>
-                            )}
-                          </HStack>
-                          <Text fontSize="sm" color="gray.600">{server.domain}</Text>
-                        </VStack>
-
-                        {/* Description */}
-                        {server.description && (
-                          <Text fontSize="sm" color="gray.600" lineClamp={2}>
-                            {server.description}
-                          </Text>
-                        )}
-
-                        {/* Health Status */}
-                        <HStack gap={2}>
-                          <Badge
-                            colorPalette={
-                              server.health === "healthy" ? "green" :
-                              server.health === "degraded" ? "yellow" : "red"
-                            }
-                            size="sm"
-                          >
-                            {server.health || 'unknown'}
-                          </Badge>
-                          {server.response_time_ms && (
-                            <Text fontSize="xs" color="gray.500">
-                              {server.response_time_ms}ms
-                            </Text>
-                          )}
-                        </HStack>
-
-                        {/* Capabilities */}
-                        {server.capabilities && server.capabilities.length > 0 && (
-                          <VStack align="stretch" gap={2}>
-                            <Text fontSize="xs" fontWeight="medium" color="gray.700">
-                              Capabilities:
-                            </Text>
-                            <HStack gap={1} flexWrap="wrap">
-                              {server.capabilities.slice(0, 3).map((cap) => (
-                                <Badge key={cap} colorPalette="blue" size="sm">
-                                  {cap}
-                                </Badge>
-                              ))}
-                              {server.capabilities.length > 3 && (
-                                <Badge colorPalette="blue" size="sm">
-                                  +{server.capabilities.length - 3} more
-                                </Badge>
-                              )}
-                            </HStack>
-                          </VStack>
-                        )}
-
-                        {/* Tools */}
-                        {server.tools && server.tools.length > 0 && (
-                          <VStack align="stretch" gap={2}>
-                            <Text fontSize="xs" fontWeight="medium" color="gray.700">
-                              Tools:
-                            </Text>
-                            <VStack align="stretch" gap={1}>
-                              {server.tools.slice(0, 2).map((tool) => (
-                                <Box key={tool.name}>
-                                  <Text fontSize="xs" fontWeight="medium">{tool.name}</Text>
-                                  {tool.description && (
-                                    <Text fontSize="xs" color="gray.500">
-                                      {tool.description}
-                                    </Text>
-                                  )}
-                                </Box>
-                              ))}
-                              {server.tools.length > 2 && (
-                                <Text fontSize="xs" color="gray.500">
-                                  +{server.tools.length - 2} more tools
-                                </Text>
-                              )}
-                            </VStack>
-                          </VStack>
-                        )}
-
-                        {/* Endpoint */}
-                        <Box pt={2} borderTop="1px solid" borderColor="gray.200">
-                          <Text fontSize="xs" color="gray.500" fontFamily="mono" lineClamp={1}>
-                            {server.endpoint}
-                          </Text>
-                        </Box>
-                      </VStack>
-                    </Card.Body>
-                  </Card.Root>
-                ))}
-              </Box>
+              <ServerGrid
+                servers={servers}
+                showEditButton={false}
+                loading={loading}
+                emptyMessage="No servers found matching your search"
+                columns={{ base: 1, md: 2, lg: 3 }}
+              />
             </VStack>
           )}
-
           {/* No Results */}
           {!loading && servers.length === 0 && error === null && (
             <Box textAlign="center" py={12}>

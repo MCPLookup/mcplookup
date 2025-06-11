@@ -5,7 +5,9 @@ import { Footer } from "@/components/layout/footer"
 import { Box, Text, VStack, HStack, Badge, Button, Card, Tabs } from "@chakra-ui/react"
 import { DashboardWalkthrough } from "@/components/onboarding/dashboard-walkthrough"
 import { ApiKeysTab } from "@/components/dashboard/api-keys-tab"
+import { ProfileTab } from "@/components/dashboard/profile-tab"
 import { TrustMetric, InfrastructureFeature } from "@/components/mcplookup"
+import { ServerList, BaseServer } from "@/components/servers"
 import { LinkButton } from "@/components/ui/link-button"
 import Link from "next/link"
 import { useState, useEffect, Suspense } from "react"
@@ -58,37 +60,65 @@ function DashboardContent() {
     setNeedsOnboarding(false)
   }
 
-  // Mock data - in real app this would come from API
-  const userServers = [
-    {
-      id: 1,
-      domain: "mycompany.com",
-      endpoint: "https://api.mycompany.com/mcp",
-      status: "healthy",
-      verified: true,
-      lastSeen: "2 minutes ago",
-      capabilities: ["email", "calendar", "crm"],
-      trustScore: 92,
-      monthlyRequests: 15420
-    },
-    {
-      id: 2,
-      domain: "dev.mycompany.com",
-      endpoint: "https://dev-api.mycompany.com/mcp",
-      status: "warning",
-      verified: false,
-      lastSeen: "1 hour ago",
-      capabilities: ["testing", "development"],
-      trustScore: 78,
-      monthlyRequests: 3240
+  const [userServers, setUserServers] = useState<BaseServer[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // Load user's servers from API
+  useEffect(() => {
+    loadUserServers()
+  }, [])
+
+  const loadUserServers = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      
+      const response = await fetch('/api/v1/my/servers')
+      if (!response.ok) {
+        throw new Error('Failed to load servers')
+      }
+      
+      const data = await response.json()
+      if (data.success) {
+        // Convert API response to BaseServer format
+        const convertedServers: BaseServer[] = data.servers.map((server: any): BaseServer => ({
+          id: server.id,
+          domain: server.domain,
+          name: server.name || server.domain,
+          description: server.description || '',
+          status: server.status === 'verified' ? 'active' : 
+                 server.status === 'pending' ? 'pending' : 'inactive',
+          ownership_status: 'owned', // User's own servers
+          type: 'github',
+          registered_at: server.created_at,
+          capabilities: server.capabilities || [],
+          author: 'You',
+          verification_badges: server.verified ? ['verified'] : []
+        }))
+        
+        setUserServers(convertedServers)
+      } else {
+        setError(data.error || 'Failed to load servers')
+      }
+    } catch (err) {
+      console.error('Error loading user servers:', err)
+      setError(err instanceof Error ? err.message : 'Failed to load servers')
+    } finally {
+      setLoading(false)
     }
-  ]
+  }
+
+  const handleServerEdit = (server: BaseServer) => {
+    // Handle server editing - could open a modal or navigate to edit page
+    console.log('Edit server:', server)
+  }
 
   const stats = {
-    totalServers: 2,
+    totalServers: userServers.length,
     totalRequests: 18660,
     averageTrustScore: 85,
-    verifiedServers: 1
+    verifiedServers: userServers.filter(s => s.verification_badges?.includes('verified')).length
   }
 
   return (
@@ -236,134 +266,38 @@ function DashboardContent() {
                     </HStack>
                   </Box>
 
-                  <VStack gap={4} align="stretch">
-                    {userServers.map((server) => (
-                      <Card.Root
-                        key={server.id}
-                        bg="white"
-                        borderWidth="1px"
-                        borderColor="gray.200"
-                        _hover={{
-                          borderColor: "blue.300",
-                          shadow: "lg",
-                          transform: "translateY(-1px)"
-                        }}
-                        transition="all 0.2s"
+                  {error && (
+                    <Box
+                      bg="red.50"
+                      border="1px solid"
+                      borderColor="red.200"
+                      rounded="lg"
+                      p={4}
+                      textAlign="center"
+                    >
+                      <Text color="red.800">{error}</Text>
+                      <Button
+                        mt={2}
+                        variant="outline"
+                        colorPalette="red"
+                        size="sm"
+                        onClick={loadUserServers}
                       >
-                        <Card.Body p={6}>
-                          <VStack align="stretch" gap={4}>
-                            <HStack justify="space-between" align="start">
-                              <VStack align="start" gap={2} flex={1}>
-                                <HStack gap={3} align="center">
-                                  <Text fontSize="lg" fontWeight="bold" color="gray.900">
-                                    {server.domain}
-                                  </Text>
-                                  {server.verified && (
-                                    <Badge colorPalette="green" size="sm">✅ Verified</Badge>
-                                  )}
-                                  <Badge
-                                    colorPalette={server.status === 'healthy' ? 'green' : 'yellow'}
-                                    size="sm"
-                                  >
-                                    <Box
-                                      w={2}
-                                      h={2}
-                                      rounded="full"
-                                      bg={server.status === 'healthy' ? 'green.500' : 'yellow.500'}
-                                      mr={2}
-                                      animation={server.status === 'healthy' ? 'pulse 2s infinite' : undefined}
-                                    />
-                                    {server.status === 'healthy' ? 'Healthy' : 'Warning'}
-                                  </Badge>
-                                </HStack>
-                                <Text fontSize="sm" color="gray.600" fontFamily="mono" bg="gray.50" px={2} py={1} rounded="md">
-                                  {server.endpoint}
-                                </Text>
-                              </VStack>
-                              <HStack gap={2}>
-                                <Button variant="outline" size="sm">📊 Analytics</Button>
-                                <Button variant="outline" size="sm">⚙️ Settings</Button>
-                              </HStack>
-                            </HStack>
+                        Try Again
+                      </Button>
+                    </Box>
+                  )}
 
-                            <Box display="grid" gridTemplateColumns={{ base: "repeat(2, 1fr)", md: "repeat(4, 1fr)" }} gap={4}>
-                              <Box bg="gray.50" p={3} rounded="lg">
-                                <Text fontSize="xs" color="gray.500" mb={1}>Last Seen</Text>
-                                <Text fontWeight="medium" fontSize="sm">{server.lastSeen}</Text>
-                              </Box>
-                              <Box bg="gray.50" p={3} rounded="lg">
-                                <Text fontSize="xs" color="gray.500" mb={1}>Trust Score</Text>
-                                <HStack gap={2} align="center">
-                                  <Text fontWeight="medium" fontSize="sm">{server.trustScore}/100</Text>
-                                  <Box
-                                    w={12}
-                                    h={2}
-                                    bg="gray.200"
-                                    rounded="full"
-                                    overflow="hidden"
-                                  >
-                                    <Box
-                                      w={`${server.trustScore}%`}
-                                      h="full"
-                                      bg={
-                                        server.trustScore >= 90 ? 'green.500' :
-                                        server.trustScore >= 70 ? 'yellow.500' : 'red.500'
-                                      }
-                                      transition="width 0.3s"
-                                    />
-                                  </Box>
-                                </HStack>
-                              </Box>
-                              <Box bg="gray.50" p={3} rounded="lg">
-                                <Text fontSize="xs" color="gray.500" mb={1}>Monthly Requests</Text>
-                                <Text fontWeight="medium" fontSize="sm">{server.monthlyRequests.toLocaleString()}</Text>
-                              </Box>
-                              <Box bg="gray.50" p={3} rounded="lg">
-                                <Text fontSize="xs" color="gray.500" mb={1}>Discovery Impact</Text>
-                                <Text fontWeight="medium" fontSize="sm" color="green.600">
-                                  {server.verified ? 'High' : 'Medium'}
-                                </Text>
-                              </Box>
-                            </Box>
-
-                            <VStack align="stretch" gap={2}>
-                              <Text fontSize="xs" color="gray.500">Capabilities:</Text>
-                              <HStack gap={2} flexWrap="wrap">
-                                {server.capabilities.map((cap) => (
-                                  <Badge key={cap} colorPalette="blue" size="sm">
-                                    {cap}
-                                  </Badge>
-                                ))}
-                              </HStack>
-                            </VStack>
-
-                            <Box pt={4} borderTop="1px solid" borderColor="gray.200">
-                              <HStack justify="space-between" align="center">
-                                <HStack gap={2}>
-                                  <Text fontSize="sm" fontWeight="medium" color="gray.700">
-                                    Infrastructure Contribution:
-                                  </Text>
-                                  <Badge
-                                    colorPalette={server.verified ? 'green' : 'yellow'}
-                                    size="sm"
-                                  >
-                                    {server.verified ? '🎯 Active' : '⏳ Pending'}
-                                  </Badge>
-                                </HStack>
-                                {!server.verified && (
-                                  <Button
-                                    colorPalette="orange"
-                                    size="sm"
-                                  >
-                                    🚀 Verify Now
-                                  </Button>
-                                )}
-                              </HStack>
-                            </Box>
-                          </VStack>
-                        </Card.Body>
-                      </Card.Root>
-                    ))}
+                  <VStack gap={4} align="stretch">
+                    <ServerList
+                      servers={userServers}
+                      currentUserId="current-user-id" // In real app, get from session
+                      variant="list"
+                      showEditButton={true}
+                      onEdit={handleServerEdit}
+                      loading={loading}
+                      emptyMessage={error ? "Failed to load servers" : "No servers registered yet"}
+                    />
                   </VStack>
 
                   {/* Add Server CTA */}
@@ -485,14 +419,7 @@ function DashboardContent() {
               </Tabs.Content>
 
               <Tabs.Content value="profile">
-                <VStack gap={6} align="stretch">
-                  <Text fontSize="2xl" fontWeight="bold" color="gray.900">
-                    Profile & Settings
-                  </Text>
-                  <Text color="gray.600">
-                    Profile management coming soon. Your servers are already contributing to the infrastructure.
-                  </Text>
-                </VStack>
+                <ProfileTab />
               </Tabs.Content>
             </Tabs.Root>
           </Box>

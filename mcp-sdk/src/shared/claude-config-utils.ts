@@ -2,7 +2,7 @@
 // Helpers for generating and managing Claude Desktop config files
 
 import { InstallationResolver } from './installation-utils.js';
-import { ResolvedPackage, InstallationContext } from '../types/generated.js';
+import { ResolvedPackage, InstallationContext } from '../types/mcp-server.js';
 
 export interface ClaudeServerConfig {
   command: string;

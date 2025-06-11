@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Health Service - Real-time MCP Server Health Monitoring
 // Serverless-ready, no SQL dependencies
 

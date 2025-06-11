@@ -523,25 +523,35 @@ export function ServerDetailsModal({ server }: ServerDetailsModalProps) {
         </Card.Root>
       )}
 
-      {/* Package Information */}
+      {/* Enhanced Package Information with Rich Parser Data */}
       {(server as any).packages && (server as any).packages.length > 0 && (
         <Card.Root>
           <Card.Header>
             <HStack gap={2}>
               <Icon color="purple.500">📦</Icon>
               <Heading size="md">Installation Packages ({(server as any).packages.length})</Heading>
+              {(server as any).parser_version && (
+                <Badge colorPalette="blue" variant="outline" fontSize="xs">
+                  Enhanced Analysis v{(server as any).parser_version}
+                </Badge>
+              )}
             </HStack>
           </Card.Header>
           <Card.Body>
             <VStack gap={4} align="stretch">
               {(server as any).packages.map((pkg: any, idx: number) => (
                 <VStack key={idx} align="start" gap={2} p={3} bg="gray.50" _dark={{ bg: "gray.800" }} rounded="md">
-                  <HStack gap={2}>
+                  <HStack gap={2} wrap="wrap">
                     <Badge colorPalette="purple" variant="solid">
                       {pkg.registry_name}
                     </Badge>
                     <Text fontSize="sm" fontWeight="semibold">{pkg.name}</Text>
-                    <Text fontSize="xs" color="gray.500">v{pkg.version}</Text>
+                    <Text fontSize="xs" color="gray.500">v{pkg.version || 'latest'}</Text>
+                    {pkg.runtime_hint && (
+                      <Badge colorPalette="gray" variant="outline" fontSize="xs">
+                        {pkg.runtime_hint}
+                      </Badge>
+                    )}
                   </HStack>
 
                   {pkg.installation_command && (
@@ -561,8 +571,171 @@ export function ServerDetailsModal({ server }: ServerDetailsModalProps) {
                       </Code>
                     </VStack>
                   )}
+
+                  {/* Enhanced: Environment Variables */}
+                  {pkg.environment_variables && pkg.environment_variables.length > 0 && (
+                    <VStack align="start" gap={1}>
+                      <Text fontSize="xs" fontWeight="semibold">Environment Variables:</Text>
+                      <VStack gap={1} align="start">
+                        {pkg.environment_variables.map((env: any, envIdx: number) => (
+                          <HStack key={envIdx} gap={2}>
+                            <Code fontSize="xs" colorPalette="orange">
+                              {env.name}
+                            </Code>
+                            {env.is_required && (
+                              <Badge colorPalette="red" variant="outline" fontSize="xs">
+                                Required
+                              </Badge>
+                            )}
+                            <Text fontSize="xs" color="gray.600" _dark={{ color: "gray.300" }}>
+                              {env.description}
+                            </Text>
+                          </HStack>
+                        ))}
+                      </VStack>
+                    </VStack>
+                  )}
+
+                  {/* Enhanced: Setup Instructions */}
+                  {pkg.setup_instructions && (
+                    <VStack align="start" gap={1}>
+                      <Text fontSize="xs" fontWeight="semibold">Setup Instructions:</Text>
+                      <Text fontSize="xs" color="gray.600" _dark={{ color: "gray.300" }}>
+                        {pkg.setup_instructions}
+                      </Text>
+                    </VStack>
+                  )}
                 </VStack>
               ))}
+            </VStack>
+          </Card.Body>
+        </Card.Root>
+      )}
+
+      {/* Enhanced MCP Analysis (New Rich Data) */}
+      {(server as any).mcp_analysis && (
+        <Card.Root>
+          <Card.Header>
+            <HStack gap={2}>
+              <Icon color="cyan.500">🤖</Icon>
+              <Heading size="md">AI Analysis</Heading>
+              <Badge
+                colorPalette={(server as any).mcp_analysis.is_mcp_server ? "green" : "orange"}
+                variant="solid"
+              >
+                {(server as any).mcp_analysis.classification || 'Unknown'}
+              </Badge>
+              <Badge colorPalette="blue" variant="outline">
+                {Math.round(((server as any).mcp_analysis.confidence || 0) * 100)}% confidence
+              </Badge>
+            </HStack>
+          </Card.Header>
+          <Card.Body>
+            <VStack gap={4} align="stretch">
+              {/* Analysis Summary */}
+              <VStack align="start" gap={2}>
+                <Text fontSize="sm" fontWeight="semibold">Analysis Summary:</Text>
+                <Text fontSize="sm" color="gray.600" _dark={{ color: "gray.300" }}>
+                  {(server as any).mcp_analysis.reasoning || 'AI-powered analysis of MCP server capabilities and quality.'}
+                </Text>
+              </VStack>
+
+              {/* Quality Metrics */}
+              <SimpleGrid columns={{ base: 2, md: 4 }} gap={4}>
+                {(server as any).mcp_analysis.complexity && (
+                  <VStack align="start" gap={1}>
+                    <Text fontSize="xs" fontWeight="semibold">Complexity:</Text>
+                    <Badge
+                      colorPalette={
+                        (server as any).mcp_analysis.complexity === 'simple' ? 'green' :
+                        (server as any).mcp_analysis.complexity === 'moderate' ? 'yellow' : 'red'
+                      }
+                      variant="outline"
+                    >
+                      {(server as any).mcp_analysis.complexity}
+                    </Badge>
+                  </VStack>
+                )}
+
+                {(server as any).mcp_analysis.maturity_level && (
+                  <VStack align="start" gap={1}>
+                    <Text fontSize="xs" fontWeight="semibold">Maturity:</Text>
+                    <Badge
+                      colorPalette={
+                        (server as any).mcp_analysis.maturity_level === 'production' ? 'green' :
+                        (server as any).mcp_analysis.maturity_level === 'beta' ? 'yellow' : 'orange'
+                      }
+                      variant="outline"
+                    >
+                      {(server as any).mcp_analysis.maturity_level}
+                    </Badge>
+                  </VStack>
+                )}
+
+                {(server as any).mcp_analysis.has_documentation !== undefined && (
+                  <VStack align="start" gap={1}>
+                    <Text fontSize="xs" fontWeight="semibold">Documentation:</Text>
+                    <Badge
+                      colorPalette={(server as any).mcp_analysis.has_documentation ? 'green' : 'red'}
+                      variant="outline"
+                    >
+                      {(server as any).mcp_analysis.has_documentation ? 'Available' : 'Missing'}
+                    </Badge>
+                  </VStack>
+                )}
+
+                {(server as any).mcp_analysis.has_examples !== undefined && (
+                  <VStack align="start" gap={1}>
+                    <Text fontSize="xs" fontWeight="semibold">Examples:</Text>
+                    <Badge
+                      colorPalette={(server as any).mcp_analysis.has_examples ? 'green' : 'orange'}
+                      variant="outline"
+                    >
+                      {(server as any).mcp_analysis.has_examples ? 'Included' : 'None'}
+                    </Badge>
+                  </VStack>
+                )}
+              </SimpleGrid>
+
+              {/* Capabilities */}
+              {((server as any).mcp_analysis.tools?.length ||
+                (server as any).mcp_analysis.resources?.length ||
+                (server as any).mcp_analysis.prompts?.length) && (
+                <VStack align="start" gap={2}>
+                  <Text fontSize="sm" fontWeight="semibold">Detected Capabilities:</Text>
+                  <HStack gap={2} wrap="wrap">
+                    {(server as any).mcp_analysis.tools?.map((tool: string, idx: number) => (
+                      <Badge key={idx} colorPalette="blue" variant="outline" fontSize="xs">
+                        🔧 {tool}
+                      </Badge>
+                    ))}
+                    {(server as any).mcp_analysis.resources?.map((resource: string, idx: number) => (
+                      <Badge key={idx} colorPalette="green" variant="outline" fontSize="xs">
+                        📄 {resource}
+                      </Badge>
+                    ))}
+                    {(server as any).mcp_analysis.prompts?.map((prompt: string, idx: number) => (
+                      <Badge key={idx} colorPalette="purple" variant="outline" fontSize="xs">
+                        💬 {prompt}
+                      </Badge>
+                    ))}
+                  </HStack>
+                </VStack>
+              )}
+
+              {/* Platform Support */}
+              {(server as any).mcp_analysis.supported_platforms?.length > 0 && (
+                <VStack align="start" gap={2}>
+                  <Text fontSize="sm" fontWeight="semibold">Supported Platforms:</Text>
+                  <HStack gap={2} wrap="wrap">
+                    {(server as any).mcp_analysis.supported_platforms.map((platform: string, idx: number) => (
+                      <Badge key={idx} colorPalette="gray" variant="outline" fontSize="xs">
+                        {platform}
+                      </Badge>
+                    ))}
+                  </HStack>
+                </VStack>
+              )}
             </VStack>
           </Card.Body>
         </Card.Root>

@@ -13,6 +13,8 @@
     "prepublishOnly": "npm run clean && npm run build",
     "generate-client": "openapi-typescript spec/openapi-v1.yaml -o src/generated/api-types.ts && npm run build-client",
     "build-client": "node scripts/build-client.js",
+    "generate-schema": "node scripts/generate-schema.js",
+    "generate-all": "npm run generate-schema && npm run generate-client",
     "update-spec": "curl -s https://mcplookup.org/api/v1/openapi.yaml > spec/openapi-v1.yaml && npm run generate-client"
   },
   "keywords": [

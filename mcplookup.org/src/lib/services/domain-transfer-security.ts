@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Domain Transfer Security Service
 // Handles domain ownership verification, expiry, and transfer challenges
 

@@ -10,10 +10,12 @@ This monorepo contains all the core components of the MCPLookup.org platform - t
 mcplookup/
 ├── mcp-sdk/                    # @mcplookup-org/mcp-sdk@0.0.1
 │   └── src/                    # Shared SDK and utilities
-├── mcp-server/                 # @mcplookup-org/mcp-server@0.0.1  
+├── mcp-server/                 # @mcplookup-org/mcp-server@0.0.1
 │   └── src/                    # Universal MCP bridge server
 ├── mcpl-cli/                   # @mcplookup-org/mcpl-cli@0.0.1
 │   └── src/                    # Enhanced CLI management tool
+├── mcp-github-parser/          # @mcplookup-org/mcp-github-parser@1.0.0
+│   └── src/                    # GitHub repository analysis and MCP detection
 ├── mcplookup.org/              # mcplookup-registry@0.0.1
 │   └── src/                    # Discovery service website & API
 ├── package.json                # Workspace configuration
@@ -44,6 +46,7 @@ npm run dev:web      # Next.js web app
 npm run dev:sdk      # SDK development
 npm run dev:server   # Bridge server
 npm run dev:cli      # CLI tool
+npm run dev:parser   # GitHub parser development
 ```
 
 ### Building
@@ -53,6 +56,10 @@ npm run build
 
 # Build specific packages
 npm run build:sdk    # Just the SDK
+npm run build:parser # Just the GitHub parser
+
+# Demo specific packages
+npm run demo:parser  # Run GitHub parser demo
 ```
 
 ## 🔧 Development Workflow
@@ -104,8 +111,9 @@ The web app (`mcplookup.org`) deploys to Vercel independently.
 ## 🔗 Individual Project Links
 
 - **[mcp-sdk](./mcp-sdk/README.md)** - Shared SDK and utilities
-- **[mcp-server](./mcp-server/README.md)** - Universal bridge server  
+- **[mcp-server](./mcp-server/README.md)** - Universal bridge server
 - **[mcpl-cli](./mcpl-cli/README.md)** - CLI management tool
+- **[mcp-github-parser](./mcp-github-parser/README.md)** - GitHub repository analysis and MCP detection
 - **[mcplookup.org](./mcplookup.org/README.md)** - Web app and API
 
 ---
