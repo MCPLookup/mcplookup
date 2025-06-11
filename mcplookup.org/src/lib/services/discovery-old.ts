@@ -2,10 +2,10 @@
 // Discovery Service - GitHub-search-driven discovery with Redis caching
 // UPDATED: Now uses SDK types exclusively - no more transformations!
 
-import { 
+import {
   MCPServer,
   GitHubRepoWithInstallation,
-  transformGitHubRepoToMCPServer
+  buildMCPServerFromGitHubRepo
 } from '@mcplookup-org/mcp-sdk';
 
 // Use SDK types everywhere - no more custom types!
@@ -990,7 +990,7 @@ export class DiscoveryService implements IDiscoveryService {
    */
   private transformGitHubParserResult(githubRepo: GitHubRepoWithInstallation): MCPServerRecord {
     // Use SDK transformation directly - no more duplication!
-    return transformGitHubRepoToMCPServer(githubRepo);
+    return buildMCPServerFromGitHubRepo(githubRepo);
   }
 
   /**

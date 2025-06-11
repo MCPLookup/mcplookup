@@ -19,10 +19,10 @@ export {
   PackageInfo,
   VerificationStatus,
   GitHubRepoWithInstallation,
-  transformGitHubRepoToMCPServer,
+  buildMCPServerFromGitHubRepo,
   InstallationContext,
   ResolvedPackage
-} from '@mcplookup-org/mcp-sdk/types/generated';
+} from '@mcplookup-org/mcp-sdk';
 
 // DEPRECATED - Remove these custom types:
 // - MCPServerRecord (use MCPServer instead)

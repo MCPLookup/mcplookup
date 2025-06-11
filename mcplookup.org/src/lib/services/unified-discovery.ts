@@ -2,10 +2,10 @@
 // Unified Discovery Service - No More Transformations!
 // Uses SDK types everywhere, stores rich objects
 
-import { 
+import {
   MCPServer,
   GitHubRepoWithInstallation,
-  transformGitHubRepoToMCPServer 
+  buildMCPServerFromGitHubRepo
 } from '@mcplookup-org/mcp-sdk';
 import { StoredServerData } from '../types/unified';
 
@@ -58,7 +58,7 @@ export class UnifiedDiscoveryService {
   private async processNewRepos(githubRepos: GitHubRepoWithInstallation[]): Promise<void> {
     for (const githubRepo of githubRepos) {
       // Single transformation using SDK
-      const mcpServer = transformGitHubRepoToMCPServer(githubRepo);
+      const mcpServer = buildMCPServerFromGitHubRepo(githubRepo);
       
       // Wrap with metadata
       const storedData: StoredServerData = {

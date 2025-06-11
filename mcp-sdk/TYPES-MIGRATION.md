@@ -96,9 +96,9 @@ npm install @mcplookup-org/mcp-sdk@1.2.0
 ```
 
 ### **3. Remove Duplicate Types**
-- [ ] Remove `src/types/mcp-server.ts` (496 lines of manual types)
-- [ ] Update all imports to use `types/generated`
-- [ ] Clean up any remaining manual type definitions
+- [x] Remove `src/types/mcp-server.ts` (496 lines of manual types)
+- [x] Update all imports to use `types/generated`
+- [x] Clean up any remaining manual type definitions
 
 ### **4. Type Generation Workflow**
 ```bash
