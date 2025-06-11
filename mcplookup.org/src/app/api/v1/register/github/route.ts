@@ -618,16 +618,16 @@ function extractMCPAnalysisFromParser(parserResult: GitHubRepoWithInstallation) 
   const methods = parserResult.installationMethods;
 
   // Find Claude Desktop configuration
-  const claudeMethod = methods.find(m => m.type === 'claude_desktop');
+  const claudeMethod = methods.find(m => (m as any).type === 'claude_desktop');
 
   // Extract npm package info
-  const npmMethod = methods.find(m => m.subtype === 'npm');
+  const npmMethod = methods.find(m => (m as any).subtype === 'npm');
 
   // Extract environment variables
   const envVars: string[] = [];
   methods.forEach(method => {
-    if (method.environment_vars) {
-      envVars.push(...Object.keys(method.environment_vars));
+    if ((method as any).environment_vars) {
+      envVars.push(...Object.keys((method as any).environment_vars));
     }
   });
 

@@ -2,7 +2,7 @@
 // Shared logic for package resolution, installation methods, and configuration
 
 import { MCPLookupAPIClient } from '../generated/api-client.js';
-import { InstallationContext, ResolvedPackage } from '../types/generated.js';
+import { InstallationContext, ResolvedPackage, InstallationMethod } from '../types/generated.js';
 
 export class InstallationResolver {
   private client: MCPLookupAPIClient;

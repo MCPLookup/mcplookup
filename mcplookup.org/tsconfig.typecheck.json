@@ -7,4 +7,9 @@
     "sourceMap": false,
     "types": ["vitest/globals", "@testing-library/jest-dom", "node"]
   }
+  ,
+  "exclude": [
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx"
+  ]
 }

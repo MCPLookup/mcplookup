@@ -2,7 +2,7 @@
 // Replace all custom types with SDK-generated types
 
 // Import ALL types from SDK
-export {
+export type {
   MCPServer,
   InstallationMethod,
   EnvironmentVariable,
@@ -19,10 +19,11 @@ export {
   PackageInfo,
   VerificationStatus,
   GitHubRepoWithInstallation,
-  buildMCPServerFromGitHubRepo,
   InstallationContext,
   ResolvedPackage
 } from '@mcplookup-org/mcp-sdk';
+
+export { buildMCPServerFromGitHubRepo } from '@mcplookup-org/mcp-sdk';
 
 // DEPRECATED - Remove these custom types:
 // - MCPServerRecord (use MCPServer instead)
