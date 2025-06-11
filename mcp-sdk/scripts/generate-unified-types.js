@@ -54,14 +54,22 @@ export type SourceInfo = components['schemas']['SourceInfo'];
 export type PackageInfo = components['schemas']['PackageInfo'];
 export type VerificationStatus = components['schemas']['VerificationStatus'];
 
+// === GITHUB TYPES ===
+export type GitHubRepoWithInstallation = components['schemas']['GitHubRepoWithInstallation'];
+export type GitHubRepository = components['schemas']['GitHubRepository'];
+export type FileContent = components['schemas']['FileContent'];
+export type ComputedMetrics = components['schemas']['ComputedMetrics'];
+export type ParsingMetadata = components['schemas']['ParsingMetadata'];
+
 // === MCP PROTOCOL TYPES (Generated) ===
-export type MCPTool = components['schemas']['MCPTool'];
-export type MCPResource = components['schemas']['MCPResource'];
-export type MCPServerInfo = components['schemas']['MCPServerInfo'];
-export type HealthMetrics = components['schemas']['HealthMetrics'];
-export type Verification = components['schemas']['Verification'];
-export type TransportCapabilities = components['schemas']['TransportCapabilities'];
-export type OpenAPIDocumentation = components['schemas']['OpenAPIDocumentation'];
+// Advanced MCP protocol types (not in v1 schema)
+// export type MCPTool = components['schemas']['MCPTool'];
+// export type MCPResource = components['schemas']['MCPResource'];
+// export type MCPServerInfo = components['schemas']['MCPServerInfo'];
+// export type HealthMetrics = components['schemas']['HealthMetrics'];
+// export type Verification = components['schemas']['Verification'];
+// export type TransportCapabilities = components['schemas']['TransportCapabilities'];
+// export type OpenAPIDocumentation = components['schemas']['OpenAPIDocumentation'];
 
 // === UTILITY TYPES (SDK-specific, not generated) ===
 

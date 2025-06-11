@@ -18,6 +18,11 @@ export interface MCPServer {
   domain: string;                       // Same as id for compatibility
   name: string;
   description: string;
+  tagline?: string;                    // One-line summary
+  category?: 'development' | 'data' | 'communication' | 'api-integration' | 'utility' | 'other';
+  subcategories?: string[];
+  tags?: string[];
+  use_cases?: string[];
   endpoint?: string;                    // Optional live endpoint
 
   // GitHub Repository Data (complete)

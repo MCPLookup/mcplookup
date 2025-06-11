@@ -128,7 +128,7 @@ export class RegistryService implements IRegistryService {
     const capabilities = new Set<string>();
 
     allServers.forEach(server => {
-      if (server.capabilities.tools.includes(capability)) {
+      if (server.capabilities?.tools?.includes(capability)) {
         server.capabilities.tools.forEach(tool => capabilities.add(tool));
       }
     });
@@ -189,7 +189,8 @@ export class RegistryService implements IRegistryService {
     const categories: Record<string, number> = {};
 
     allServers.forEach(server => {
-      categories[server.category] = (categories[server.category] || 0) + 1;
+      const cat = server.category ?? 'unknown';
+      categories[cat] = (categories[cat] || 0) + 1;
     });
 
     return {

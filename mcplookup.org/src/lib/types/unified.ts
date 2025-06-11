@@ -2,6 +2,26 @@
 // Replace all custom types with SDK-generated types
 
 // Import ALL types from SDK
+import type {
+  MCPServer,
+  InstallationMethod,
+  EnvironmentVariable,
+  QualityMetrics,
+  PopularityMetrics,
+  InstallationInfo,
+  EnvironmentConfig,
+  ClaudeIntegration,
+  DocumentationInfo,
+  ServerCapabilities,
+  AvailabilityInfo,
+  APIConfiguration,
+  SourceInfo,
+  PackageInfo,
+  VerificationStatus,
+  GitHubRepoWithInstallation,
+  InstallationContext,
+  ResolvedPackage
+} from '@mcplookup-org/mcp-sdk';
 export type {
   MCPServer,
   InstallationMethod,

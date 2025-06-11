@@ -633,9 +633,9 @@ function extractMCPAnalysisFromParser(parserResult: GitHubRepoWithInstallation) 
 
   return {
     has_mcp_config: !!claudeMethod,
-    claude_configs: claudeMethod ? [claudeMethod.mcp_config] : [],
-    npm_package: npmMethod?.dependencies ? Object.keys(npmMethod.dependencies)[0] : null,
-    installation_command: methods[0]?.commands?.[0] || null,
+    claude_configs: claudeMethod ? [(claudeMethod as any).mcp_config] : [],
+    npm_package: (npmMethod as any)?.dependencies ? Object.keys((npmMethod as any).dependencies)[0] : null,
+    installation_command: (methods[0] as any)?.commands?.[0] || null,
     environment_variables: [...new Set(envVars)],
     suggested_endpoint: null, // Not available from parser
     suggested_auth_type: computed?.requiresEnvironmentVars ? 'api_key' : 'none'

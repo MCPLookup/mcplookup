@@ -36,8 +36,8 @@ export class UnifiedRedisStorage {
     const searchText = [
       server.name,
       server.description,
-      ...server.tags,
-      ...server.subcategories,
+      ...(server.tags ?? []),
+      ...(server.subcategories ?? []),
       server.repository.language
     ].filter(Boolean).join(' ').toLowerCase();
     
