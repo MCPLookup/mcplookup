@@ -1,3 +1,5 @@
+import type { components } from '../generated/api-types.js';
+
 /**
  * Installation Method Types
  * Source of truth for all installation-related data structures
@@ -84,28 +86,7 @@ export interface InstallationEndpoint {
   description: string;
 }
 
-export interface InstallationMethod {
-  type: InstallationType;
-  title: string;
-  description: string;
-  category: InstallationCategory;
-  subtype?: InstallationSubtype;
-  commands?: string[];
-  platform?: InstallationPlatform;
-  config_content?: string;
-  config_file_path?: string;
-  variables?: Record<string, string>;
-  mcp_config?: MCPConfig;
-  environment_vars?: Record<string, string>;
-  ports?: number[];
-  endpoints?: InstallationEndpoint[];
-  transport?: TransportType;
-  test_commands?: string[];
-  expected_output?: string;
-  test_url?: string;
-  requirements?: string[];
-  dependencies?: Record<string, string>;
-}
+export type InstallationMethod = components['schemas']['InstallationMethod'];
 
 export interface EnvironmentVariable {
   name: string;

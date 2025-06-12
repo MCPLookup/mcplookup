@@ -2,7 +2,8 @@
 // High-level service for discovering and retrieving structured server data
 
 import redis from 'redis';
-import { RedisServerTransformer, ServerMetadata, InstallationMethod } from './server-transformer';
+import { RedisServerTransformer, ServerMetadata } from './server-transformer';
+import type { InstallationMethod } from '@mcplookup-org/mcp-sdk';
 
 export interface DiscoveryParams {
   query?: string;
@@ -106,7 +107,7 @@ export class RedisDiscoveryService {
         // Installation method preference
         if (preferredInstallMethod) {
           const hasPreferredMethod = server.installationMethods.some(
-            method => method.type === preferredInstallMethod
+            method => method.subtype === (preferredInstallMethod === 'python' ? 'pip' : preferredInstallMethod === 'docker' ? 'docker_pull' : preferredInstallMethod)
           );
           if (!hasPreferredMethod) return false;
         }
@@ -162,10 +163,10 @@ export class RedisDiscoveryService {
     const servers = await this.loadServers(categoryIds);
     
     return {
-      npm: servers.filter(s => s.installationMethods.some(m => m.type === 'npm')),
-      python: servers.filter(s => s.installationMethods.some(m => m.type === 'python')),
-      docker: servers.filter(s => s.installationMethods.some(m => m.type === 'docker')),
-      git: servers.filter(s => s.installationMethods.some(m => m.type === 'git'))
+      npm: servers.filter(s => s.installationMethods.some(m => m.subtype === 'npm')),
+      python: servers.filter(s => s.installationMethods.some(m => m.subtype === 'pip')),
+      docker: servers.filter(s => s.installationMethods.some(m => m.subtype === 'docker_pull')),
+      git: servers.filter(s => s.installationMethods.some(m => m.subtype === 'git_clone'))
     };
   }
 
@@ -177,7 +178,10 @@ export class RedisDiscoveryService {
     const servers = await this.loadServers(deploymentIds);
     
     return servers
-      .filter(server => server.quality.score >= 80)
+      .filter(server =>
+        server.installationMethods.some(m => m.subtype === (installationType === 'python' ? 'pip' : installationType === 'docker' ? 'docker_pull' : installationType)) &&
+        server.quality.score >= 80
+      )
       .sort((a, b) => b.quality.score - a.quality.score)
       .slice(0, 50);
   }
@@ -348,7 +352,7 @@ export class RedisDiscoveryService {
     const preferences = ['npm', 'python', 'docker', 'git'];
     
     for (const preferred of preferences) {
-      const method = server.installationMethods.find(m => m.type === preferred);
+      const method = server.installationMethods.find(m => m.subtype === (preferred === 'python' ? 'pip' : preferred === 'docker' ? 'docker_pull' : preferred));
       if (method) return method;
     }
     
@@ -360,7 +364,8 @@ export class RedisDiscoveryService {
     
     server.environmentVariables.forEach(envVar => {
       if (envVar.required) {
-        setup.push(`export ${envVar.name}="your_${envVar.name.toLowerCase()}"`);
+        const name = envVar.name || 'VAR';
+        setup.push(`export ${name}="your_${name.toLowerCase()}"`);
       }
     });
     
@@ -390,7 +395,7 @@ export class RedisDiscoveryService {
   private async generateFilters(servers: ServerMetadata[]) {
     const categories = [...new Set(servers.map(s => s.category))];
     const installationTypes = [...new Set(
-      servers.flatMap(s => s.installationMethods.map(m => m.type))
+      servers.flatMap(s => s.installationMethods.map(m => m.subtype || 'unknown'))
     )];
     const qualities = servers.map(s => s.quality.score);
     

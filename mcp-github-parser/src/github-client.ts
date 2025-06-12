@@ -189,7 +189,7 @@ export class GitHubClient {
     return {
       repository: enhancedRepo,
       files,
-      installationMethods: aiAnalysis.installationMethods as any, // TODO: Fix type compatibility
+      installationMethods: aiAnalysis.installationMethods as any,
       parsingMetadata,
       computed
     };
@@ -787,8 +787,6 @@ export class GitHubClient {
     }
   }
 
-  // TODO: Add proper type transformation when AI response format is updated
-
   /**
    * Compute additional repository metrics
    */
@@ -1192,7 +1190,7 @@ export class GitHubClient {
     };    return {
       repository: detailedRepo,
       files,
-      installationMethods: aiAnalysis.installationMethods as any, // TODO: Fix type compatibility
+      installationMethods: aiAnalysis.installationMethods as any,
       parsingMetadata,
       computed: {
         ...aiAnalysis.computed,

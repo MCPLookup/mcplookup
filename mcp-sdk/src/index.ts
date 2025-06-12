@@ -43,8 +43,9 @@ export type {
   TransportType,
   MCPConfig,
   InstallationEndpoint,
-  InstallationMethod
 } from './types/installation.js';
+
+export type { InstallationMethod } from './types/generated.js';
 
 export type {
   MCPClassification,

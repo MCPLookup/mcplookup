@@ -23,27 +23,151 @@ InstallationMethod:
   properties:
     type:
       type: string
-      enum: [npm, python, docker, git, live_service]
-    package:
+      enum: [installation, configuration, claude_desktop, vscode, deployment, testing]
+    title:
       type: string
-      description: Package name
-      example: "mcp-server-baidu-maps"
-    command:
+    description:
       type: string
-      description: Installation command
-      example: "pip install mcp-server-baidu-maps"
-    registry:
+    category:
       type: string
-      description: Package registry
-      example: "pypi"
-    version:
+      enum: [setup, build, deploy, configure, test, run]
+    subtype:
       type: string
-      description: Package version
-    complexity:
+      enum:
+        - pip
+        - conda
+        - poetry
+        - pipenv
+        - setup_py
+        - pyproject_toml
+        - requirements_txt
+        - venv
+        - virtualenv
+        - npm
+        - yarn
+        - pnpm
+        - npm_global
+        - npx
+        - package_json
+        - go_get
+        - go_install
+        - go_mod
+        - go_build
+        - go_run
+        - go_mod_tidy
+        - cargo_install
+        - cargo_build
+        - cargo_run
+        - cargo_test
+        - cargo_features
+        - docker_build
+        - docker_run
+        - docker_compose
+        - dockerfile
+        - docker_pull
+        - brew
+        - apt
+        - yum
+        - dnf
+        - chocolatey
+        - winget
+        - snap
+        - flatpak
+        - make
+        - cmake
+        - gradle
+        - maven
+        - bazel
+        - ninja
+        - "git+uv"
+        - git_clone
+        - git_submodule
+        - git_pull
+        - package_manager
+        - environment_vars
+        - json_config
+        - yaml_config
+        - ini_config
+        - toml_config
+        - manual_config
+        - docker_config
+        - mcp_json
+        - settings_json
+        - workspace_config
+        - server_start
+        - service_start
+        - background_process
+        - curl_test
+        - inspector_test
+        - unit_test
+        - integration_test
+    commands:
+      type: array
+      items:
+        type: string
+    platform:
       type: string
-      enum: [simple, moderate, complex]
+      enum: [python, javascript, typescript, go, rust, java, csharp, cpp, php, ruby, nodejs, deno, bun, docker, kubernetes, podman, linux, macos, windows, cross_platform, claude_desktop, vscode, mcp_client, system_service, cloud, serverless, web_server]
+    config_content:
+      type: string
+    config_file_path:
+      type: string
+    variables:
+      type: object
+      additionalProperties:
+        type: string
+    mcp_config:
+      type: object
+      properties:
+        server_name:
+          type: string
+        command:
+          type: string
+        args:
+          type: array
+          items:
+            type: string
+        env:
+          type: object
+          additionalProperties:
+            type: string
+    environment_vars:
+      type: object
+      additionalProperties:
+        type: string
+    ports:
+      type: array
+      items:
+        type: number
+    endpoints:
+      type: array
+      items:
+        type: object
+        properties:
+          url:
+            type: string
+          transport:
+            type: string
+          description:
+            type: string
+        required: [url, transport, description]
+    transport:
+      type: string
+      enum: [stdio, sse, websocket, tcp, http]
+    test_commands:
+      type: array
+      items:
+        type: string
+    expected_output:
+      type: string
+    test_url:
+      type: string
     requirements:
       type: array
       items:
         type: string
-      description: Prerequisites for this method
+    dependencies:
+      type: object
+      additionalProperties:
+        type: string
+  required: [type, title, description, category]
