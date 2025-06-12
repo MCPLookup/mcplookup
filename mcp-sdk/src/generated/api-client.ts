@@ -105,13 +105,106 @@ export class MCPLookupAPIClient {
   }
 
   /**
+   * Generic discovery endpoint
+   */
+  async discover(params: Record<string, any>) {
+    const { data, error } = await this.client.POST('/discover' as any, {
+      body: params
+    });
+
+    if (error) {
+      throw new Error(`Discovery failed: ${error}`);
+    }
+
+    return data;
+  }
+
+  /**
+   * Register a new MCP server
+   */
+  async registerServer(details: {
+    domain: string;
+    endpoint: string;
+    contact_email: string;
+    description?: string;
+  }) {
+    const { data, error } = await this.client.POST('/register' as any, {
+      body: details
+    });
+
+    if (error) {
+      throw new Error(`Registration failed: ${error}`);
+    }
+
+    return data;
+  }
+
+  /**
+   * Verify DNS challenge
+   */
+  async startDomainVerification(challengeId: string) {
+    const { data, error } = await this.client.POST('/register/verify/{challengeId}' as any, {
+      params: { path: { challengeId } }
+    });
+
+    if (error) {
+      throw new Error(`Verification failed: ${error}`);
+    }
+
+    return data;
+  }
+
+  /**
+   * Check domain ownership status
+   */
+  async checkDomainOwnership(challengeId: string) {
+    const { data, error } = await this.client.GET('/register/status/{challengeId}' as any, {
+      params: { path: { challengeId } }
+    });
+
+    if (error) {
+      throw new Error(`Ownership check failed: ${error}`);
+    }
+
+    return data;
+  }
+
+  /**
+   * Get server health information
+   */
+  async getServerHealth(domain: string, realtime = false) {
+    const { data, error } = await this.client.GET('/health/{domain}' as any, {
+      params: { path: { domain }, query: { realtime } }
+    });
+
+    if (error) {
+      throw new Error(`Health check failed: ${error}`);
+    }
+
+    return data;
+  }
+
+  /**
+   * Get onboarding progress for the authenticated user
+   */
+  async getOnboardingState() {
+    const { data, error } = await this.client.GET('/onboarding' as any, {});
+
+    if (error) {
+      throw new Error(`Failed to get onboarding state: ${error}`);
+    }
+
+    return data;
+  }
+
+  /**
    * Update the base URL for the client
    */
   setBaseUrl(url: string) {
     this.baseUrl = url;
-    this.client = createClient<paths>({ 
+    this.client = createClient<paths>({
       baseUrl: url,
-      headers: {}
+      headers: (this.client as any).defaults?.headers || {}
     });
   }
 

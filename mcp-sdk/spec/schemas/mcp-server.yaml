@@ -193,5 +193,3 @@ StoredServerData:
   required:
     - server
     - metadata
-      format: date-time
-      description: Last updated in registry

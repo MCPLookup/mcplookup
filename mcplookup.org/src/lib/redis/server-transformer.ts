@@ -53,30 +53,7 @@ export interface ServerMetadata {
   lastFiltered: string;
 }
 
-export interface InstallationMethod {
-  type: 'npm' | 'python' | 'docker' | 'git';
-  command: string;
-  package?: string;
-  setupInstructions?: string;
-  requiresGlobal?: boolean;
-  runtimeRequirements?: RuntimeRequirements;
-}
-
-export interface PackageInfo {
-  registryName: string;
-  name: string;
-  version: string;
-  installationCommand: string;
-  setupInstructions?: string;
-}
-
-export interface EnvironmentVariable {
-  name: string;
-  type?: string;
-  required: boolean;
-  description?: string;
-  defaultValue?: string;
-}
+import type { InstallationMethod, PackageInfo, EnvironmentVariable, InstallationSubtype } from '@mcplookup-org/mcp-sdk';
 
 export interface DockerMetadata {
   hasDocker: boolean;
@@ -215,14 +192,15 @@ export class RedisServerTransformer {
     const structuredMethods = this.parseArrayField(data['structured.installation.methods']);
     if (structuredMethods.length > 0) {
       structuredMethods.forEach((method: any) => {
-        if (typeof method === 'object' && method.type) {
+        if (typeof method === 'object' && (method.type || method.subtype)) {
           methods.push({
-            type: method.type,
-            command: method.command || '',
-            package: method.package,
-            setupInstructions: method.setupInstructions,
-            requiresGlobal: method.requiresGlobal,
-            runtimeRequirements: this.parseRuntimeRequirements(data, method.type)
+            type: 'installation',
+            title: method.title || '',
+            description: method.description || '',
+            category: method.category || 'setup',
+            subtype: method.subtype || method.type,
+            commands: method.commands || (method.command ? [method.command] : []),
+            requirements: method.requirements || []
           });
         }
       });
@@ -231,23 +209,28 @@ export class RedisServerTransformer {
     // Add NPM method if npm package exists
     if (data['_source_data.npm_package']) {
       methods.push({
-        type: 'npm',
-        command: `npm install ${data['_source_data.npm_package']}`,
-        package: data['_source_data.npm_package'],
-        runtimeRequirements: this.parseRuntimeRequirements(data, 'npm')
+        type: 'installation',
+        title: `Install ${data['_source_data.npm_package']}`,
+        description: '',
+        category: 'setup',
+        subtype: 'npm',
+        commands: [`npm install ${data['_source_data.npm_package']}`]
       });
     }
     
     // Add installation command if available
     if (data['_source_data.installation_command']) {
       const command = data['_source_data.installation_command'];
-      const type = this.detectInstallationType(command);
-      methods.push({
-        type,
-        command,
-        runtimeRequirements: this.parseRuntimeRequirements(data, type)
-      });
-    }
+        const type = this.detectInstallationType(command);
+        methods.push({
+          type: 'installation',
+          title: `Install via ${type}`,
+          description: '',
+          category: 'setup',
+          subtype: this.mapSubtype(type),
+          commands: [command]
+        });
+      }
     
     return methods;
   }
@@ -278,10 +261,11 @@ export class RedisServerTransformer {
         } else if (typeof envVar === 'object') {
           envVars.push({
             name: envVar.name || '',
-            type: envVar.type,
             required: envVar.required !== false,
             description: envVar.description,
-            defaultValue: envVar.defaultValue
+            default: envVar.defaultValue,
+            example: envVar.example,
+            validation: envVar.validation
           });
         }
       });
@@ -293,9 +277,11 @@ export class RedisServerTransformer {
       Object.entries(sourceEnv.properties).forEach(([name, config]: [string, any]) => {
         envVars.push({
           name,
-          type: config.type,
           required: config.required !== false,
-          description: config.description
+          description: config.description,
+          default: config.default,
+          example: config.example,
+          validation: config.validation
         });
       });
     }
@@ -359,6 +345,16 @@ export class RedisServerTransformer {
     }
     
     return requirements;
+  }
+
+  private mapSubtype(type: string): InstallationSubtype | undefined {
+    switch (type) {
+      case 'npm': return 'npm';
+      case 'python': return 'pip';
+      case 'docker': return 'docker_pull';
+      case 'git': return 'git_clone';
+      default: return undefined;
+    }
   }
 
   // Utility methods

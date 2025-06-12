@@ -3,6 +3,7 @@
 
 import { MCPLookupAPIClient } from '../generated/api-client.js';
 import { InstallationContext, ResolvedPackage, InstallationMethod } from '../types/generated.js';
+import type { InstallationSubtype } from '../types/installation.js';
 
 export class InstallationResolver {
   private client: MCPLookupAPIClient;
@@ -130,13 +131,26 @@ export class InstallationResolver {
 
   private convertToInstallationMethod(apiMethod: any): InstallationMethod {
     return {
-      type: apiMethod.type || 'npm',
-      package: apiMethod.package,
-      command: apiMethod.command || '',
-      registry: apiMethod.registry,
-      version: apiMethod.version,
-      complexity: apiMethod.complexity || 'simple',
-      requirements: apiMethod.requirements || []
+      type: apiMethod.type || 'installation',
+      title: apiMethod.title || apiMethod.command || 'Install',
+      description: apiMethod.description || '',
+      category: apiMethod.category || 'setup',
+      subtype: apiMethod.subtype,
+      commands: apiMethod.commands || (apiMethod.command ? [apiMethod.command] : []),
+      platform: apiMethod.platform,
+      config_content: apiMethod.config_content,
+      config_file_path: apiMethod.config_file_path,
+      variables: apiMethod.variables,
+      mcp_config: apiMethod.mcp_config,
+      environment_vars: apiMethod.environment_vars,
+      ports: apiMethod.ports,
+      endpoints: apiMethod.endpoints,
+      transport: apiMethod.transport,
+      test_commands: apiMethod.test_commands,
+      expected_output: apiMethod.expected_output,
+      test_url: apiMethod.test_url,
+      requirements: apiMethod.requirements,
+      dependencies: apiMethod.dependencies
     };
   }
 
@@ -178,9 +192,9 @@ export class InstallationResolver {
           description: server.description,
           type: this.determinePackageType(server),
           source: 'smart_search',
-          verified: server.verification?.status === 'verified',
-          installation: server.installation,
-          claude_integration: server.claude_integration
+          verified: server.verification_status === 'verified',
+          installation: server.installationMethods,
+          claude_integration: (server as any).claude_integration
         };
       }
 
@@ -296,11 +310,12 @@ export class InstallationResolver {
     context: InstallationContext
   ): InstallationMethod {
     return {
-      type: resolvedPackage.type,
-      package: resolvedPackage.packageName,
-      command: this.getDefaultCommand(resolvedPackage, context),
-      registry: this.getRegistryForType(resolvedPackage.type),
-      complexity: 'simple',
+      type: 'installation',
+      title: `Install ${resolvedPackage.packageName}`,
+      description: '',
+      category: 'setup',
+      subtype: this.mapSubtype(resolvedPackage.type),
+      commands: [this.getDefaultCommand(resolvedPackage, context)],
       requirements: this.getRequirementsForType(resolvedPackage.type)
     };
   }
@@ -320,6 +335,16 @@ export class InstallationResolver {
       case 'python': return ['Python >= 3.8', 'uv or pip'];
       case 'docker': return ['Docker'];
       default: return [];
+    }
+  }
+
+  private mapSubtype(type: string): InstallationSubtype | undefined {
+    switch (type) {
+      case 'npm': return 'npm';
+      case 'python': return 'pip';
+      case 'docker': return 'docker_pull';
+      case 'git': return 'git_clone';
+      default: return undefined;
     }
   }
 

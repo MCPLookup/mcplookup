@@ -257,33 +257,50 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** @description Complete MCP server record optimized for discovery and installation */
+        /** @description Complete MCP server record - USE THIS EVERYWHERE (replaces MCPServerRecord, GitHubRepoAnalysis, etc.) */
         MCPServer: {
             /**
              * @description Unique server identifier
              * @example github.com/baidu-maps/mcp
              */
-            id?: string;
+            id: string;
+            /**
+             * @description Domain (same as id for compatibility)
+             * @example github.com/baidu-maps/mcp
+             */
+            domain: string;
             /**
              * @description Server name
              * @example Baidu Maps MCP
              */
-            name?: string;
+            name: string;
             /**
              * @description Human-readable description
              * @example 百度地图MCP Server for location services
              */
-            description?: string;
+            description: string;
             /**
-             * @description One-line summary for search results
-             * @example Location services and mapping for Claude
+             * Format: uri
+             * @description Optional live endpoint URL
+             * @example https://api.baidu-maps.com/mcp
              */
-            tagline?: string;
+            endpoint?: string;
+            repository?: components["schemas"]["GitHubRepository"];
+            /** @description Downloaded key files (README, package.json, etc.) */
+            files?: components["schemas"]["FileContent"][];
+            /** @description AI-computed analysis and classification */
+            computed?: components["schemas"]["ComputedMetrics"];
+            /** @description Parser metadata and version info */
+            parsingMetadata?: components["schemas"]["ParsingMetadata"];
+            /** @description Complete installation methods from parser */
+            installationMethods?: components["schemas"]["InstallationMethod"][];
+            /** @description All available packages across registries */
+            packages?: components["schemas"]["PackageInfo"][];
             /**
              * @description Primary category for filtering
              * @enum {string}
              */
-            category?: "development" | "data" | "communication" | "api-integration" | "utility" | "other";
+            category: "development" | "data" | "communication" | "api-integration" | "utility" | "other";
             /**
              * @description Technology/language tags
              * @example [
@@ -312,29 +329,172 @@ export interface components {
              *     ]
              */
             use_cases?: string[];
-            quality?: components["schemas"]["QualityMetrics"];
-            popularity?: components["schemas"]["PopularityMetrics"];
-            installation?: components["schemas"]["InstallationInfo"];
-            environment?: components["schemas"]["EnvironmentConfig"];
-            claude_integration?: components["schemas"]["ClaudeIntegration"];
-            documentation?: components["schemas"]["DocumentationInfo"];
             capabilities?: components["schemas"]["ServerCapabilities"];
-            availability?: components["schemas"]["AvailabilityInfo"];
-            api?: components["schemas"]["APIConfiguration"];
-            source?: components["schemas"]["SourceInfo"];
-            /** @description All available packages across registries */
-            packages?: components["schemas"]["PackageInfo"][];
-            verification?: components["schemas"]["VerificationStatus"];
+            quality: components["schemas"]["QualityMetrics"];
+            popularity?: components["schemas"]["PopularityMetrics"];
+            /** @description Trust score (0-100) */
+            trust_score: number;
+            /**
+             * @description Verification status
+             * @enum {string}
+             */
+            verification_status: "verified" | "unverified" | "pending" | "rejected";
+            availability: components["schemas"]["AvailabilityInfo"];
             /**
              * Format: date-time
              * @description First discovered/registered
              */
-            created_at?: string;
+            created_at: string;
             /**
              * Format: date-time
-             * @description Last updated in registry
+             * @description Last updated
              */
-            updated_at?: string;
+            updated_at: string;
+            /** @description Repository maintainer info */
+            maintainer?: {
+                name?: string;
+                /** Format: uri */
+                url?: string;
+            };
+        };
+        /** @description Direct output from mcp-github-parser - use as-is */
+        GitHubRepoWithInstallation: {
+            repository: components["schemas"]["GitHubRepository"];
+            files?: components["schemas"]["FileContent"][];
+            installationMethods: components["schemas"]["InstallationMethod"][];
+            parsingMetadata: components["schemas"]["ParsingMetadata"];
+            computed?: components["schemas"]["ComputedMetrics"];
+        };
+        /** @description Storage format for complete server data */
+        StoredServerData: {
+            server: components["schemas"]["MCPServer"];
+            metadata: {
+                /** Format: date-time */
+                discoveredAt: string;
+                /** Format: date-time */
+                lastAnalyzed: string;
+                sourceQuery?: string;
+                /** @enum {string} */
+                registrationSource: "github_auto" | "manual" | "api";
+            };
+            original?: {
+                githubRepo?: components["schemas"]["GitHubRepoWithInstallation"];
+                parserVersion?: string;
+            };
+        };
+        /** @description Complete GitHub repository information */
+        GitHubRepository: {
+            /** @description GitHub repository ID */
+            id: number;
+            /**
+             * @description Full repository name (owner/repo)
+             * @example baidu-maps/mcp
+             */
+            fullName: string;
+            /**
+             * @description Repository name
+             * @example mcp
+             */
+            name: string;
+            /** @description Repository description */
+            description?: string;
+            /**
+             * Format: uri
+             * @description Repository URL
+             */
+            htmlUrl: string;
+            /**
+             * Format: uri
+             * @description Clone URL
+             */
+            cloneUrl: string;
+            /** @description Star count */
+            stars: number;
+            /** @description Fork count */
+            forks: number;
+            /** @description Primary language */
+            language?: string;
+            /** @description Repository topics */
+            topics?: string[];
+            license?: {
+                name?: string;
+                spdxId?: string;
+            };
+            owner?: {
+                login?: string;
+                type?: string;
+            };
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string;
+            /** Format: date-time */
+            pushedAt?: string;
+        };
+        /** @description Downloaded file content */
+        FileContent: {
+            /** @description File path */
+            path: string;
+            /** @description File content */
+            content: string;
+            /** @description File encoding */
+            encoding?: string;
+        };
+        /** @description AI-computed analysis and classification */
+        ComputedMetrics: {
+            /** @description Whether this is identified as an MCP server */
+            isMcpServer?: boolean;
+            /** @description MCP server classification */
+            mcpClassification?: string;
+            /** @description Confidence score (0-1) */
+            mcpConfidence?: number;
+            /** @description AI reasoning for classification */
+            mcpReasoning?: string;
+            /**
+             * @description Installation complexity
+             * @enum {string}
+             */
+            complexity?: "simple" | "moderate" | "complex";
+            /**
+             * @description Installation difficulty
+             * @enum {string}
+             */
+            installationDifficulty?: "easy" | "medium" | "hard";
+            /**
+             * @description Project maturity
+             * @enum {string}
+             */
+            maturityLevel?: "experimental" | "beta" | "stable" | "mature";
+            /** @description Supported platforms */
+            supportedPlatforms?: string[];
+            /** @description Detected MCP tools */
+            mcpTools?: string[];
+            /** @description Detected MCP resources */
+            mcpResources?: string[];
+            /** @description Detected MCP prompts */
+            mcpPrompts?: string[];
+            /** @description Whether it requires Claude Desktop */
+            requiresClaudeDesktop?: boolean;
+            /** @description Whether it requires environment variables */
+            requiresEnvironmentVars?: boolean;
+            /** @description Whether it has documentation */
+            hasDocumentation?: boolean;
+            /** @description Whether it has examples */
+            hasExamples?: boolean;
+        };
+        /** @description Parser metadata and version info */
+        ParsingMetadata: {
+            /** @description Parser version used */
+            parserVersion: string;
+            /**
+             * Format: date-time
+             * @description When analysis was performed
+             */
+            analyzedAt: string;
+            /** @description Processing time in milliseconds */
+            processingTime?: number;
+            /** @description Overall confidence score */
+            confidence?: number;
         };
         QualityMetrics: {
             /**
@@ -404,28 +564,47 @@ export interface components {
         };
         InstallationMethod: {
             /** @enum {string} */
-            type?: "npm" | "python" | "docker" | "git" | "live_service";
-            /**
-             * @description Package name
-             * @example mcp-server-baidu-maps
-             */
-            package?: string;
-            /**
-             * @description Installation command
-             * @example pip install mcp-server-baidu-maps
-             */
-            command?: string;
-            /**
-             * @description Package registry
-             * @example pypi
-             */
-            registry?: string;
-            /** @description Package version */
-            version?: string;
+            type: "installation" | "configuration" | "claude_desktop" | "vscode" | "deployment" | "testing";
+            title: string;
+            description: string;
             /** @enum {string} */
-            complexity?: "simple" | "moderate" | "complex";
-            /** @description Prerequisites for this method */
+            category: "setup" | "build" | "deploy" | "configure" | "test" | "run";
+            /** @enum {string} */
+            subtype?: "pip" | "conda" | "poetry" | "pipenv" | "setup_py" | "pyproject_toml" | "requirements_txt" | "venv" | "virtualenv" | "npm" | "yarn" | "pnpm" | "npm_global" | "npx" | "package_json" | "go_get" | "go_install" | "go_mod" | "go_build" | "go_run" | "go_mod_tidy" | "cargo_install" | "cargo_build" | "cargo_run" | "cargo_test" | "cargo_features" | "docker_build" | "docker_run" | "docker_compose" | "dockerfile" | "docker_pull" | "brew" | "apt" | "yum" | "dnf" | "chocolatey" | "winget" | "snap" | "flatpak" | "make" | "cmake" | "gradle" | "maven" | "bazel" | "ninja" | "git+uv" | "git_clone" | "git_submodule" | "git_pull" | "package_manager" | "environment_vars" | "json_config" | "yaml_config" | "ini_config" | "toml_config" | "manual_config" | "docker_config" | "mcp_json" | "settings_json" | "workspace_config" | "server_start" | "service_start" | "background_process" | "curl_test" | "inspector_test" | "unit_test" | "integration_test";
+            commands?: string[];
+            /** @enum {string} */
+            platform?: "python" | "javascript" | "typescript" | "go" | "rust" | "java" | "csharp" | "cpp" | "php" | "ruby" | "nodejs" | "deno" | "bun" | "docker" | "kubernetes" | "podman" | "linux" | "macos" | "windows" | "cross_platform" | "claude_desktop" | "vscode" | "mcp_client" | "system_service" | "cloud" | "serverless" | "web_server";
+            config_content?: string;
+            config_file_path?: string;
+            variables?: {
+                [key: string]: string;
+            };
+            mcp_config?: {
+                server_name?: string;
+                command?: string;
+                args?: string[];
+                env?: {
+                    [key: string]: string;
+                };
+            };
+            environment_vars?: {
+                [key: string]: string;
+            };
+            ports?: number[];
+            endpoints?: {
+                url: string;
+                transport: string;
+                description: string;
+            }[];
+            /** @enum {string} */
+            transport?: "stdio" | "sse" | "websocket" | "tcp" | "http";
+            test_commands?: string[];
+            expected_output?: string;
+            test_url?: string;
             requirements?: string[];
+            dependencies?: {
+                [key: string]: string;
+            };
         };
         EnvironmentConfig: {
             /** @description Required and optional environment variables */

@@ -16,7 +16,6 @@ import {
 import { ToolInvoker } from './tool-invoker.js';
 import {
   createSuccessResult,
-  createErrorResult,
   executeWithErrorHandling
 } from '@mcplookup-org/mcp-sdk';
 
@@ -155,36 +154,33 @@ export class CoreTools {
         requestBody.query = requestBody.query ? `${requestBody.query} capability:${options.capability}` : `capability:${options.capability}`;
       }
 
-      // TODO: Update when SDK client supports discover method
-      return createSuccessResult({ message: 'Discovery API integration pending' });
+      const result = await this.apiClient.discover(requestBody);
+      return result;
     }, 'Error discovering servers');
   }
 
   private async smartDiscovery(options: SmartDiscoveryOptions): Promise<ToolCallResult> {
     return executeWithErrorHandling(async () => {
-      // TODO: Update when SDK client supports discoverSmart method
-      return createSuccessResult({ message: 'Smart discovery API integration pending' });
+      const result = await this.apiClient.smartDiscover({
+        query: options.query,
+        context: options.context,
+        max_results: options.limit
+      });
+      return result;
     }, 'Error in smart discovery');
   }
 
   private async registerServer(options: RegistrationOptions): Promise<ToolCallResult> {
     return executeWithErrorHandling(async () => {
-      // TODO: Update when SDK client supports register method
-      return createSuccessResult({ message: 'Registration API integration pending' });
+      const result = await this.apiClient.registerServer(options);
+      return result;
     }, 'Error registering server');
   }
 
   private async verifyDomain(options: DomainVerificationOptions): Promise<ToolCallResult> {
     try {
-      // TODO: Update when SDK client supports startDomainVerification method
-      const result = { message: 'Domain verification API integration pending' };
-
-      return {
-        content: [{
-          type: 'text' as const,
-          text: JSON.stringify(result, null, 2)
-        }]
-      };
+      const result = await this.apiClient.startDomainVerification(options.domain);
+      return createSuccessResult(result);
     } catch (error) {
       return {
         content: [{
@@ -198,15 +194,8 @@ export class CoreTools {
 
   private async checkDomainOwnership(options: DomainOwnershipOptions): Promise<ToolCallResult> {
     try {
-      // TODO: Update when SDK client supports checkDomainOwnership method
-      const result = { message: 'Domain ownership check API integration pending' };
-
-      return {
-        content: [{
-          type: 'text' as const,
-          text: JSON.stringify(result, null, 2)
-        }]
-      };
+      const result = await this.apiClient.checkDomainOwnership(options.domain);
+      return createSuccessResult(result);
     } catch (error) {
       return {
         content: [{
@@ -220,15 +209,8 @@ export class CoreTools {
 
   private async getServerHealth(options: HealthCheckOptions): Promise<ToolCallResult> {
     try {
-      // TODO: Update when SDK client supports getServerHealth method
-      const result = { message: 'Server health API integration pending' };
-
-      return {
-        content: [{
-          type: 'text' as const,
-          text: JSON.stringify(result, null, 2)
-        }]
-      };
+      const result = await this.apiClient.getServerHealth(options.server_id || '');
+      return createSuccessResult(result);
     } catch (error) {
       return {
         content: [{
@@ -242,15 +224,8 @@ export class CoreTools {
 
   private async getOnboardingState(): Promise<ToolCallResult> {
     try {
-      // TODO: Update when SDK client supports getOnboardingState method
-      const result = { message: 'Onboarding state API integration pending' };
-
-      return {
-        content: [{
-          type: 'text' as const,
-          text: JSON.stringify(result, null, 2)
-        }]
-      };
+      const result = await this.apiClient.getOnboardingState();
+      return createSuccessResult(result);
     } catch (error) {
       return {
         content: [{

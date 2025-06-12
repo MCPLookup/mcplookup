@@ -1,3 +1,5 @@
+import type { InstallationMethod, EnvironmentVariable } from '@mcplookup-org/mcp-sdk';
+
 /**
  * Clean MCP Server Schema for CLI Tool
  * Transforms Redis hash data into structured, usable objects
@@ -93,22 +95,6 @@ export interface MCPServer {
   };
 }
 
-export interface InstallationMethod {
-  type: 'npm' | 'python' | 'docker' | 'git';
-  command: string;
-  package?: string;
-  image?: string;
-  args?: string[];
-  setupInstructions?: string;
-}
-
-export interface EnvironmentVariable {
-  name: string;
-  required: boolean;
-  description?: string;
-  defaultValue?: string;
-  type?: 'string' | 'number' | 'boolean' | 'url' | 'secret';
-}
 
 /**
  * Redis Data Transformer
@@ -179,10 +165,10 @@ export class MCPServerTransformer {
     
     // Determine recommended method based on quality and availability
     let recommended: 'npm' | 'python' | 'docker' | 'git' = 'git';
-    
-    if (methods.find(m => m.type === 'npm')) recommended = 'npm';
-    else if (methods.find(m => m.type === 'python')) recommended = 'python';
-    else if (methods.find(m => m.type === 'docker')) recommended = 'docker';
+
+    if (methods.find(m => m.subtype === 'npm')) recommended = 'npm';
+    else if (methods.find(m => m.subtype === 'pip')) recommended = 'python';
+    else if (methods.find(m => m.subtype === 'docker_pull')) recommended = 'docker';
     
     return {
       methods,
@@ -197,12 +183,14 @@ export class MCPServerTransformer {
     // Parse structured installation methods
     const structuredMethods = this.parseArray(data['structured.installation.methods']);
     structuredMethods.forEach(method => {
-      if (typeof method === 'object' && method.type) {
+      if (typeof method === 'object' && (method.type || method.subtype)) {
         methods.push({
-          type: method.type,
-          command: method.command || '',
-          package: method.package,
-          setupInstructions: method.setupInstructions
+          type: 'installation',
+          title: method.title || '',
+          description: method.description || '',
+          category: method.category || 'setup',
+          subtype: method.subtype || method.type,
+          commands: method.commands || (method.command ? [method.command] : [])
         });
       }
     });
@@ -213,21 +201,30 @@ export class MCPServerTransformer {
       if (typeof pkg === 'object') {
         if (pkg.registry_name === 'npm') {
           methods.push({
-            type: 'npm',
-            command: pkg.installation_command || `npm install ${pkg.name}`,
-            package: pkg.name
+            type: 'installation',
+            title: `Install ${pkg.name}`,
+            description: '',
+            category: 'setup',
+            subtype: 'npm',
+            commands: [pkg.installation_command || `npm install ${pkg.name}`]
           });
         } else if (pkg.registry_name === 'pypi') {
           methods.push({
-            type: 'python',
-            command: pkg.installation_command || `pip install ${pkg.name}`,
-            package: pkg.name
+            type: 'installation',
+            title: `Install ${pkg.name}`,
+            description: '',
+            category: 'setup',
+            subtype: 'pip',
+            commands: [pkg.installation_command || `pip install ${pkg.name}`]
           });
         } else if (pkg.registry_name === 'github') {
           methods.push({
-            type: 'git',
-            command: pkg.installation_command || `git clone ${pkg.name}`,
-            setupInstructions: pkg.setup_instructions
+            type: 'installation',
+            title: `Clone ${pkg.name}`,
+            description: pkg.setup_instructions || '',
+            category: 'setup',
+            subtype: 'git_clone',
+            commands: [pkg.installation_command || `git clone ${pkg.name}`]
           });
         }
       }
@@ -253,8 +250,9 @@ export class MCPServerTransformer {
             name: envVar.name,
             required: envVar.required !== false,
             description: envVar.description,
-            defaultValue: envVar.defaultValue,
-            type: envVar.type
+            default: envVar.defaultValue,
+            example: envVar.example,
+            validation: envVar.validation
           });
         }
       });
@@ -269,7 +267,9 @@ export class MCPServerTransformer {
             name: key,
             required: (value as any).required !== false,
             description: (value as any).description,
-            type: (value as any).type
+            default: (value as any).default,
+            example: (value as any).example,
+            validation: (value as any).validation
           });
         }
       });
@@ -295,11 +295,12 @@ export class MCPServerTransformer {
     // Python Package
     if (breakdown.hasPipInstall) {
       const methods = this.parseArray(data['structured.installation.methods']);
-      const pythonMethod = methods.find((m: any) => m.type === 'python');
+      const pythonMethod = methods.find((m: any) => m.subtype === 'pip');
       if (pythonMethod) {
+        const pkg = pythonMethod.commands?.[0]?.split(' ').pop() || '';
         packages.python = {
-          name: pythonMethod.package || '',
-          command: pythonMethod.command || `pip install ${pythonMethod.package}`,
+          name: pkg,
+          command: pythonMethod.commands?.[0] || `pip install ${pkg}`,
           pythonVersion: '>=3.8'
         };
       }
@@ -394,13 +395,13 @@ export class MCPServerUtils {
     const { methods, recommended } = server.installation;
     
     // Try recommended method first
-    const recommendedMethod = methods.find(m => m.type === recommended);
+    const recommendedMethod = methods.find(m => m.subtype === recommended);
     if (recommendedMethod) return recommendedMethod;
     
     // Fallback priority: npm > python > docker > git
-    const priorities = ['npm', 'python', 'docker', 'git'];
+    const priorities = ['npm', 'pip', 'docker_pull', 'git_clone'];
     for (const type of priorities) {
-      const method = methods.find(m => m.type === type);
+      const method = methods.find(m => m.subtype === type);
       if (method) return method;
     }
     
@@ -415,26 +416,26 @@ export class MCPServerUtils {
       .filter(env => env.required)
       .flatMap(env => ['-e', `${env.name}=\${${env.name}}`]);
     
-    switch (method.type) {
+    switch (method.subtype) {
       case 'npm':
         return [
           'docker', 'run', '--rm', '-i',
           ...envArgs,
           'node:18-alpine',
           'sh', '-c',
-          `npm install -g ${method.package} && npx ${method.package}`
+          `npm install -g ${method.commands?.[0]?.split(' ').pop() || ''} && npx ${method.commands?.[0]?.split(' ').pop() || ''}`
         ];
-        
-      case 'python':
+
+      case 'pip':
         return [
           'docker', 'run', '--rm', '-i',
           ...envArgs,
           'python:3.12-alpine',
           'sh', '-c',
-          `pip install ${method.package || 'unknown'} && python -m ${(method.package || 'unknown').replace('-', '_')}`
+          `pip install ${method.commands?.[0]?.split(' ').pop() || 'unknown'} && python -m ${(method.commands?.[0]?.split(' ').pop() || 'unknown').replace('-', '_')}`
         ];
-        
-      case 'docker':
+
+      case 'docker_pull':
         return server.packages.docker?.commands[0]?.split(' ') || [];
         
       default:
@@ -480,14 +481,14 @@ export class MCPServerUtils {
     const quality = server.quality.score;
     const qualityIcon = quality >= 80 ? '🟢' : quality >= 50 ? '🟡' : '🔴';
     const method = this.getBestInstallationMethod(server);
-    const methodIcon = method?.type === 'npm' ? '📦' : 
-                      method?.type === 'python' ? '🐍' : 
-                      method?.type === 'docker' ? '🐳' : '📁';
+    const methodIcon = method?.subtype === 'npm' ? '📦' :
+                      method?.subtype === 'pip' ? '🐍' :
+                      method?.subtype === 'docker_pull' ? '🐳' : '📁';
     
     return [
       `${qualityIcon} ${server.name} (${quality}/170)`,
       `   ${server.description}`,
-      `   ${methodIcon} ${method?.type || 'unknown'}: ${method?.command || 'No installation method'}`,
+      `   ${methodIcon} ${method?.subtype || 'unknown'}: ${method?.commands?.[0] || 'No installation method'}`,
       `   ⭐ ${server.repository.stars} stars | 🏷️ ${server.category}`
     ].join('\n');
   }
