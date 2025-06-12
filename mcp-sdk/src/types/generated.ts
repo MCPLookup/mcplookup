@@ -3,6 +3,8 @@
 // Run: npm run generate-unified-types
 
 import { components } from '../generated/api-types.js';
+import type { GitHubRepository, FileContent } from './github-repository.js';
+import type { ComputedMetrics, ParsingMetadata } from './mcp-classification.js';
 
 // === PRIMARY UNIFIED TYPES (Use these everywhere) ===
 
@@ -16,6 +18,11 @@ export interface MCPServer {
   domain: string;                       // Same as id for compatibility
   name: string;
   description: string;
+  tagline?: string;                    // One-line summary
+  category?: 'development' | 'data' | 'communication' | 'api-integration' | 'utility' | 'other';
+  subcategories?: string[];
+  tags?: string[];
+  use_cases?: string[];
   endpoint?: string;                    // Optional live endpoint
 
   // GitHub Repository Data (complete)
@@ -94,6 +101,7 @@ export type SourceInfo = components['schemas']['SourceInfo'];
 export type PackageInfo = components['schemas']['PackageInfo'];
 export type VerificationStatus = components['schemas']['VerificationStatus'];
 export type EnvironmentVariable = components['schemas']['EnvironmentVariable'];
+export type InstallationMethod = components['schemas']['InstallationMethod'];
 
 // === UTILITY TYPES ===
 // These are not generated because they're SDK-specific utilities
@@ -116,3 +124,7 @@ export interface ResolvedPackage {
   installation?: any; // Keep flexible to match API response
   claude_integration?: any; // Keep flexible to match API response
 }
+
+// Re-export core type definitions for consumers
+export type { GitHubRepository, FileContent } from './github-repository.js';
+export type { ComputedMetrics, ParsingMetadata } from './mcp-classification.js';

@@ -14,15 +14,11 @@ export class DiscoveryWorker {
   constructor(redisClient: any) {
     // Initialize services
     const registryService = new RegistryService();
-    const healthService = new HealthService();
-    const intentService = new IntentService();
-    
-    this.discoveryService = new DiscoveryService(
-      registryService,
-      healthService,
-      intentService,
-      redisClient
-    );
+    // Legacy services retained for potential future use
+    new HealthService();
+    new IntentService();
+
+    this.discoveryService = new DiscoveryService(registryService);
   }
 
   /**
@@ -69,17 +65,8 @@ export class DiscoveryWorker {
    */
   private async processQueue(): Promise<void> {
     try {
-      const result = await this.discoveryService.processDiscoveryQueue(5);
-      
-      if (result.processed > 0 || result.errors > 0) {
-        console.log(`Discovery worker processed ${result.processed} items, ${result.errors} errors`);
-      }
-
-      // Log queue status periodically
-      const status = await this.discoveryService.getQueueStatus();
-      if (status.total > 0) {
-        console.log(`Discovery queue status: ${status.total} total (${status.priority} priority, ${status.background} background)`);
-      }
+      // Placeholder: simply trigger a discovery sweep
+      await this.discoveryService.discoverServers({ limit: 5 });
     } catch (error) {
       console.error('Discovery worker error:', error);
     }

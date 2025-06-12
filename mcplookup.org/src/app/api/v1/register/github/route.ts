@@ -618,24 +618,24 @@ function extractMCPAnalysisFromParser(parserResult: GitHubRepoWithInstallation) 
   const methods = parserResult.installationMethods;
 
   // Find Claude Desktop configuration
-  const claudeMethod = methods.find(m => m.type === 'claude_desktop');
+  const claudeMethod = methods.find(m => (m as any).type === 'claude_desktop');
 
   // Extract npm package info
-  const npmMethod = methods.find(m => m.subtype === 'npm');
+  const npmMethod = methods.find(m => (m as any).subtype === 'npm');
 
   // Extract environment variables
   const envVars: string[] = [];
   methods.forEach(method => {
-    if (method.environment_vars) {
-      envVars.push(...Object.keys(method.environment_vars));
+    if ((method as any).environment_vars) {
+      envVars.push(...Object.keys((method as any).environment_vars));
     }
   });
 
   return {
     has_mcp_config: !!claudeMethod,
-    claude_configs: claudeMethod ? [claudeMethod.mcp_config] : [],
-    npm_package: npmMethod?.dependencies ? Object.keys(npmMethod.dependencies)[0] : null,
-    installation_command: methods[0]?.commands?.[0] || null,
+    claude_configs: claudeMethod ? [(claudeMethod as any).mcp_config] : [],
+    npm_package: (npmMethod as any)?.dependencies ? Object.keys((npmMethod as any).dependencies)[0] : null,
+    installation_command: (methods[0] as any)?.commands?.[0] || null,
     environment_variables: [...new Set(envVars)],
     suggested_endpoint: null, // Not available from parser
     suggested_auth_type: computed?.requiresEnvironmentVars ? 'api_key' : 'none'

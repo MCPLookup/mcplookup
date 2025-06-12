@@ -1,30 +1,30 @@
 // Main SDK exports
 export * from './types.js';
 export * from './generated/api-client.js';
-// export * from './shared/index.js'; // Temporarily disabled while fixing types
+export * from './shared/index.js';
 
 // Unified MCP Server types - USE THESE EVERYWHERE
 export {
   MCPServer,
   GitHubRepoWithInstallation,
-  transformGitHubRepoToMCPServer,
   StoredServerData,
-  // All component types
-  MCPServerQuality,
-  MCPServerPopularity,
-  MCPServerCapabilities,
-  MCPServerAvailability,
-  MCPServerAPI,
-  MCPServerInstallation,
-  MCPServerEnvironment,
-  MCPServerDocumentation,
-  MCPServerSource,
-  MCPServerVerification,
+  QualityMetrics,
+  PopularityMetrics,
+  InstallationInfo,
+  EnvironmentConfig,
+  ClaudeIntegration,
+  DocumentationInfo,
+  ServerCapabilities,
+  AvailabilityInfo,
+  APIConfiguration,
+  SourceInfo,
   PackageInfo,
+  VerificationStatus,
   EnvironmentVariable,
-  ClaudeDesktopConfig,
-  CodeExample
-} from './types/mcp-server.js';
+  InstallationContext,
+  ResolvedPackage
+} from './types/generated.js';
+export { buildMCPServerFromGitHubRepo } from './shared/github-builder.js';
 
 // GitHub and installation types (specific exports to avoid conflicts)
 export type {

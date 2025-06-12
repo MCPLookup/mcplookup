@@ -51,7 +51,7 @@ export async function GET(
     }
 
     // Get health metrics
-    let healthMetrics = server.health;
+    let healthMetrics = (server as any).health;
 
     if (realtime) {
       try {
@@ -72,7 +72,7 @@ export async function GET(
       health: healthMetrics,
       capabilities_working: capabilitiesWorking,
       ssl_valid: sslValid,
-      trust_score: calculateTrustScore(healthMetrics, capabilitiesWorking, sslValid, server.verification?.dns_verified || false)
+      trust_score: calculateTrustScore(healthMetrics, capabilitiesWorking, sslValid, (server as any).verification?.dns_verified || false)
     };
 
     const nextResponse = NextResponse.json(response, {

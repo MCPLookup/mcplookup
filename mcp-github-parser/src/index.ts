@@ -31,7 +31,7 @@ export type {
   MCPClassification,
   ComputedMetrics,
   MCPServer,
-  transformGitHubRepoToMCPServer
+  buildMCPServerFromGitHubRepo
 } from '@mcplookup-org/mcp-sdk';
 
 // Schemas

@@ -3,7 +3,7 @@ import { getServerlessServices } from '@/lib/services';
 
 // Import GitHub parser for enhanced search
 import { GitHubClient } from '@mcplookup-org/mcp-github-parser';
-import { GitHubRepoWithInstallation } from '@mcplookup-org/mcp-sdk';
+import { GitHubRepoWithInstallation, buildMCPServerFromGitHubRepo } from '@mcplookup-org/mcp-sdk';
 
 export async function POST(request: NextRequest) {
   try {
@@ -52,88 +52,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-/**
- * Transform GitHub parser result to MCPServer format for API compatibility
- */
-function transformGitHubRepoToMCPServerFormat(githubRepo: GitHubRepoWithInstallation) {
-  const repo = githubRepo.repository;
-  const computed = githubRepo.computed;
-  const installationMethods = githubRepo.installationMethods;
-
-  return {
-    // Basic server info
-    domain: `github.com/${repo.fullName}`,
-    name: repo.name,
-    description: repo.description || `MCP server from ${repo.fullName}`,
-    endpoint: null, // GitHub repos are typically package-only
-
-    // Verification status
-    verified: false, // GitHub repos start unverified
-    trust_score: computed?.mcpConfidence ? Math.round(computed.mcpConfidence * 100) : 50,
-
-    // Repository information
-    repository: {
-      url: repo.htmlUrl,
-      source: 'github',
-      stars: repo.stars,
-      forks: repo.forks,
-      language: repo.language,
-      topics: repo.topics,
-      license: repo.license?.spdxId,
-      last_commit: repo.pushedAt
-    },
-
-    // Enhanced analysis data
-    mcp_analysis: computed ? {
-      is_mcp_server: computed.isMcpServer,
-      classification: computed.mcpClassification,
-      confidence: computed.mcpConfidence,
-      reasoning: computed.mcpReasoning,
-      complexity: computed.complexity,
-      installation_difficulty: computed.installationDifficulty,
-      maturity_level: computed.maturityLevel,
-      supported_platforms: computed.supportedPlatforms || [],
-      tools: computed.mcpTools || [],
-      resources: computed.mcpResources || [],
-      prompts: computed.mcpPrompts || [],
-      requires_claude_desktop: computed.requiresClaudeDesktop || false,
-      has_documentation: computed.hasDocumentation || false,
-      has_examples: computed.hasExamples || false
-    } : null,
-
-    // Installation packages
-    packages: installationMethods.map(method => ({
-      registry_name: method.subtype === 'npm' ? 'npm' :
-                     method.subtype === 'pip' ? 'pypi' :
-                     method.subtype === 'docker_run' ? 'docker' : 'github',
-      name: method.subtype === 'npm' ? repo.name :
-            method.subtype === 'pip' ? repo.name :
-            method.subtype === 'docker_run' ? `ghcr.io/${repo.fullName}` :
-            repo.fullName,
-      version: 'latest',
-      installation_command: method.commands?.[0] || `git clone ${repo.cloneUrl}`,
-      startup_command: method.commands?.[1],
-      setup_instructions: method.description,
-      environment_variables: method.environment_vars ?
-        Object.keys(method.environment_vars).map(name => ({
-          name,
-          description: `Environment variable for ${method.title}`,
-          is_required: true
-        })) : [],
-      runtime_hint: method.platform
-    })),
-
-    // Capabilities from AI analysis
-    capabilities: computed?.mcpTools || [],
-
-    // Health status (unknown for new GitHub repos)
-    health: 'unknown' as const,
-
-    // Source tracking
-    parser_version: githubRepo.parsingMetadata?.parserVersion,
-    registration_source: 'github_search_enhanced'
-  };
-}
 
 /**
  * Enhanced search combining discovery service and GitHub parser
@@ -174,9 +92,9 @@ async function performEnhancedSearch(
         const githubResults = await githubClient.searchAndParse(githubQuery, remainingSlots);
 
         if (githubResults.length > 0) {
-          // Transform GitHub results to MCPServer format
+          // Transform GitHub results to MCPServer format using SDK helper
           const transformedServers = githubResults.map(repo =>
-            transformGitHubRepoToMCPServerFormat(repo)
+            buildMCPServerFromGitHubRepo(repo)
           );
 
           // Filter out duplicates (by domain)
@@ -197,8 +115,8 @@ async function performEnhancedSearch(
     // 3. Sort by relevance and trust score
     allServers.sort((a, b) => {
       // Prioritize verified servers
-      if (a.verified && !b.verified) return -1;
-      if (!a.verified && b.verified) return 1;
+      if (a.verification_status === 'verified' && b.verification_status !== 'verified') return -1;
+      if (a.verification_status !== 'verified' && b.verification_status === 'verified') return 1;
 
       // Then by trust score (if available)
       const aTrust = (a as any).trust_score || 0;

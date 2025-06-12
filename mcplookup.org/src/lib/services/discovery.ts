@@ -1,9 +1,9 @@
 // Discovery Service - Simplified version using SDK types only
 // UPDATED: Removed all transformation logic, uses SDK directly
 
-import { 
+import {
   MCPServer,
-  transformGitHubRepoToMCPServer
+  buildMCPServerFromGitHubRepo
 } from '@mcplookup-org/mcp-sdk';
 
 // Use SDK types everywhere

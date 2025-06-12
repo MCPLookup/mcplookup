@@ -3,14 +3,14 @@
  * Generates schemas for AI providers from our unified types
  */
 
-import type { 
-  GitHubRepository, 
+import type { GitHubRepository } from '../types/github-repository.js';
+import type {
   GitHubRepoWithInstallation,
   InstallationMethod,
   ComputedMetrics,
   ParsingMetadata,
   MCPServer
-} from '../types/mcp-server.js';
+} from '../types/generated.js';
 
 // === GITHUB REPOSITORY SCHEMA ===
 
