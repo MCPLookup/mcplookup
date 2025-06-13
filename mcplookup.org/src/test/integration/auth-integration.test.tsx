@@ -131,7 +131,7 @@ describe('Authentication Integration Tests', () => {
 
     it('should allow access to public pages when unauthenticated', async () => {
       renderWithProviders(<HomePage />);
-      expect(screen.getByText(/Dynamic Discovery Infrastructure/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/Dynamic Discovery Infrastructure/i)[0]).toBeInTheDocument();
     });
 
     it('should redirect to login for protected pages', async () => {

@@ -98,11 +98,11 @@ describe('Form Integration Tests', () => {
       renderWithProviders(<RegisterPage />);
       
       // Switch to manual registration tab
-      const manualTab = screen.getByText(/Manual Registration/i);
+      const manualTab = screen.getAllByText(/Manual Registration/i)[0];
       fireEvent.click(manualTab);
-      
+
       await waitFor(() => {
-        expect(screen.getByText(/Manual Registration/i)).toBeInTheDocument();
+        expect(screen.getAllByText(/Manual Registration/i)[0]).toBeInTheDocument();
       });
 
       // Test form submission with valid data
@@ -352,7 +352,7 @@ describe('Form Integration Tests', () => {
       }
 
       // Form should still be functional
-      expect(screen.getByText(/Register Your MCP Server/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/Register Your MCP Server/i)[0]).toBeInTheDocument();
     });
 
     it('should handle network errors', async () => {
@@ -380,7 +380,7 @@ describe('Form Integration Tests', () => {
       renderWithProviders(<RegisterPage />);
       
       // Form should maintain state even after validation errors
-      expect(screen.getByText(/Register Your MCP Server/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/Register Your MCP Server/i)[0]).toBeInTheDocument();
     });
 
     it('should reset form after successful submission', async () => {
@@ -400,7 +400,7 @@ describe('Form Integration Tests', () => {
       expect(response.status).toBe(201);
       
       // Form should be ready for next submission
-      expect(screen.getByText(/Register Your MCP Server/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/Register Your MCP Server/i)[0]).toBeInTheDocument();
     });
   });
 
@@ -409,7 +409,7 @@ describe('Form Integration Tests', () => {
       renderWithProviders(<RegisterPage />);
       
       // Check for form accessibility
-      expect(screen.getByText(/Register Your MCP Server/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/Register Your MCP Server/i)[0]).toBeInTheDocument();
       
       // Forms should have proper structure
       const forms = screen.getAllByRole('tabpanel');

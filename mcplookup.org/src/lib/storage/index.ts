@@ -76,6 +76,15 @@ class MemoryStorageService implements StorageService {
     }
   }
 
+  async clear(): Promise<StorageResult> {
+    try {
+      this.data.clear();
+      return createSuccessResult(true);
+    } catch (error) {
+      return createErrorResult(String(error));
+    }
+  }
+
   async healthCheck(): Promise<{ healthy: boolean; details?: any }> {
     return {
       healthy: true,

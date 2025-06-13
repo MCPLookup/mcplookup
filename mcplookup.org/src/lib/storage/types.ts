@@ -12,11 +12,14 @@ export interface StorageService {
   get(collection: string, key: string): Promise<StorageResult>;
   set(collection: string, key: string, value: any): Promise<StorageResult>;
   delete(collection: string, key: string): Promise<StorageResult>;
-  
+
   // Batch operations
   getAll(collection: string): Promise<StorageResult<any[]>>;
   getByPrefix(collection: string, prefix: string): Promise<StorageResult<any[]>>;
-  
+
+  // Utility operations
+  clear(): Promise<StorageResult>;
+
   // Health check
   healthCheck(): Promise<{ healthy: boolean; details?: any }>;
 }
