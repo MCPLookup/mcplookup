@@ -278,8 +278,8 @@ describe('End-to-End Workflow Integration Tests', () => {
       const registrationData = {
         domain: 'concurrent-test.com',
         endpoint: 'https://concurrent-test.com/mcp',
-        name: 'Concurrent Test Server',
-        contact_email: 'admin@concurrent-test.com'
+        contact_email: 'admin@concurrent-test.com',
+        description: 'Concurrent test server'
       };
 
       // Create multiple concurrent registration requests
@@ -316,10 +316,8 @@ describe('End-to-End Workflow Integration Tests', () => {
         body: JSON.stringify({
           domain: 'consistency-test.com',
           endpoint: 'https://consistency-test.com/mcp',
-          name: 'Consistency Test Server',
-          description: 'Testing data consistency',
           contact_email: 'admin@consistency-test.com',
-          capabilities: ['testing', 'validation']
+          description: 'Testing data consistency'
         })
       });
 

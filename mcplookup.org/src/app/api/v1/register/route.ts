@@ -57,7 +57,15 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const body = await request.json();
+    let body;
+    try {
+      body = await request.json();
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Invalid JSON format', details: 'Request body must be valid JSON' },
+        { status: 400 }
+      );
+    }
 
     // Validate request with enhanced security validation
     const validatedRequest = RegistrationRequestSchema.parse(body);

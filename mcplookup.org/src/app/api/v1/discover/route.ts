@@ -206,6 +206,7 @@ export async function GET(request: NextRequest) {
       discoveryResponse = {
         servers: paginatedServers,
         total: servers.length,
+        total_results: servers.length,
         limit: limit,
         offset: offset,
         query_metadata: {
