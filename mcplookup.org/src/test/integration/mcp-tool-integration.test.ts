@@ -4,34 +4,75 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { getStorageService, setStorageService } from '@/lib/storage';
 
-// Import the new refactored MCP tools for testing
-import { createTestMCPHandler } from '@/lib/mcp/route-factory';
+// Import the new refactored MCP tools for direct testing
+import { DiscoverServersTool } from '@/lib/mcp/tools/discover-servers-tool';
+import { RegisterServerTool, VerifyDomainTool } from '@/lib/mcp/tools/register-server-tool';
 import { MockServiceContainer } from '@/lib/mcp/services/service-container';
 
-// Create a test MCP handler with mock services
-const mockServices = new MockServiceContainer();
-const testHandler = createTestMCPHandler(mockServices);
-
-// Mock MCP POST function using the new architecture
-const mcpPOST = vi.fn().mockImplementation(async (request) => {
-  try {
-    // Use the actual refactored handler for testing
-    return await testHandler.POST(request);
-  } catch (error) {
-    return new Response(JSON.stringify({
-      content: [{
-        type: 'text',
-        text: JSON.stringify({
-          error: 'Handler execution failed',
-          message: error instanceof Error ? error.message : 'Unknown error'
-        })
-      }]
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+// Create mock services with enhanced test data
+const mockServices = new MockServiceContainer({
+  storage: {
+    searchServers: async (criteria: any) => ({
+      servers: [
+        {
+          domain: 'gmail.com',
+          endpoint: 'https://gmail.com/mcp',
+          capabilities: ['email', 'communication'],
+          category: 'communication',
+          status: 'active',
+          verified: true,
+          description: 'Gmail MCP server for email operations',
+          performance: { response_time: 150, uptime: 99.9 },
+          stats: { usage_count: 1000 }
+        },
+        {
+          domain: 'slack.com',
+          endpoint: 'https://slack.com/mcp',
+          capabilities: ['messaging', 'collaboration'],
+          category: 'communication',
+          status: 'active',
+          verified: true,
+          description: 'Slack MCP server for team communication'
+        }
+      ],
+      total: 2
+    }),
+    registerServer: async (data: any) => ({
+      id: 'mock-registration-id',
+      ...data,
+      status: 'pending_verification'
+    }),
+    getServer: async (domain: string) => null, // No existing server
+    getServerHealth: async (domain: string) => ({
+      domain,
+      status: 'healthy',
+      response_time: 120,
+      uptime: 99.8,
+      last_check: new Date().toISOString()
+    }),
+    getStats: async () => ({
+      total_servers: 150,
+      active_servers: 142,
+      categories: ['communication', 'productivity', 'development'],
+      top_capabilities: ['email', 'messaging', 'file_management']
+    })
   }
 });
+
+// Helper function to create tool context with auth
+function createToolContext(permissions: string[] = ['servers:read']) {
+  return {
+    auth: {
+      userId: 'test-user-123',
+      apiKeyId: 'test-api-key',
+      permissions,
+      isAuthenticated: true,
+      hasPermission: (permission: string) => permissions.includes(permission)
+    },
+    services: mockServices,
+    request: {}
+  };
+}
 
 import { NextRequest } from 'next/server';
 
@@ -148,82 +189,67 @@ describe('MCP Tool Integration Tests', () => {
     });
 
     it('should discover servers by domain', async () => {
-      const request = new NextRequest('http://localhost:3000/api/mcp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          method: 'tools/call',
-          params: {
-            name: 'discover_mcp_servers',
-            arguments: {
-              domain: 'gmail.com'
-            }
-          }
-        })
-      });
+      // Test discovering servers for a specific domain using new architecture
+      const tool = new DiscoverServersTool();
+      const context = createToolContext(['servers:read']);
 
-      const response = await mcpPOST(request);
-      expect(response.status).toBe(200);
+      const result = await tool.execute({
+        domain: 'gmail.com'
+      }, context);
 
-      const result = await response.json();
       expect(result.content).toBeDefined();
       expect(result.content[0].type).toBe('text');
 
       const responseData = JSON.parse(result.content[0].text);
-      // Mock returns empty servers array, so adjust expectations
       expect(responseData.servers).toBeDefined();
-      expect(responseData.total_results).toBeDefined();
       expect(Array.isArray(responseData.servers)).toBe(true);
+      expect(responseData.total_results).toBe(2);
+      expect(responseData.servers[0].domain).toBe('gmail.com');
+      expect(responseData.servers[0].capabilities).toContain('email');
     });
 
-    it.skip('should discover servers by capability', async () => {
-      // SKIP: MCP mock structure needs refinement for complex tool interactions
-      const request = new NextRequest('http://localhost:3000/api/mcp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          method: 'tools/call',
-          params: {
-            name: 'discover_mcp_servers',
-            arguments: {
-              capability: 'email'
-            }
-          }
-        })
-      });
+    it('should discover servers by capability', async () => {
+      // Test discovering servers by capability using new architecture
+      const tool = new DiscoverServersTool();
+      const context = createToolContext(['servers:read']);
 
-      const response = await mcpPOST(request);
-      const responseData = await validateMCPResponse(response);
+      const result = await tool.execute({
+        capabilities: ['email']
+      }, context);
 
-      // Mock returns empty servers, so just validate structure
+      expect(result.content).toBeDefined();
+      expect(result.content[0].type).toBe('text');
+
+      const responseData = JSON.parse(result.content[0].text);
       expect(responseData.servers).toBeDefined();
       expect(Array.isArray(responseData.servers)).toBe(true);
-      expect(responseData.total_results).toBeDefined();
+      expect(responseData.total_results).toBe(2);
+
+      // Should find Gmail server which has email capability
+      const emailServers = responseData.servers.filter((server: any) =>
+        server.capabilities.includes('email')
+      );
+      expect(emailServers.length).toBeGreaterThan(0);
+      expect(emailServers[0].domain).toBe('gmail.com');
     });
 
-    it.skip('should discover servers by intent', async () => {
-      // SKIP: MCP mock structure needs refinement for complex tool interactions
-      const request = new NextRequest('http://localhost:3000/api/mcp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          method: 'tools/call',
-          params: {
-            name: 'discover_mcp_servers',
-            arguments: {
-              intent: 'I need to send emails and manage my calendar'
-            }
-          }
-        })
-      });
+    it('should discover servers by intent', async () => {
+      // Test discovering servers by natural language intent
+      const tool = new DiscoverServersTool();
+      const context = createToolContext(['servers:read']);
 
-      const response = await mcpPOST(request);
-      const responseData = await validateMCPResponse(response);
+      const result = await tool.execute({
+        query: 'I need to send emails and manage my calendar'
+      }, context);
 
-      // Mock returns basic structure, validate it
+      expect(result.content).toBeDefined();
+      expect(result.content[0].type).toBe('text');
+
+      const responseData = JSON.parse(result.content[0].text);
       expect(responseData.servers).toBeDefined();
       expect(Array.isArray(responseData.servers)).toBe(true);
-      expect(responseData.total_results).toBeDefined();
+      expect(responseData.total_results).toBe(2);
+      expect(responseData.search_criteria.query).toBe('I need to send emails and manage my calendar');
     });
 
     it.skip('should discover servers with filtering options', async () => {
@@ -285,167 +311,130 @@ describe('MCP Tool Integration Tests', () => {
     });
   });
 
-  describe.skip('register_mcp_server Tool', () => {
-    // SKIP: MCP mock structure needs refinement for complex tool interactions
+  describe('register_mcp_server Tool', () => {
     it('should register a new MCP server', async () => {
-      const request = new NextRequest('http://localhost:3000/api/mcp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          method: 'tools/call',
-          params: {
-            name: 'register_mcp_server',
-            arguments: {
-              domain: 'newserver.com',
-              endpoint: 'https://newserver.com/mcp',
-              name: 'New MCP Server',
-              description: 'A brand new MCP server',
-              contact_email: 'admin@newserver.com',
-              capabilities: ['custom_tool', 'data_processing']
-            }
-          }
-        })
-      });
+      // Test registering a new MCP server using new architecture
+      const tool = new RegisterServerTool();
+      const context = createToolContext(['servers:write']);
 
-      const response = await mcpPOST(request);
-      expect(response.status).toBe(200);
+      const result = await tool.execute({
+        domain: 'newserver.com',
+        endpoint: 'https://newserver.com/mcp',
+        description: 'A brand new MCP server',
+        contact_email: 'admin@newserver.com',
+        capabilities: ['custom_tool', 'data_processing']
+      }, context);
 
-      const result = await response.json();
+      expect(result.content).toBeDefined();
+      expect(result.content[0].type).toBe('text');
+
       const responseData = JSON.parse(result.content[0].text);
-      
-      expect(responseData.success).toBe(true);
-      expect(responseData.challenge_id).toBeDefined();
+      expect(responseData.registration_id).toBeDefined();
       expect(responseData.domain).toBe('newserver.com');
-      expect(responseData.txt_record_name).toBe('_mcp-verify.newserver.com');
-      expect(responseData.txt_record_value).toBeDefined();
-      expect(responseData.expires_at).toBeDefined();
+      expect(responseData.status).toBe('pending_verification');
+      expect(responseData.verification.record_name).toBe('_mcp-verify.newserver.com');
+      expect(responseData.verification.record_value).toBeDefined();
       expect(responseData.next_steps).toBeDefined();
     });
 
     it('should validate registration parameters', async () => {
-      const request = new NextRequest('http://localhost:3000/api/mcp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          method: 'tools/call',
-          params: {
-            name: 'register_mcp_server',
-            arguments: {
-              domain: '', // Invalid empty domain
-              endpoint: 'invalid-url',
-              contact_email: 'invalid-email'
-            }
-          }
-        })
-      });
+      // Test parameter validation using new architecture
+      const tool = new RegisterServerTool();
+      const context = createToolContext(['servers:write']);
 
-      const response = await mcpPOST(request);
-      expect(response.status).toBe(400);
+      const result = await tool.execute({
+        domain: '', // Invalid empty domain
+        endpoint: 'invalid-url',
+        contact_email: 'invalid-email'
+      }, context);
 
-      const result = await response.json();
-      expect(result.error).toBeDefined();
-      expect(result.error.message).toContain('validation');
+      expect(result.content).toBeDefined();
+      expect(result.content[0].type).toBe('text');
+
+      const responseData = JSON.parse(result.content[0].text);
+      expect(responseData.error).toBe('Tool execution failed');
+      expect(responseData.details).toContain('Invalid arguments');
     });
 
     it('should handle duplicate domain registration', async () => {
-      // First registration
-      const firstRequest = new NextRequest('http://localhost:3000/api/mcp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          method: 'tools/call',
-          params: {
-            name: 'register_mcp_server',
-            arguments: {
-              domain: 'duplicate.com',
-              endpoint: 'https://duplicate.com/mcp',
-              contact_email: 'admin@duplicate.com'
+      // Test duplicate registration using new architecture
+      const tool = new RegisterServerTool();
+      const context = createToolContext(['servers:write']);
+
+      // Mock storage to return existing server on second call
+      const mockStorageWithExisting = new MockServiceContainer({
+        storage: {
+          ...mockServices.storage,
+          getServer: async (domain: string) => {
+            if (domain === 'duplicate.com') {
+              return {
+                domain: 'duplicate.com',
+                endpoint: 'https://duplicate.com/mcp',
+                status: 'active'
+              };
             }
+            return null;
           }
-        })
+        }
       });
 
-      const firstResponse = await mcpPOST(firstRequest);
-      expect(firstResponse.status).toBe(200);
+      const contextWithExisting = {
+        ...context,
+        services: mockStorageWithExisting
+      };
 
-      // Second registration (should fail)
-      const secondRequest = new NextRequest('http://localhost:3000/api/mcp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          method: 'tools/call',
-          params: {
-            name: 'register_mcp_server',
-            arguments: {
-              domain: 'duplicate.com',
-              endpoint: 'https://duplicate.com/mcp',
-              contact_email: 'admin@duplicate.com'
-            }
-          }
-        })
-      });
+      const result = await tool.execute({
+        domain: 'duplicate.com',
+        endpoint: 'https://duplicate.com/mcp',
+        contact_email: 'admin@duplicate.com'
+      }, contextWithExisting);
 
-      const secondResponse = await mcpPOST(secondRequest);
-      expect(secondResponse.status).toBe(400);
+      expect(result.content).toBeDefined();
+      expect(result.content[0].type).toBe('text');
 
-      const result = await secondResponse.json();
-      expect(result.error.message).toContain('already registered');
+      const responseData = JSON.parse(result.content[0].text);
+      expect(responseData.error).toBe('Server already registered');
+      expect(responseData.details.domain).toBe('duplicate.com');
     });
   });
 
-  describe.skip('verify_domain_ownership Tool', () => {
-    // SKIP: MCP mock structure needs refinement for complex tool interactions
+  describe('verify_domain_ownership Tool', () => {
     it('should verify domain ownership', async () => {
-      const request = new NextRequest('http://localhost:3000/api/mcp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          method: 'tools/call',
-          params: {
-            name: 'verify_domain_ownership',
-            arguments: {
-              domain: 'gmail.com'
-            }
-          }
-        })
-      });
+      // Test domain verification using new architecture
+      const tool = new VerifyDomainTool();
+      const context = createToolContext(['domains:verify']);
 
-      const response = await mcpPOST(request);
-      expect(response.status).toBe(200);
+      const result = await tool.execute({
+        domain: 'gmail.com',
+        challenge_token: 'existing-token'
+      }, context);
 
-      const result = await response.json();
+      expect(result.content).toBeDefined();
+      expect(result.content[0].type).toBe('text');
+
       const responseData = JSON.parse(result.content[0].text);
-      
       expect(responseData.domain).toBe('gmail.com');
-      expect(responseData.verified).toBeDefined();
-      expect(responseData.verification_method).toBeDefined();
-      expect(responseData.last_checked).toBeDefined();
+      expect(responseData.verified).toBe(true);
+      expect(responseData.verification_date).toBeDefined();
     });
 
     it('should handle non-existent domain verification', async () => {
-      const request = new NextRequest('http://localhost:3000/api/mcp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          method: 'tools/call',
-          params: {
-            name: 'verify_domain_ownership',
-            arguments: {
-              domain: 'nonexistent-domain.com'
-            }
-          }
-        })
-      });
+      // Test verification for domain without existing challenge
+      const tool = new VerifyDomainTool();
+      const context = createToolContext(['domains:verify']);
 
-      const response = await mcpPOST(request);
-      expect(response.status).toBe(200);
+      const result = await tool.execute({
+        domain: 'nonexistent-domain.com'
+      }, context);
 
-      const result = await response.json();
+      expect(result.content).toBeDefined();
+      expect(result.content[0].type).toBe('text');
+
       const responseData = JSON.parse(result.content[0].text);
-      
       expect(responseData.domain).toBe('nonexistent-domain.com');
       expect(responseData.verified).toBe(false);
-      expect(responseData.error).toBeDefined();
+      expect(responseData.challenge).toBeDefined();
+      expect(responseData.message).toContain('pending');
     });
   });
 
