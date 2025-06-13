@@ -31,57 +31,25 @@ export type { InstallationContext, ResolvedPackage } from './types/generated.js'
 // Direct export of needed function for GitHub parser
 export { buildMCPServerFromGitHubRepo } from './shared/github-builder.js';
 
-// Unified MCP Server types - USE THESE EVERYWHERE
-export {
+// Key types re-exported from generated schema
+export type {
   MCPServer,
   GitHubRepoWithInstallation,
-  transformGitHubRepoToMCPServer,
   StoredServerData,
-  // All component types
-  MCPServerQuality,
-  MCPServerPopularity,
-  MCPServerCapabilities,
-  MCPServerAvailability,
-  MCPServerAPI,
-  MCPServerInstallation,
-  MCPServerEnvironment,
-  MCPServerDocumentation,
-  MCPServerSource,
-  MCPServerVerification,
-  PackageInfo,
-  EnvironmentVariable,
-  ClaudeDesktopConfig,
-  CodeExample
-} from './types/mcp-server.js';
-
-// GitHub and installation types (specific exports to avoid conflicts)
-export type {
+  InstallationMethod,
   GitHubRepository,
-  GitHubRepo,
   FileContent,
-  GitHubSearchResult,
-  RepositoryAnalysisOptions
-} from './types/github-repository.js';
+  ComputedMetrics,
+  ParsingMetadata
+} from './types/generated.js';
 
-export type {
-  InstallationType,
-  InstallationCategory,
-  InstallationSubtype,
-  InstallationPlatform,
-  TransportType,
-  MCPConfig,
-  InstallationEndpoint,
-  InstallationMethod
-} from './types/installation.js';
-
+// Additional types from individual modules (non-duplicated)
 export type {
   MCPClassification,
   ComplexityLevel,
   DifficultyLevel,
   MaturityLevel,
-  ComputedMetrics,
-  AIProviderType,
-  ParsingMetadata
+  AIProviderType
 } from './types/mcp-classification.js';
 
 export type {

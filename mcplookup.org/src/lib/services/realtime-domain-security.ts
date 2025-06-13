@@ -134,7 +134,7 @@ export class RealtimeDomainSecurityService {
       reason
     };
 
-    // Store challenge in storage backend
+    // Store challenge (implementation depends on storage backend)
     await this.storeChallenge(challenge);
 
     return challenge;
@@ -360,68 +360,18 @@ export class RealtimeDomainSecurityService {
   }
 
   private async storeChallenge(challenge: OwnershipChallenge): Promise<void> {
-    try {
-      // Store challenge with expiration
-      const storage = await import('../storage');
-      const storageService = storage.getStorageService();
-
-      const result = await storageService.set(
-        'ownership_challenges',
-        challenge.challenge_id,
-        challenge
-      );
-
-      if (!result.success) {
-        throw new Error(`Failed to store challenge: ${result.error}`);
-      }
-
-      console.log(`Successfully stored challenge ${challenge.challenge_id} for ${challenge.domain}`);
-    } catch (error) {
-      console.error(`Failed to store challenge ${challenge.challenge_id}:`, error);
-      throw error;
-    }
+    // Implementation depends on storage backend
+    console.log(`Storing challenge ${challenge.challenge_id} for ${challenge.domain}`);
   }
 
   private async getChallenge(challengeId: string): Promise<OwnershipChallenge | null> {
-    try {
-      const storage = await import('../storage');
-      const storageService = storage.getStorageService();
-
-      const result = await storageService.get('ownership_challenges', challengeId);
-
-      if (!result.success) {
-        return null;
-      }
-
-      const challenge = result.data as OwnershipChallenge;
-
-      // Check if challenge has expired
-      if (new Date(challenge.expires_at) < new Date()) {
-        await this.deleteChallenge(challengeId);
-        return null;
-      }
-
-      return challenge;
-    } catch (error) {
-      console.error(`Failed to get challenge ${challengeId}:`, error);
-      return null;
-    }
+    // Implementation depends on storage backend
+    console.log(`Getting challenge ${challengeId}`);
+    return null;
   }
 
   private async deleteChallenge(challengeId: string): Promise<void> {
-    try {
-      const storage = await import('../storage');
-      const storageService = storage.getStorageService();
-
-      const result = await storageService.delete('ownership_challenges', challengeId);
-
-      if (!result.success) {
-        console.error(`Failed to delete challenge ${challengeId}: ${result.error}`);
-      } else {
-        console.log(`Successfully deleted challenge ${challengeId}`);
-      }
-    } catch (error) {
-      console.error(`Failed to delete challenge ${challengeId}:`, error);
-    }
+    // Implementation depends on storage backend
+    console.log(`Deleting challenge ${challengeId}`);
   }
 }

@@ -2,48 +2,21 @@
 // Replace all custom types with SDK-generated types
 
 // Import ALL types from SDK
+// Import types for use in interfaces
 import type {
   MCPServer,
-  InstallationMethod,
-  EnvironmentVariable,
-  QualityMetrics,
-  PopularityMetrics,
-  InstallationInfo,
-  EnvironmentConfig,
-  ClaudeIntegration,
-  DocumentationInfo,
-  ServerCapabilities,
-  AvailabilityInfo,
-  APIConfiguration,
-  SourceInfo,
-  PackageInfo,
-  VerificationStatus,
-  GitHubRepoWithInstallation,
-  InstallationContext,
-  ResolvedPackage
-} from '@mcplookup-org/mcp-sdk';
-export type {
-  MCPServer,
-  InstallationMethod,
-  EnvironmentVariable,
-  QualityMetrics,
-  PopularityMetrics,
-  InstallationInfo,
-  EnvironmentConfig,
-  ClaudeIntegration,
-  DocumentationInfo,
-  ServerCapabilities,
-  AvailabilityInfo,
-  APIConfiguration,
-  SourceInfo,
-  PackageInfo,
-  VerificationStatus,
-  GitHubRepoWithInstallation,
-  InstallationContext,
-  ResolvedPackage
+  GitHubRepoWithInstallation
 } from '@mcplookup-org/mcp-sdk';
 
-export { buildMCPServerFromGitHubRepo } from '@mcplookup-org/mcp-sdk';
+// Re-export the types
+export type {
+  MCPServer,
+  GitHubRepoWithInstallation
+} from '@mcplookup-org/mcp-sdk';
+
+export {
+  transformGitHubRepoToMCPServer
+} from '@mcplookup-org/mcp-sdk';
 
 // DEPRECATED - Remove these custom types:
 // - MCPServerRecord (use MCPServer instead)
