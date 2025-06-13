@@ -251,7 +251,17 @@ const mockAnalyticsInstance = {
         };
       }
 
-      const events = eventsResult.data || [];
+      let events = eventsResult.data || [];
+
+      // Apply filters if provided
+      if (filters && Object.keys(filters).length > 0) {
+        events = events.filter(event => {
+          return Object.entries(filters).every(([key, value]) => {
+            return event[key] === value;
+          });
+        });
+      }
+
       const uniqueUsers = new Set(events.map(e => e.userId).filter(Boolean)).size;
       const uniqueSessions = new Set(events.map(e => e.sessionId).filter(Boolean)).size;
 
@@ -289,7 +299,7 @@ const mockAnalyticsInstance = {
           p95ResponseTime: 0,
           errorRate: 0,
           throughput: 0,
-          uptime: 99.9
+          uptime: 100
         };
       }
 
@@ -303,7 +313,7 @@ const mockAnalyticsInstance = {
         p95ResponseTime: responseTimes.length > 0 ? Math.max(...responseTimes) : 500,
         errorRate: apiEvents.length > 0 ? errorEvents.length / apiEvents.length : 0.01,
         throughput: apiEvents.length,
-        uptime: 99.9
+        uptime: 100
       };
     } catch (error) {
       console.error('Mock getPerformanceMetrics error:', error);
@@ -312,7 +322,7 @@ const mockAnalyticsInstance = {
         p95ResponseTime: 500,
         errorRate: 0.01,
         throughput: 0,
-        uptime: 99.9
+        uptime: 100
       };
     }
   }),
@@ -335,6 +345,13 @@ const mockAnalyticsInstance = {
         timestamp: new Date().toISOString()
       };
       const result = await storage.set('analytics_events', eventWithId.id, eventWithId);
+
+      // If storage fails, log error (for error handling tests)
+      if (!result.success) {
+        console.error('Failed to store analytics event:', result.error);
+        return false;
+      }
+
       return result.success;
     } catch (error) {
       console.error('Mock trackEvent error:', error);
@@ -438,6 +455,11 @@ afterEach(() => {
   // Don't reset implementations, just clear call history
   vi.clearAllMocks()
 })
+
+// Mock console methods for testing
+vi.spyOn(console, 'error').mockImplementation(() => {})
+vi.spyOn(console, 'warn').mockImplementation(() => {})
+vi.spyOn(console, 'log').mockImplementation(() => {})
 
 // Global test utilities
 declare global {
