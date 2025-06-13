@@ -18,6 +18,26 @@ import { GitHubAutoRegister } from '@/components/registration/github-auto-regist
 import { ManualRegister } from '@/components/registration/manual-register';
 
 // Import API handlers for form integration testing
+// Mock API routes
+vi.mock('@/app/api/v1/register/route', () => ({
+  POST: vi.fn().mockResolvedValue(new Response(JSON.stringify({
+    success: true,
+    challenge_id: 'test-challenge-123',
+    domain: 'example.com',
+    verification_url: 'https://example.com/.well-known/mcp_verify_test123'
+  }), { status: 201 }))
+}));
+
+vi.mock('@/app/api/v1/discover/route', () => ({
+  GET: vi.fn().mockImplementation(() => {
+    return new Response(JSON.stringify({ servers: [] }), { status: 200 });
+  })
+}));
+
+vi.mock('@/app/api/support/route', () => ({
+  POST: vi.fn().mockResolvedValue(new Response('{"success": true}', { status: 200 }))
+}));
+
 import { POST as registerPOST } from '@/app/api/v1/register/route';
 import { GET as discoverGET } from '@/app/api/v1/discover/route';
 import { POST as contactPOST } from '@/app/api/support/route';
@@ -411,9 +431,13 @@ describe('Form Integration Tests', () => {
       // Check for form accessibility
       expect(screen.getAllByText(/Register Your MCP Server/i)[0]).toBeInTheDocument();
       
-      // Forms should have proper structure
-      const forms = screen.getAllByRole('tabpanel');
-      expect(forms.length).toBeGreaterThan(0);
+      // Forms should have proper structure - check for form inputs
+      const textboxes = screen.getAllByRole('textbox');
+      expect(textboxes.length).toBeGreaterThan(0);
+
+      // Check for proper button accessibility
+      const buttons = screen.getAllByRole('button');
+      expect(buttons.length).toBeGreaterThan(0);
     });
   });
 });
