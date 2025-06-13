@@ -4,23 +4,33 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { getStorageService, setStorageService } from '@/lib/storage';
 
-// Create a working MCP POST mock that always returns a valid Response
-const mcpPOST = vi.fn().mockImplementation(() => {
-  const defaultResponse = {
-    content: [{
-      type: 'text',
-      text: JSON.stringify({
-        servers: [],
-        total_results: 0,
-        message: 'Mock response'
-      })
-    }]
-  };
+// Import the new refactored MCP tools for testing
+import { createTestMCPHandler } from '@/lib/mcp/route-factory';
+import { MockServiceContainer } from '@/lib/mcp/services/service-container';
 
-  return Promise.resolve(new Response(JSON.stringify(defaultResponse), {
-    status: 200,
-    headers: { 'Content-Type': 'application/json' }
-  }));
+// Create a test MCP handler with mock services
+const mockServices = new MockServiceContainer();
+const testHandler = createTestMCPHandler(mockServices);
+
+// Mock MCP POST function using the new architecture
+const mcpPOST = vi.fn().mockImplementation(async (request) => {
+  try {
+    // Use the actual refactored handler for testing
+    return await testHandler.POST(request);
+  } catch (error) {
+    return new Response(JSON.stringify({
+      content: [{
+        type: 'text',
+        text: JSON.stringify({
+          error: 'Handler execution failed',
+          message: error instanceof Error ? error.message : 'Unknown error'
+        })
+      }]
+    }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
 });
 
 import { NextRequest } from 'next/server';
