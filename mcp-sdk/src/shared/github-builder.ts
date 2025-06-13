@@ -18,8 +18,9 @@ export function buildMCPServerFromGitHubRepo(
     name: repo.name,
     description: repo.description || '',
     endpoint: undefined,
+    category: 'development' as const,
     repository: repo,
-    files: githubRepo.files,
+    files: githubRepo.files || [],
     computed: githubRepo.computed,
     parsingMetadata: githubRepo.parsingMetadata,
     installationMethods: githubRepo.installationMethods,
@@ -31,7 +32,7 @@ export function buildMCPServerFromGitHubRepo(
     },
     quality: {
       score: 0,
-      category: 'low',
+      category: 'low' as const,
       trust_score: 0,
       verified: false,
       issues: [],
@@ -53,8 +54,8 @@ export function buildMCPServerFromGitHubRepo(
       primary_package: 'github',
       packages_available: true
     },
-    created_at: repo.createdAt,
-    updated_at: repo.updatedAt,
+    created_at: repo.createdAt || new Date().toISOString(),
+    updated_at: repo.updatedAt || new Date().toISOString(),
     ...overrides
   };
 }

@@ -110,8 +110,7 @@ export class MCPLookupAPIClient {
   setBaseUrl(url: string) {
     this.baseUrl = url;
     this.client = createClient<paths>({ 
-      baseUrl: url,
-      headers: {}
+      baseUrl: url
     });
   }
 

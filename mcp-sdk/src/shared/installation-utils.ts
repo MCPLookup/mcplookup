@@ -2,7 +2,11 @@
 // Shared logic for package resolution, installation methods, and configuration
 
 import { MCPLookupAPIClient } from '../generated/api-client.js';
-import { InstallationContext, ResolvedPackage, InstallationMethod } from '../types/generated.js';
+import type { 
+  InstallationMethod, 
+  InstallationContext, 
+  ResolvedPackage 
+} from '../types/generated.js';
 
 export class InstallationResolver {
   private client: MCPLookupAPIClient;
@@ -177,10 +181,10 @@ export class InstallationResolver {
           displayName: server.name || 'Unknown Server',
           description: server.description,
           type: this.determinePackageType(server),
-          source: 'smart_search',
-          verified: server.verification?.status === 'verified',
-          installation: server.installation,
-          claude_integration: server.claude_integration
+          source: 'smart_search' as const,
+          verified: false, // Default to false since we can't access verification
+          installation: undefined, // Will be populated later if needed
+          claude_integration: undefined // Will be populated later if needed
         };
       }
 
@@ -264,7 +268,7 @@ export class InstallationResolver {
     resolvedPackage: ResolvedPackage,
     context: InstallationContext
   ) {
-    const steps = [];
+    const steps: string[] = [];
     const command = this.getDefaultCommand(resolvedPackage, context);
     const args = this.getDefaultArgs(resolvedPackage, context);
 

@@ -1,30 +1,58 @@
 // Main SDK exports
 export * from './types.js';
 export * from './generated/api-client.js';
-export * from './shared/index.js';
+
+// Working shared utilities
+export {
+  createSuccessResult,
+  createErrorResult,
+  executeWithErrorHandling,
+  sanitizeIdentifier
+} from './shared/response-utils.js';
+
+export {
+  readJsonFile,
+  writeJsonFile,
+  updateJsonFile,
+  fileExists
+} from './shared/config-utils.js';
+
+export {
+  validateInstallOptions,
+  ValidationResult
+} from './shared/validation-utils.js';
+
+// Installation utilities
+export { InstallationResolver } from './shared/installation-utils.js';
+
+// Installation types (export from generated.ts)
+export type { InstallationContext, ResolvedPackage } from './types/generated.js';
+
+// Direct export of needed function for GitHub parser
+export { buildMCPServerFromGitHubRepo } from './shared/github-builder.js';
 
 // Unified MCP Server types - USE THESE EVERYWHERE
 export {
   MCPServer,
   GitHubRepoWithInstallation,
+  transformGitHubRepoToMCPServer,
   StoredServerData,
-  QualityMetrics,
-  PopularityMetrics,
-  InstallationInfo,
-  EnvironmentConfig,
-  ClaudeIntegration,
-  DocumentationInfo,
-  ServerCapabilities,
-  AvailabilityInfo,
-  APIConfiguration,
-  SourceInfo,
+  // All component types
+  MCPServerQuality,
+  MCPServerPopularity,
+  MCPServerCapabilities,
+  MCPServerAvailability,
+  MCPServerAPI,
+  MCPServerInstallation,
+  MCPServerEnvironment,
+  MCPServerDocumentation,
+  MCPServerSource,
+  MCPServerVerification,
   PackageInfo,
-  VerificationStatus,
   EnvironmentVariable,
-  InstallationContext,
-  ResolvedPackage
-} from './types/generated.js';
-export { buildMCPServerFromGitHubRepo } from './shared/github-builder.js';
+  ClaudeDesktopConfig,
+  CodeExample
+} from './types/mcp-server.js';
 
 // GitHub and installation types (specific exports to avoid conflicts)
 export type {
