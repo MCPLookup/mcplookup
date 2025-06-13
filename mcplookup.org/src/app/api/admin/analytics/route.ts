@@ -2,7 +2,7 @@
 // Provides comprehensive analytics data for admin dashboard
 
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '../../../../../auth';
+import { auth } from '@/auth';
 import { authOptions } from '@/lib/auth/config';
 import { AnalyticsService } from '@/lib/services/analytics-service';
 import { z } from 'zod';

@@ -11,14 +11,14 @@ import { GET as verifyGET, POST as verifyPOST } from '@/app/api/v1/register/veri
 import { GET as discoverGET } from '@/app/api/v1/discover/route';
 import { GET as healthGET } from '@/app/api/v1/health/route';
 
-// Mock auth module
+// Mock auth module with admin permissions
 vi.mock('@/auth', () => ({
   auth: vi.fn().mockResolvedValue({
     user: {
-      id: 'test-user-123',
-      email: 'test@example.com',
-      name: 'Test User',
-      role: 'user'
+      id: 'test-admin-123',
+      email: 'admin@example.com',
+      name: 'Test Admin',
+      role: 'admin'
     }
   })
 }));
@@ -37,6 +37,9 @@ vi.mock('dns', () => ({
 }));
 
 describe('Real API Endpoint Integration Tests', () => {
+  // Base URL for API endpoints
+  const baseUrl = 'http://localhost:3000';
+
   beforeEach(async () => {
     // Reset storage for each test
     setStorageService(null as any);

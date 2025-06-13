@@ -2,7 +2,7 @@
 // Provides endpoints to manage the real-time monitoring server
 
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '../../../../../auth';
+import { auth } from '@/auth';
 import { authOptions } from '@/lib/auth/config';
 
 // Mock real-time server status for now

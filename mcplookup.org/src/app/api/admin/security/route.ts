@@ -2,7 +2,7 @@
 // Provides security events, domain challenges, and threat detection
 
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '../../../../../auth';
+import { auth } from '@/auth';
 import { authOptions } from '@/lib/auth/config';
 import { z } from 'zod';
 
