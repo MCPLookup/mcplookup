@@ -9,29 +9,25 @@ import { createStorageAdapter, getUserByEmail, verifyPassword } from "./src/lib/
 const isTestMode = process.env.NODE_ENV === 'test' || process.env.VITEST === 'true';
 
 // Mock auth for testing
-if (isTestMode) {
-  const mockAuth = async () => ({
-    user: {
-      id: 'test-admin-123',
-      email: 'admin@example.com',
-      name: 'Test Admin',
-      role: 'admin'
-    }
-  });
+const mockAuth = async () => ({
+  user: {
+    id: 'test-admin-123',
+    email: 'admin@example.com',
+    name: 'Test Admin',
+    role: 'admin'
+  },
+  expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours from now
+});
 
-  const mockHandlers = {
-    GET: () => new Response('Mock GET'),
-    POST: () => new Response('Mock POST')
-  };
+const mockHandlers = {
+  GET: () => new Response('Mock GET'),
+  POST: () => new Response('Mock POST')
+};
 
-  const mockSignIn = () => Promise.resolve();
-  const mockSignOut = () => Promise.resolve();
+const mockSignIn = () => Promise.resolve();
+const mockSignOut = () => Promise.resolve();
 
-  // Export mocks for test mode
-  export { mockAuth as auth, mockHandlers as handlers, mockSignIn as signIn, mockSignOut as signOut };
-} else {
-
-export const config = {
+const config = {
   adapter: createStorageAdapter(),
   providers: [
     GitHub({
@@ -182,6 +178,17 @@ export const config = {
   trustHost: true,
 } satisfies NextAuthConfig
 
-  const { handlers, auth, signIn, signOut } = NextAuth(config);
-  export { handlers, auth, signIn, signOut };
-}
+// Create NextAuth instance
+const { handlers, auth, signIn, signOut } = NextAuth(config);
+
+// Export the appropriate auth based on test mode
+export const authHandlers = isTestMode ? mockHandlers : handlers;
+export const authFunction = isTestMode ? mockAuth : auth;
+export const signInFunction = isTestMode ? mockSignIn : signIn;
+export const signOutFunction = isTestMode ? mockSignOut : signOut;
+
+// Default exports for compatibility
+export { authHandlers as handlers, authFunction as auth, signInFunction as signIn, signOutFunction as signOut };
+
+// Export config for compatibility with existing imports
+export { config };

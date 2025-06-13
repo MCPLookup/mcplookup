@@ -209,6 +209,9 @@ export async function sendPasswordReset(email: string, token: string) {
   })
 }
 
+// Alias for backward compatibility
+export { sendPasswordReset as sendPasswordResetEmail };
+
 /**
  * Send welcome email after successful registration
  */

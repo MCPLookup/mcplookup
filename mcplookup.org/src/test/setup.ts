@@ -458,7 +458,7 @@ vi.mock('@/lib/services/analytics-service', () => {
   Object.assign(MockAnalyticsService.prototype, mockAnalyticsInstance);
 
   // Add static methods if needed
-  MockAnalyticsService.getInstance = vi.fn().mockReturnValue(mockAnalyticsInstance);
+  (MockAnalyticsService as any).getInstance = vi.fn().mockReturnValue(mockAnalyticsInstance);
 
   return {
     AnalyticsService: MockAnalyticsService,

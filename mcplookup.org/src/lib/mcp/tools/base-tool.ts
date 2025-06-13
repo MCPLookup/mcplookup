@@ -16,12 +16,18 @@ export interface MCPAuthContext {
 
 /**
  * Standard MCP tool response format
+ * Compatible with @vercel/mcp-adapter expected return type
  */
 export interface MCPToolResponse {
+  [x: string]: unknown;
   content: Array<{
+    [x: string]: unknown;
     type: 'text';
     text: string;
   }>;
+  _meta?: { [x: string]: unknown };
+  structuredContent?: { [x: string]: unknown };
+  isError?: boolean;
 }
 
 /**
@@ -83,14 +89,15 @@ export abstract class BaseMCPTool<TArgs = any> {
   protected createErrorResponse(error: string, details?: any): MCPToolResponse {
     return {
       content: [{
-        type: 'text',
+        type: 'text' as const,
         text: JSON.stringify({
           error,
           details,
           tool: this.config.name,
           timestamp: new Date().toISOString()
         }, null, 2)
-      }]
+      }],
+      isError: true
     };
   }
 
@@ -100,7 +107,7 @@ export abstract class BaseMCPTool<TArgs = any> {
   protected createSuccessResponse(data: any): MCPToolResponse {
     return {
       content: [{
-        type: 'text',
+        type: 'text' as const,
         text: JSON.stringify(data, null, 2)
       }]
     };

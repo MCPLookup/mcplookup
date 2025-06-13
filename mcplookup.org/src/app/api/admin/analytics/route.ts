@@ -237,7 +237,7 @@ export async function POST(request: NextRequest) {
         action,
         label,
         value,
-        userId: userId || session.user.id
+        userId: userId || session.user?.id || 'anonymous'
       });
     } else {
       // Real analytics service for production
@@ -249,7 +249,7 @@ export async function POST(request: NextRequest) {
         label,
         value,
         properties,
-        userId: userId || session.user.id,
+        userId: userId || session.user?.id || 'anonymous',
         userAgent: request.headers.get('user-agent') || undefined,
         ipAddress: request.headers.get('x-forwarded-for') ||
                    request.headers.get('x-real-ip') ||
