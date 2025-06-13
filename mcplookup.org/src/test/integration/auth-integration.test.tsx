@@ -19,6 +19,20 @@ import HomePage from '@/app/page';
 // Import auth-related components
 import { Header } from '@/components/layout/header';
 
+// Mock API handlers for auth testing
+vi.mock('@/app/api/auth/register/route', () => ({
+  POST: vi.fn()
+}));
+
+vi.mock('@/app/api/auth/verify-email/route', () => ({
+  POST: vi.fn()
+}));
+
+vi.mock('@/app/api/v1/onboarding/route', () => ({
+  GET: vi.fn(),
+  POST: vi.fn()
+}));
+
 // Import API handlers for auth testing
 import { POST as authRegisterPOST } from '@/app/api/auth/register/route';
 import { POST as verifyEmailPOST } from '@/app/api/auth/verify-email/route';
@@ -120,6 +134,36 @@ describe('Authentication Integration Tests', () => {
     await storageService.clear();
     currentAuthState = null;
     vi.clearAllMocks();
+
+    // Set up default mock implementations
+    vi.mocked(authRegisterPOST).mockResolvedValue(
+      new Response(JSON.stringify({
+        id: 'user-123',
+        email: 'test@example.com',
+        message: 'Registration successful'
+      }), { status: 201 })
+    );
+
+    vi.mocked(verifyEmailPOST).mockResolvedValue(
+      new Response(JSON.stringify({
+        verified: true,
+        message: 'Email verified successfully'
+      }), { status: 200 })
+    );
+
+    vi.mocked(onboardingGET).mockResolvedValue(
+      new Response(JSON.stringify({
+        step: 'welcome',
+        completed: false
+      }), { status: 200 })
+    );
+
+    vi.mocked(onboardingPOST).mockResolvedValue(
+      new Response(JSON.stringify({
+        step: 'welcome',
+        completed: true
+      }), { status: 200 })
+    );
   });
 
   describe('Unauthenticated User Experience', () => {
