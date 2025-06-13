@@ -327,10 +327,12 @@ const mockAnalyticsInstance = {
     }
   }),
   getUserBehaviorMetrics: vi.fn().mockResolvedValue({
-    bounce_rate: 0.25,
-    avg_session_duration: 300,
-    pages_per_session: 3.5,
-    returning_users: 0.6
+    averageSessionDuration: 300,
+    bounceRate: 0.25,
+    pagesPerSession: 3.5,
+    topPages: [{ page: '/dashboard', views: 100 }],
+    userFlow: [],
+    retentionRate: 0.6
   }),
 
   // Tracking methods

@@ -104,14 +104,17 @@ export async function POST(request: NextRequest) {
       }
 
       // Mock verification for tests
+      const challengeId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       challenge = {
-        challenge_id: `test_challenge_${Date.now()}`,
+        challenge_id: challengeId,
         domain: validatedRequest.domain,
-        txt_record_name: `_mcp-challenge.${validatedRequest.domain}`,
+        challenge_token: `mcp_verify_${Date.now()}`,
+        verification_type: 'dns-txt' as const,
+        txt_record_name: `_mcp-verify.${validatedRequest.domain}`,
         txt_record_value: `mcp-verify=${Date.now()}`,
         expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        verification_url: `https://mcplookup.org/verify/${validatedRequest.domain}`,
-        status: 'pending'
+        instructions: `Add a TXT record to your DNS: ${validatedRequest.domain} with value mcp-verify=${Date.now()}`,
+        status: 'pending' as const
       };
 
       // Store the challenge for verification tests
@@ -140,6 +143,7 @@ export async function POST(request: NextRequest) {
     const validatedChallenge = VerificationChallengeSchema.parse(challenge);
     
     const response = NextResponse.json(validatedChallenge, {
+      status: 201,
       headers: {
         'Cache-Control': 'no-cache',
         'Access-Control-Allow-Origin': process.env.ALLOWED_ORIGINS || 'https://mcplookup.org',

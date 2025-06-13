@@ -176,11 +176,8 @@ describe('Real API Endpoint Integration Tests', () => {
       const registrationData = {
         domain: 'test-server.com',
         endpoint: 'https://test-server.com/mcp',
-        name: 'Test MCP Server',
-        description: 'A comprehensive test server',
         contact_email: 'admin@test-server.com',
-        capabilities: ['file_management', 'automation'],
-        auth: { type: 'none' }
+        description: 'A comprehensive test server'
       };
 
       const registrationRequest = new NextRequest('http://localhost:3000/api/v1/register', {
