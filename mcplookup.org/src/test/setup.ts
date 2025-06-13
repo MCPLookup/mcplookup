@@ -425,7 +425,26 @@ const mockAnalyticsInstance = {
       return false;
     }
   }),
-  trackServerRegistration: vi.fn().mockResolvedValue(true)
+  trackServerRegistration: vi.fn().mockImplementation(async (domain, success, userId) => {
+    try {
+      const { getStorageService } = await import('@/lib/storage');
+      const storage = getStorageService();
+      const event = {
+        id: `event_${Date.now()}_${Math.random()}`,
+        type: 'registration',
+        category: 'server',
+        action: 'registration',
+        userId,
+        properties: { domain, success },
+        timestamp: new Date().toISOString()
+      };
+      const result = await storage.set('analytics_events', event.id, event);
+      return result.success;
+    } catch (error) {
+      console.error('Mock trackServerRegistration error:', error);
+      return false;
+    }
+  })
 };
 
 vi.mock('@/lib/services/analytics-service', () => {
