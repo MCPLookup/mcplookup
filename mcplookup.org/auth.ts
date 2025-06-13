@@ -128,13 +128,23 @@ export const config = {
 
       return true
     },
-    session({ session, user }) {
+    async session({ session, user }) {
       // With database sessions, user data comes from the database
       if (user && session.user) {
         session.user.id = user.id
         session.user.email = user.email
         session.user.name = user.name
         session.user.image = user.image
+
+        // Check if user is admin
+        try {
+          const { isUserAdmin } = await import('./src/lib/auth/setup')
+          const isAdmin = await isUserAdmin(user.id)
+          ;(session.user as any).role = isAdmin ? 'admin' : 'user'
+        } catch (error) {
+          console.error('Failed to check admin status:', error)
+          ;(session.user as any).role = 'user'
+        }
       }
       return session
     },

@@ -2,7 +2,7 @@
 // Provides comprehensive analytics data for admin dashboard
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
+import { auth } from '../../../../../auth';
 import { authOptions } from '@/lib/auth/config';
 import { AnalyticsService } from '@/lib/services/analytics-service';
 import { z } from 'zod';
@@ -23,7 +23,7 @@ const AnalyticsQuerySchema = z.object({
 export async function GET(request: NextRequest) {
   try {
     // Check authentication
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user) {
       return NextResponse.json(
         { error: 'Authentication required' },
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Check admin permissions
-    if (session.user.role !== 'admin') {
+    if ((session.user as any).role !== 'admin') {
       return NextResponse.json(
         { error: 'Admin access required' },
         { status: 403 }
@@ -123,7 +123,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Check authentication
-    const session = await getServerSession(authOptions);
+    const session = await auth();
     if (!session?.user) {
       return NextResponse.json(
         { error: 'Authentication required' },
