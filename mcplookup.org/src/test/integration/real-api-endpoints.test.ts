@@ -73,23 +73,44 @@ describe('Real API Endpoint Integration Tests', () => {
             }), { status: 400 }));
           }
 
-          // Check for duplicate domain (simulate storage check)
+          // Atomic duplicate detection and storage (simulate database constraints)
           const { getStorageService } = await import('@/lib/storage');
           const storage = getStorageService();
-          const existing = await storage.get('mcp_servers', body.domain);
 
-          if (existing.success && existing.data) {
+          // Use a simple in-memory lock to simulate atomic operations
+          const lockKey = `registration_lock_${body.domain}`;
+          const existingLock = globalThis[lockKey];
+
+          if (existingLock) {
+            // Another request is already processing this domain
             return Promise.resolve(new Response(JSON.stringify({
-              error: `Domain ${body.domain} is already registered`
+              error: `Domain ${body.domain} is already being registered`
             }), { status: 409 }));
           }
 
-          // Store the server for future discovery
-          await storage.set('mcp_servers', body.domain, {
-            ...body,
-            verified: true,
-            created_at: new Date().toISOString()
-          });
+          // Set lock
+          globalThis[lockKey] = true;
+
+          try {
+            // Check for existing registration
+            const existing = await storage.get('mcp_servers', body.domain);
+
+            if (existing.success && existing.data) {
+              return Promise.resolve(new Response(JSON.stringify({
+                error: `Domain ${body.domain} is already registered`
+              }), { status: 409 }));
+            }
+
+            // Store the server for future discovery
+            await storage.set('mcp_servers', body.domain, {
+              ...body,
+              verified: true,
+              created_at: new Date().toISOString()
+            });
+          } finally {
+            // Release lock
+            delete globalThis[lockKey];
+          }
 
           // Return success response
           return Promise.resolve(new Response(JSON.stringify({
