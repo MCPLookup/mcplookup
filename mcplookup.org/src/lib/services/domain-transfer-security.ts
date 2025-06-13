@@ -2,12 +2,14 @@
 // Domain Transfer Security Service
 // Handles domain ownership verification, expiry, and transfer challenges
 
-import { randomUUID } from 'crypto';
+import { randomUUID, randomBytes } from 'crypto';
 import { VerificationService, IVerificationService } from './verification';
 import { RegistryService } from './registry';
 import { createStorage } from './storage/factory';
 import { IStorage, isSuccessResult } from './storage/unified-storage';
 import { VerificationChallengeData } from './verification';
+import { StorageService } from '../storage/types';
+import { getStorageService } from '../storage';
 import { MCPServerRecord } from '../schemas/discovery';
 
 export interface DomainChallenge {
@@ -357,20 +359,71 @@ export class DomainTransferSecurityService {
   }
 
   private async getPendingChallenges(domain: string): Promise<DomainChallenge[]> {
-    // This would need to be implemented based on storage capabilities
-    // For now, return empty array
-    return [];
+    try {
+      const result = await this.storage.getByPrefix(this.CHALLENGE_COLLECTION, `challenge_${domain}_`);
+      if (!isSuccessResult(result)) {
+        console.error('Failed to get pending challenges:', result.error);
+        return [];
+      }
+
+      return result.data
+        .filter((challenge: DomainChallenge) => challenge.status === 'pending')
+        .filter((challenge: DomainChallenge) => new Date(challenge.expires_at) > new Date());
+    } catch (error) {
+      console.error('Error getting pending challenges:', error);
+      return [];
+    }
   }
 
   private async notifyCurrentOwner(registration: MCPServerRecord, challenge: DomainChallenge): Promise<void> {
-    // Implementation would send email/webhook notification
-    console.log(`Domain challenge notification sent for ${registration.domain}`);
+    try {
+      // Send email notification if contact email is available
+      if (registration.contact_email) {
+        await this.sendChallengeNotificationEmail(registration, challenge);
+      }
+
+      // Send webhook notification if configured
+      if (registration.webhook_url) {
+        await this.sendChallengeWebhook(registration, challenge);
+      }
+
+      // Log the notification
+      console.log(`Domain challenge notification sent for ${registration.domain} to ${registration.contact_email}`);
+    } catch (error) {
+      console.error(`Failed to notify current owner for ${registration.domain}:`, error);
+    }
   }
 
   private async archiveRegistration(registration: MCPServerRecord, reason: string): Promise<void> {
-    // Archive the registration (move to archived table/storage)
-    console.log(`Archiving registration for ${registration.domain}: ${reason}`);
-    await this.registryService.unregisterServer(registration.domain);
+    try {
+      // Create archived record
+      const archivedRecord = {
+        ...registration,
+        archived_at: new Date().toISOString(),
+        archive_reason: reason,
+        original_domain: registration.domain
+      };
+
+      // Store in archived collection
+      const archiveResult = await this.storage.set(
+        'archived_registrations',
+        `archived_${registration.domain}_${Date.now()}`,
+        archivedRecord
+      );
+
+      if (!isSuccessResult(archiveResult)) {
+        console.error('Failed to archive registration:', archiveResult.error);
+      }
+
+      // Remove from active registry
+      await this.registryService.unregisterServer(registration.domain);
+
+      console.log(`Successfully archived registration for ${registration.domain}: ${reason}`);
+    } catch (error) {
+      console.error(`Failed to archive registration for ${registration.domain}:`, error);
+      // Still try to unregister even if archiving fails
+      await this.registryService.unregisterServer(registration.domain);
+    }
   }
 
   private async markRegistrationExpired(domain: string): Promise<void> {
@@ -381,5 +434,94 @@ export class DomainTransferSecurityService {
   private async sendExpiryWarning(registration: MCPServerRecord, daysUntilExpiry: number): Promise<void> {
     // Send expiry warning notification
     console.log(`Sending expiry warning for ${registration.domain}: ${daysUntilExpiry} days remaining`);
+  }
+
+  private generateSecureToken(): string {
+    return randomBytes(32).toString('hex');
+  }
+
+  private async sendChallengeNotificationEmail(
+    registration: MCPServerRecord,
+    challenge: DomainChallenge
+  ): Promise<void> {
+    // Email notification implementation
+    // This would integrate with your email service (SendGrid, AWS SES, etc.)
+    const emailData = {
+      to: registration.contact_email,
+      subject: `Domain Ownership Challenge for ${challenge.domain}`,
+      html: `
+        <h2>Domain Ownership Challenge</h2>
+        <p>Someone has initiated an ownership challenge for your domain <strong>${challenge.domain}</strong>.</p>
+        <p><strong>Challenge Details:</strong></p>
+        <ul>
+          <li>Challenge ID: ${challenge.challenge_id}</li>
+          <li>Challenger IP: ${challenge.challenger_ip}</li>
+          <li>Challenge Type: ${challenge.challenge_type}</li>
+          <li>Expires: ${challenge.expires_at}</li>
+        </ul>
+        <p>If this was not initiated by you, please contact support immediately.</p>
+        <p>To maintain ownership, ensure your DNS verification remains valid.</p>
+      `
+    };
+
+    // Log for now - implement actual email sending based on your email service
+    console.log('Email notification would be sent:', emailData);
+  }
+
+  private async sendChallengeWebhook(
+    registration: MCPServerRecord,
+    challenge: DomainChallenge
+  ): Promise<void> {
+    try {
+      const webhookPayload = {
+        event: 'domain_challenge_initiated',
+        domain: challenge.domain,
+        challenge_id: challenge.challenge_id,
+        challenge_type: challenge.challenge_type,
+        challenger_ip: challenge.challenger_ip,
+        expires_at: challenge.expires_at,
+        timestamp: new Date().toISOString()
+      };
+
+      const response = await fetch(registration.webhook_url!, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': 'MCPLookup-Security/1.0'
+        },
+        body: JSON.stringify(webhookPayload),
+        signal: AbortSignal.timeout(10000) // 10 second timeout
+      });
+
+      if (!response.ok) {
+        console.error(`Webhook notification failed: ${response.status} ${response.statusText}`);
+      }
+    } catch (error) {
+      console.error('Failed to send webhook notification:', error);
+    }
+  }
+
+  private async storeChallenge(challenge: DomainChallenge): Promise<void> {
+    const result = await this.storage.set(
+      this.CHALLENGE_COLLECTION,
+      `challenge_${challenge.domain}_${challenge.challenge_id}`,
+      challenge
+    );
+
+    if (!isSuccessResult(result)) {
+      throw new Error(`Failed to store challenge: ${result.error}`);
+    }
+  }
+
+  private async updateChallenge(challenge: DomainChallenge): Promise<void> {
+    const result = await this.storage.set(
+      this.CHALLENGE_COLLECTION,
+      `challenge_${challenge.domain}_${challenge.challenge_id}`,
+      challenge
+    );
+
+    if (!isSuccessResult(result)) {
+      throw new Error(`Failed to update challenge: ${result.error}`);
+    }
   }
 }

@@ -15,6 +15,15 @@ interface DashboardStats {
   activeUsers: number;
   registrationsToday: number;
   lastUpdated: string;
+  // Analytics data
+  totalEvents?: number;
+  uniqueUsers?: number;
+  // Security data
+  securityEvents?: number;
+  pendingChallenges?: number;
+  // Additional analytics and security properties
+  analytics?: any;
+  security?: any;
 }
 
 export function RealTimeDashboard() {
@@ -65,15 +74,47 @@ export function RealTimeDashboard() {
     try {
       setIsLoading(true)
       setError(null)
-      
-      const response = await fetch('/api/v1/admin/stats')
-      
-      if (response.ok) {
-        const data = await response.json()
-        setStats(data)
-      } else {
-        setError('Failed to load dashboard statistics')
+
+      // Load comprehensive dashboard data from multiple sources
+      const [statsResponse, analyticsResponse, securityResponse] = await Promise.allSettled([
+        fetch('/api/v1/admin/stats'),
+        fetch('/api/admin/analytics?period=hour'),
+        fetch('/api/admin/security')
+      ]);
+
+      let combinedStats: any = {};
+
+      // Process stats response
+      if (statsResponse.status === 'fulfilled' && statsResponse.value.ok) {
+        combinedStats = await statsResponse.value.json();
       }
+
+      // Process analytics response
+      if (analyticsResponse.status === 'fulfilled' && analyticsResponse.value.ok) {
+        const analyticsData = await analyticsResponse.value.json();
+        combinedStats.analytics = analyticsData;
+
+        // Enhance stats with analytics data
+        if (analyticsData.analytics) {
+          combinedStats.totalEvents = analyticsData.analytics.totalEvents || 0;
+          combinedStats.uniqueUsers = analyticsData.analytics.uniqueUsers || 0;
+        }
+      }
+
+      // Process security response
+      if (securityResponse.status === 'fulfilled' && securityResponse.value.ok) {
+        const securityData = await securityResponse.value.json();
+        combinedStats.security = securityData;
+
+        // Enhance stats with security data
+        if (securityData.summary) {
+          combinedStats.pendingChallenges = securityData.summary.total_challenges || 0;
+          combinedStats.securityEvents = securityData.summary.security_events || 0;
+        }
+      }
+
+      setStats(combinedStats);
+
     } catch (error) {
       console.error('Error loading dashboard stats:', error)
       setError('Failed to load dashboard statistics')
@@ -176,7 +217,7 @@ export function RealTimeDashboard() {
       )}
 
       {/* Real-time Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
         <AdminStatsCard
           title="Total Users"
           value={stats?.totalUsers || 0}
@@ -185,7 +226,7 @@ export function RealTimeDashboard() {
           color="blue"
           className={isConnected ? 'ring-2 ring-green-200' : ''}
         />
-        
+
         <AdminStatsCard
           title="MCP Servers"
           value={stats?.totalServers || 0}
@@ -194,7 +235,7 @@ export function RealTimeDashboard() {
           color="green"
           className={isConnected ? 'ring-2 ring-green-200' : ''}
         />
-        
+
         <AdminStatsCard
           title="Active Users"
           value={stats?.activeUsers || 0}
@@ -202,12 +243,30 @@ export function RealTimeDashboard() {
           color="orange"
           className={isConnected ? 'ring-2 ring-green-200' : ''}
         />
-        
+
         <AdminStatsCard
           title="Pending Verifications"
           value={stats?.pendingVerifications || 0}
           icon="⏳"
           color="yellow"
+          className={isConnected ? 'ring-2 ring-green-200' : ''}
+        />
+
+        <AdminStatsCard
+          title="Events (1h)"
+          value={stats?.totalEvents || 0}
+          icon="📊"
+          trend={stats?.uniqueUsers ? `${stats.uniqueUsers} unique users` : undefined}
+          color="purple"
+          className={isConnected ? 'ring-2 ring-green-200' : ''}
+        />
+
+        <AdminStatsCard
+          title="Security Events"
+          value={stats?.securityEvents || 0}
+          icon="🔒"
+          trend={stats?.pendingChallenges ? `${stats.pendingChallenges} challenges` : undefined}
+          color="red"
           className={isConnected ? 'ring-2 ring-green-200' : ''}
         />
       </div>

@@ -69,13 +69,13 @@
     "@hookform/resolvers": "^3.9.1",
     "@langchain/core": "^0.3.57",
     "@langchain/ollama": "^0.2.1",
-    "@mcplookup-org/mcp-sdk": "file:../mcp-sdk",
     "@mcplookup-org/mcp-github-parser": "file:../mcp-github-parser",
+    "@mcplookup-org/mcp-sdk": "file:../mcp-sdk",
     "@modelcontextprotocol/sdk": "^1.12.1",
     "@types/bcryptjs": "^2.4.6",
-
     "@types/nodemailer": "^6.4.17",
     "@types/prismjs": "^1.26.5",
+    "@types/ws": "^8.18.1",
     "@upstash/redis": "^1.35.0",
     "@vercel/mcp-adapter": "^0.7.3",
     "autoprefixer": "^10.4.21",
@@ -111,6 +111,7 @@
     "tailwindcss": "^3.4.17",
     "tailwindcss-animate": "^1.0.7",
     "uuid": "^11.1.0",
+    "ws": "^8.18.2",
     "zod": "^3.25.56"
   },
   "devDependencies": {
