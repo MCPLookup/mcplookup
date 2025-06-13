@@ -8,6 +8,18 @@ import { getStorageService, setStorageService } from '@/lib/storage';
 import { POST as mcpPOST } from '@/app/api/mcp/route';
 import { NextRequest } from 'next/server';
 
+// Mock auth module
+vi.mock('@/auth', () => ({
+  auth: vi.fn().mockResolvedValue({
+    user: {
+      id: 'test-user-123',
+      email: 'test@example.com',
+      name: 'Test User',
+      role: 'user'
+    }
+  })
+}));
+
 // Mock external services
 vi.mock('dns', () => ({
   promises: {

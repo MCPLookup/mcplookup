@@ -10,7 +10,7 @@ import { GET as analyticsGET, POST as analyticsPOST } from '@/app/api/admin/anal
 import { GET as securityGET, POST as securityPOST } from '@/app/api/admin/security/route';
 import { GET as realtimeGET, POST as realtimePOST } from '@/app/api/admin/realtime/route';
 
-// Mock auth
+// Mock auth module
 vi.mock('@/auth', () => ({
   auth: vi.fn().mockResolvedValue({
     user: {

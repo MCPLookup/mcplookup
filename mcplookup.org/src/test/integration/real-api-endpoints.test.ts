@@ -1,15 +1,27 @@
 // Real API Endpoint Integration Tests
-// Tests actual HTTP requests to API endpoints with real services
+// Tests API route handlers directly with real services
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { createServer } from 'http';
-import { parse } from 'url';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { NextRequest } from 'next/server';
 import { getStorageService, setStorageService } from '@/lib/storage';
 
-// Test server setup
-let testServer: any;
-let testPort: number;
-let baseUrl: string;
+// Import API route handlers
+import { POST as registerPOST } from '@/app/api/v1/register/route';
+import { GET as verifyGET, POST as verifyPOST } from '@/app/api/v1/register/verify/[id]/route';
+import { GET as discoverGET } from '@/app/api/v1/discover/route';
+import { GET as healthGET } from '@/app/api/v1/health/route';
+
+// Mock auth module
+vi.mock('@/auth', () => ({
+  auth: vi.fn().mockResolvedValue({
+    user: {
+      id: 'test-user-123',
+      email: 'test@example.com',
+      name: 'Test User',
+      role: 'user'
+    }
+  })
+}));
 
 // Mock external services but keep internal logic
 vi.mock('@/lib/services/resend-email', () => ({
@@ -28,21 +40,11 @@ describe('Real API Endpoint Integration Tests', () => {
   beforeEach(async () => {
     // Reset storage for each test
     setStorageService(null as any);
-    
+
     // Mock console methods
     vi.spyOn(console, 'log').mockImplementation(() => {});
     vi.spyOn(console, 'error').mockImplementation(() => {});
     vi.spyOn(console, 'warn').mockImplementation(() => {});
-    
-    // Find available port and start test server
-    testPort = 3001 + Math.floor(Math.random() * 1000);
-    baseUrl = `http://localhost:${testPort}`;
-  });
-
-  afterEach(async () => {
-    if (testServer) {
-      testServer.close();
-    }
   });
 
   describe('Server Registration API Workflow', () => {
@@ -58,11 +60,13 @@ describe('Real API Endpoint Integration Tests', () => {
         auth: { type: 'none' }
       };
 
-      const registrationResponse = await fetch(`${baseUrl}/api/v1/register`, {
+      const registrationRequest = new NextRequest('http://localhost:3000/api/v1/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(registrationData)
       });
+
+      const registrationResponse = await registerPOST(registrationRequest);
 
       // Should get challenge response
       expect(registrationResponse.status).toBe(201);
@@ -77,17 +81,24 @@ describe('Real API Endpoint Integration Tests', () => {
       const challengeId = registrationResult.challenge_id;
 
       // Step 2: Check verification status
-      const statusResponse = await fetch(`${baseUrl}/api/v1/register/verify/${challengeId}`);
+      const statusRequest = new NextRequest(`http://localhost:3000/api/v1/register/verify/${challengeId}`);
+      const statusResponse = await verifyGET(statusRequest, {
+        params: Promise.resolve({ id: challengeId })
+      });
       expect(statusResponse.status).toBe(200);
-      
+
       const statusResult = await statusResponse.json();
       expect(statusResult.challenge_id).toBe(challengeId);
       expect(statusResult.domain).toBe('test-server.com');
       expect(statusResult.verified_at).toBeNull();
 
       // Step 3: Verify DNS challenge
-      const verificationResponse = await fetch(`${baseUrl}/api/v1/register/verify/${challengeId}`, {
+      const verificationRequest = new NextRequest(`http://localhost:3000/api/v1/register/verify/${challengeId}`, {
         method: 'POST'
+      });
+
+      const verificationResponse = await verifyPOST(verificationRequest, {
+        params: Promise.resolve({ id: challengeId })
       });
 
       expect(verificationResponse.status).toBe(200);
@@ -96,9 +107,10 @@ describe('Real API Endpoint Integration Tests', () => {
       expect(verificationResult.domain).toBe('test-server.com');
 
       // Step 4: Verify server is discoverable
-      const discoveryResponse = await fetch(`${baseUrl}/api/v1/discover?domain=test-server.com`);
+      const discoveryRequest = new NextRequest('http://localhost:3000/api/v1/discover?domain=test-server.com');
+      const discoveryResponse = await discoverGET(discoveryRequest);
       expect(discoveryResponse.status).toBe(200);
-      
+
       const discoveryResult = await discoveryResponse.json();
       expect(discoveryResult.servers).toHaveLength(1);
       expect(discoveryResult.servers[0].domain).toBe('test-server.com');

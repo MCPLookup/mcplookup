@@ -253,6 +253,140 @@ export class DomainTransferSecurityService {
   }
 
   /**
+   * Verify a domain challenge
+   */
+  async verifyDomainChallenge(challengeId: string, domain: string): Promise<{
+    verified: boolean;
+    domain: string;
+    challenge_id?: string;
+    verified_at?: string;
+    error?: string;
+  }> {
+    try {
+      const challenge = await this.getChallenge(challengeId);
+      if (!challenge) {
+        return {
+          verified: false,
+          domain,
+          error: 'Challenge not found'
+        };
+      }
+
+      if (challenge.domain !== domain) {
+        return {
+          verified: false,
+          domain,
+          error: 'Domain mismatch'
+        };
+      }
+
+      if (new Date() > challenge.expires_at) {
+        return {
+          verified: false,
+          domain,
+          error: 'Challenge expired'
+        };
+      }
+
+      // Verify DNS record
+      const dnsValid = await this.verifyDNSRecord(
+        challenge.txt_record_name,
+        challenge.txt_record_value
+      );
+
+      if (dnsValid) {
+        // Update challenge status
+        challenge.status = 'verified';
+        await this.updateChallenge(challenge);
+
+        return {
+          verified: true,
+          domain,
+          challenge_id: challengeId,
+          verified_at: new Date().toISOString()
+        };
+      } else {
+        return {
+          verified: false,
+          domain,
+          error: 'DNS verification failed'
+        };
+      }
+    } catch (error) {
+      console.error('Domain challenge verification failed:', error);
+      return {
+        verified: false,
+        domain,
+        error: 'Verification failed'
+      };
+    }
+  }
+
+  /**
+   * Run a comprehensive verification sweep
+   */
+  async runVerificationSweep(): Promise<{
+    scanned_domains: number;
+    verification_failures: number;
+    expired_registrations: number;
+    actions_taken: number;
+  }> {
+    try {
+      const allServers = await this.registryService.getAllServers();
+      let scannedDomains = 0;
+      let verificationFailures = 0;
+      let expiredRegistrations = 0;
+      let actionsTaken = 0;
+
+      for (const server of allServers) {
+        scannedDomains++;
+
+        // Check if verification is expired
+        if (server.verification) {
+          const verifiedAt = new Date(server.verification.verified_at || server.verification.last_verification || Date.now());
+          const expiresAt = new Date(verifiedAt.getTime() + this.VERIFICATION_TTL);
+          const now = new Date();
+
+          if (now > expiresAt) {
+            expiredRegistrations++;
+            actionsTaken++;
+            await this.markRegistrationExpired(server.domain);
+          }
+        }
+
+        // Verify current DNS records
+        if (server.verified) {
+          const dnsValid = await this.verifyDNSRecord(
+            `_mcp-verify.${server.domain}`,
+            server.verification?.txt_record_value || 'unknown'
+          );
+
+          if (!dnsValid) {
+            verificationFailures++;
+            actionsTaken++;
+            console.log(`DNS verification failed for ${server.domain}`);
+          }
+        }
+      }
+
+      return {
+        scanned_domains: scannedDomains,
+        verification_failures: verificationFailures,
+        expired_registrations: expiredRegistrations,
+        actions_taken: actionsTaken
+      };
+    } catch (error) {
+      console.error('Verification sweep failed:', error);
+      return {
+        scanned_domains: 0,
+        verification_failures: 0,
+        expired_registrations: 0,
+        actions_taken: 0
+      };
+    }
+  }
+
+  /**
    * Monitor and handle expired verifications
    */
   async monitorVerificationExpiry(): Promise<void> {
@@ -436,9 +570,7 @@ export class DomainTransferSecurityService {
     console.log(`Sending expiry warning for ${registration.domain}: ${daysUntilExpiry} days remaining`);
   }
 
-  private generateSecureToken(): string {
-    return randomBytes(32).toString('hex');
-  }
+
 
   private async sendChallengeNotificationEmail(
     registration: MCPServerRecord,
@@ -501,27 +633,5 @@ export class DomainTransferSecurityService {
     }
   }
 
-  private async storeChallenge(challenge: DomainChallenge): Promise<void> {
-    const result = await this.storage.set(
-      this.CHALLENGE_COLLECTION,
-      `challenge_${challenge.domain}_${challenge.challenge_id}`,
-      challenge
-    );
 
-    if (!isSuccessResult(result)) {
-      throw new Error(`Failed to store challenge: ${result.error}`);
-    }
-  }
-
-  private async updateChallenge(challenge: DomainChallenge): Promise<void> {
-    const result = await this.storage.set(
-      this.CHALLENGE_COLLECTION,
-      `challenge_${challenge.domain}_${challenge.challenge_id}`,
-      challenge
-    );
-
-    if (!isSuccessResult(result)) {
-      throw new Error(`Failed to update challenge: ${result.error}`);
-    }
-  }
 }

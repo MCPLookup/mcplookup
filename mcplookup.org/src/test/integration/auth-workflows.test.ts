@@ -5,8 +5,23 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 import { getStorageService, setStorageService } from '@/lib/storage';
 
-// Test with real HTTP requests instead of direct route imports
-// This tests the actual API endpoints as they would be called by clients
+// Import API route handlers for direct testing
+import { POST as authRegisterPOST } from '@/app/api/auth/register/route';
+import { POST as verifyEmailPOST } from '@/app/api/auth/verify-email/route';
+import { POST as forgotPasswordPOST } from '@/app/api/auth/forgot-password/route';
+import { POST as resetPasswordPOST } from '@/app/api/auth/reset-password/route';
+
+// Mock auth module
+vi.mock('@/auth', () => ({
+  auth: vi.fn().mockResolvedValue({
+    user: {
+      id: 'test-user-123',
+      email: 'test@example.com',
+      name: 'Test User',
+      role: 'user'
+    }
+  })
+}));
 
 // Mock external dependencies
 vi.mock('@/lib/services/resend-email', () => ({
