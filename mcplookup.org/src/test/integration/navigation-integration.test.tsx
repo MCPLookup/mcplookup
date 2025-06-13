@@ -195,7 +195,7 @@ describe('Navigation Integration Tests', () => {
     it('should navigate from homepage to discovery page', async () => {
       renderWithProviders(<HomePage />);
       
-      const discoverButton = screen.getByText(/Start Discovering/i);
+      const discoverButton = screen.getAllByText(/Start Discovering/i)[0];
       fireEvent.click(discoverButton);
       
       await waitFor(() => {
@@ -254,7 +254,7 @@ describe('Navigation Integration Tests', () => {
       renderWithProviders(<RegisterPage />);
       
       // Page should render with parameters
-      expect(screen.getByText(/Register Your MCP Server/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/Register Your MCP Server/i)[0]).toBeInTheDocument();
     });
 
     it('should handle dashboard with tab selection', async () => {
@@ -287,7 +287,7 @@ describe('Navigation Integration Tests', () => {
       renderWithProviders(<HomePage />);
       
       // Navigate to discovery
-      const discoverButton = screen.getByText(/Start Discovering/i);
+      const discoverButton = screen.getAllByText(/Start Discovering/i)[0];
       fireEvent.click(discoverButton);
       
       // Check navigation history
@@ -319,14 +319,14 @@ describe('Navigation Integration Tests', () => {
       
       // Access public pages
       renderWithProviders(<HomePage />);
-      expect(screen.getByText(/Dynamic Discovery Infrastructure/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/Dynamic Discovery Infrastructure/i)[0]).toBeInTheDocument();
       
       const { unmount } = renderWithProviders(<DiscoverPage />);
       expect(screen.getByText(/MCP Server Discovery Engine/i)).toBeInTheDocument();
       unmount();
       
       renderWithProviders(<RegisterPage />);
-      expect(screen.getByText(/Register Your MCP Server/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/Register Your MCP Server/i)[0]).toBeInTheDocument();
     });
   });
 
@@ -337,11 +337,11 @@ describe('Navigation Integration Tests', () => {
       
       renderWithProviders(<HomePage />);
       
-      const discoverButton = screen.getByText(/Start Discovering/i);
+      const discoverButton = screen.getAllByText(/Start Discovering/i)[0];
       fireEvent.click(discoverButton);
-      
+
       // Should not crash the application
-      expect(screen.getByText(/Dynamic Discovery Infrastructure/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/Dynamic Discovery Infrastructure/i)[0]).toBeInTheDocument();
     });
   });
 
