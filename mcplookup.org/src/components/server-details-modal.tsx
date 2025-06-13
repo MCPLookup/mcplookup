@@ -1,6 +1,6 @@
 "use client"
 
-import React from 'react'
+import React, { useState } from 'react'
 import {
   Box,
   VStack,
@@ -14,13 +14,13 @@ import {
   Code
 } from "@chakra-ui/react"
 import { Card } from "@/components/ui/card"
-import { 
-  FaBook, 
-  FaPlug, 
-  FaStream, 
-  FaCog, 
-  FaDatabase, 
-  FaShieldAlt, 
+import {
+  FaBook,
+  FaPlug,
+  FaStream,
+  FaCog,
+  FaDatabase,
+  FaShieldAlt,
   FaCheckCircle,
   FaGlobe,
   FaCode,
@@ -28,6 +28,9 @@ import {
   FaClock,
   FaLock
 } from "react-icons/fa"
+import YAMLPromotionBanner from '@/components/yaml/YAMLPromotionBanner'
+// TODO: Fix YAMLTemplateGenerator Modal component issues
+// import YAMLTemplateGenerator from '@/components/yaml/YAMLTemplateGenerator'
 
 interface ServerDetailsModalProps {
   server: {
@@ -114,6 +117,9 @@ interface ServerDetailsModalProps {
 }
 
 export function ServerDetailsModal({ server }: ServerDetailsModalProps) {
+  // TODO: Re-enable when YAMLTemplateGenerator is fixed
+  // const [showYAMLGenerator, setShowYAMLGenerator] = useState(false);
+
   const getHealthColor = (health: string) => {
     switch (health) {
       case "healthy": return "green"
@@ -122,6 +128,14 @@ export function ServerDetailsModal({ server }: ServerDetailsModalProps) {
       default: return "gray"
     }
   }
+
+  // Check if this server has YAML-based parsing
+  const hasYAML = (server as any).parsingMetadata?.yamlBased || false;
+
+  // Extract repository URL if available
+  const repositoryUrl = (server as any).repository?.url ||
+                       (server as any).github_repo ||
+                       (server.domain.includes('github.com') ? `https://${server.domain}` : undefined);
 
   return (
     <VStack gap={6} align="stretch" maxW="4xl" mx="auto">
@@ -171,6 +185,16 @@ export function ServerDetailsModal({ server }: ServerDetailsModalProps) {
           </VStack>
         </Card.Body>
       </Card.Root>
+
+      {/* YAML Promotion Banner */}
+      <YAMLPromotionBanner
+        repositoryUrl={repositoryUrl}
+        hasYAML={hasYAML}
+        onGenerateTemplate={() => {
+          // TODO: Re-enable when YAMLTemplateGenerator is fixed
+          console.log('Generate YAML template clicked');
+        }}
+      />
 
       {/* Transport Capabilities */}
       {server.transport_capabilities && (
@@ -806,6 +830,15 @@ export function ServerDetailsModal({ server }: ServerDetailsModalProps) {
           )}
         </SimpleGrid>
       )}
+
+      {/* TODO: Re-enable YAML Template Generator when Modal component is fixed */}
+      {/* <YAMLTemplateGenerator
+        isOpen={showYAMLGenerator}
+        onClose={() => setShowYAMLGenerator(false)}
+        repositoryUrl={repositoryUrl}
+        initialName={server.name || server.domain}
+        initialDescription={server.description || ''}
+      /> */}
     </VStack>
   )
 }

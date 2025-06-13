@@ -15,6 +15,8 @@ import {
   installationMethodSchema,
   validateAIResponse
 } from '@mcplookup-org/mcp-sdk';
+// TODO: Import YAML parser when SDK is ready
+// import { parseMCPLookupYAML, convertYAMLToMCPServer } from '@mcplookup-org/mcp-sdk/yaml/parser.js';
 import { ProgressUpdate, RepoAnalysisProgress, SearchProgress, FileDownloadProgress, AIParsingProgress } from '@mcplookup-org/mcp-sdk';
 import {
   buildMcpAnalysisPrompt,
@@ -152,15 +154,24 @@ export class GitHubClient {
    * @returns Promise<GitHubRepoWithInstallation> - Complete repo data
    */  async getFullRepositoryData(repo: GitHubRepo | string): Promise<GitHubRepoWithInstallation> {
     const repoName = typeof repo === 'string' ? repo : repo.fullName;
-    
-    
+
+
     // Get detailed repository information
     const detailedRepo = await this.getRepositoryDetails(repoName);
-    
+
     // Download key files for analysis
     const files = await this.downloadKeyFiles(repoName);
-    
-    // Perform comprehensive AI analysis
+
+    // TODO: Enable YAML parsing when SDK is ready
+    // Check if .mcplookup.yaml exists and use it for structured data
+    // const mcplookupFile = files.find(f => f.path === '.mcplookup.yaml');
+
+    // if (mcplookupFile) {
+    //   // Use YAML-based parsing (preferred method)
+    //   return await this.parseFromYAML(mcplookupFile, detailedRepo, files, repoName);
+    // }
+
+    // Fall back to AI analysis
     const aiAnalysis = await this.analyzeRepositoryWithAI(files, repoName, detailedRepo);
     
     // Update the repository with AI-determined MCP fields
@@ -253,8 +264,9 @@ export class GitHubClient {
    */
   private async downloadKeyFiles(repoName: string): Promise<FileContent[]> {
     const filesToTry = [
+      '.mcplookup.yaml',  // MCPLookup configuration file (highest priority)
       'README.md',
-      'README.rst', 
+      'README.rst',
       'package.json',
       'pyproject.toml',
       'Cargo.toml',
@@ -372,7 +384,32 @@ export class GitHubClient {
       }
     }
     
-    return files;  }  /**
+    return files;
+  }
+
+  // TODO: Enable YAML parsing when SDK is ready
+  /*
+  private async parseFromYAML(
+    yamlFile: FileContent,
+    repoData: GitHubRepository,
+    allFiles: FileContent[],
+    repoName: string
+  ): Promise<GitHubRepoWithInstallation> {
+    // TODO: Implement YAML parsing when SDK is ready
+    throw new Error("YAML parsing not yet implemented");
+  }
+
+  private async fallbackToAIAnalysis(
+    files: FileContent[],
+    repoName: string,
+    repoData: GitHubRepository
+  ): Promise<GitHubRepoWithInstallation> {
+    // TODO: Implement fallback logic
+    throw new Error("Fallback analysis not yet implemented");
+  }
+  */
+
+  /**
    * Comprehensive AI analysis of repository for full schema population
    */
   private async analyzeRepositoryWithAI(files: FileContent[], repoName: string, repoData: GitHubRepository): Promise<{

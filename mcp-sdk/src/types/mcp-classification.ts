@@ -98,6 +98,7 @@ export interface ParsingMetadata {
   extractionSuccessful: boolean;
   errors?: string[];
   warnings?: string[];
+  yamlBased?: boolean; // True if parsed from .mcplookup.yaml
 }
 
 // === TYPE GUARDS ===

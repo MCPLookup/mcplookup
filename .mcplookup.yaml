@@ -1,0 +1,139 @@
+version: "1.0"
+mcp:
+  name: "MCPLookup Discovery Service"
+  description: "Automated discovery and cataloging service for MCP servers with AI-powered analysis and structured metadata support"
+  category: "development"
+  subcategories: ["discovery", "cataloging", "ai-analysis", "mcp-servers"]
+  keywords: ["mcp", "discovery", "catalog", "ai", "automation", "claude", "servers"]
+  author:
+    name: "MCPLookup Team"
+    email: "team@mcplookup.org"
+    url: "https://mcplookup.org"
+  license: "MIT"
+  homepage: "https://mcplookup.org"
+  repository: "https://github.com/MCPLookup/mcplookup"
+  documentation: "https://mcplookup.org/docs"
+
+installation:
+  recommended: "npm"
+  methods:
+    - type: "npm"
+      command: "npm install -g @mcplookup-org/mcp-github-parser"
+      requirements:
+        node_version: ">=18.0.0"
+        system: ["linux", "macos", "windows"]
+      environment_variables:
+        GITHUB_TOKEN:
+          description: "GitHub personal access token for API access"
+          required: true
+          example: "ghp_xxxxxxxxxxxxxxxxxxxx"
+        OPENAI_API_KEY:
+          description: "OpenAI API key for AI analysis (optional, falls back to other providers)"
+          required: false
+          example: "sk-xxxxxxxxxxxxxxxxxxxx"
+      post_install:
+        - "mcp-github-parser --help"
+    
+    - type: "docker"
+      command: "docker run -d -p 3000:3000 mcplookup/discovery-service"
+      requirements:
+        docker_version: ">=20.0"
+      environment_variables:
+        GITHUB_TOKEN:
+          description: "GitHub personal access token"
+          required: true
+        DATABASE_URL:
+          description: "PostgreSQL database connection string"
+          required: true
+          example: "postgresql://user:pass@localhost:5432/mcplookup"
+        NEXTAUTH_SECRET:
+          description: "NextAuth.js secret for session encryption"
+          required: true
+          example: "your-secret-key-here"
+    
+    - type: "git"
+      command: "git clone https://github.com/MCPLookup/mcplookup.git"
+      requirements:
+        node_version: ">=18.0.0"
+        system: ["linux", "macos", "windows"]
+      environment_variables:
+        GITHUB_TOKEN:
+          description: "GitHub personal access token"
+          required: true
+        DATABASE_URL:
+          description: "PostgreSQL database URL"
+          required: true
+      post_install:
+        - "cd mcplookup"
+        - "npm install"
+        - "npm run build"
+        - "npm run dev"
+
+configuration:
+  transport: "http"
+  command: "mcp-github-parser"
+  args: ["--port", "3000"]
+  claude_desktop:
+    command: "mcp-github-parser"
+    args: ["--claude-mode"]
+    env:
+      GITHUB_TOKEN: "your-github-token"
+      OPENAI_API_KEY: "your-openai-key"
+
+capabilities:
+  tools:
+    - name: "discover_mcp_servers"
+      description: "Discover MCP servers from GitHub repositories using AI analysis"
+      parameters:
+        query:
+          type: "string"
+          description: "Search query for repositories"
+        limit:
+          type: "number"
+          description: "Maximum number of results to return"
+    
+    - name: "analyze_repository"
+      description: "Analyze a specific repository for MCP server capabilities"
+      parameters:
+        repository_url:
+          type: "string"
+          description: "GitHub repository URL to analyze"
+    
+    - name: "get_installation_methods"
+      description: "Extract installation methods from repository analysis"
+      parameters:
+        repository_url:
+          type: "string"
+          description: "Repository URL to get installation methods for"
+    
+    - name: "validate_mcplookup_yaml"
+      description: "Validate a .mcplookup.yaml file format"
+      parameters:
+        yaml_content:
+          type: "string"
+          description: "YAML content to validate"
+  
+  resources:
+    - name: "mcp_server_database"
+      description: "Access to the curated database of MCP servers"
+      uri_template: "mcplookup://servers/{server_id}"
+    
+    - name: "discovery_analytics"
+      description: "Analytics and metrics about MCP server discovery"
+      uri_template: "mcplookup://analytics/{metric_type}"
+  
+  prompts:
+    - name: "analyze_mcp_repository"
+      description: "Comprehensive analysis prompt for MCP server repositories"
+    
+    - name: "generate_installation_guide"
+      description: "Generate user-friendly installation instructions"
+
+testing:
+  test_commands:
+    - "npm test"
+    - "mcp-github-parser --test"
+    - "docker run --rm mcplookup/discovery-service --health-check"
+  health_check:
+    endpoint: "http://localhost:3000/api/health"
+    expected_response: "OK"

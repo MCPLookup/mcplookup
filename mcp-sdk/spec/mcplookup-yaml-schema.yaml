@@ -1,0 +1,307 @@
+# MCPLookup.yaml Schema Specification
+# Version: 1.0.0
+# This file defines the structure for .mcplookup.yaml files that developers
+# can place in their repository root to provide structured metadata for
+# automated MCP server discovery and installation.
+
+$schema: "http://json-schema.org/draft-07/schema#"
+title: "MCPLookup Configuration"
+description: "Configuration file for MCP server metadata and installation instructions"
+type: object
+
+properties:
+  # === METADATA SECTION ===
+  version:
+    type: string
+    description: "MCPLookup YAML format version"
+    enum: ["1.0"]
+    default: "1.0"
+  
+  mcp:
+    type: object
+    description: "MCP server metadata"
+    required: ["name", "description", "category"]
+    properties:
+      name:
+        type: string
+        description: "Human-readable name of the MCP server"
+        example: "Weather API Server"
+      
+      description:
+        type: string
+        description: "Detailed description of what this MCP server does"
+        example: "Provides real-time weather data and forecasts via OpenWeatherMap API"
+      
+      category:
+        type: string
+        description: "Primary category for discovery"
+        enum: [
+          "communication", "productivity", "development", "finance", 
+          "social", "storage", "ai", "data", "monitoring", "other"
+        ]
+        example: "data"
+      
+      subcategories:
+        type: array
+        items:
+          type: string
+        description: "Additional categories for better discovery"
+        example: ["weather", "api", "real-time"]
+      
+      keywords:
+        type: array
+        items:
+          type: string
+        description: "Keywords for search and discovery"
+        example: ["weather", "forecast", "temperature", "climate"]
+      
+      author:
+        type: object
+        properties:
+          name:
+            type: string
+            description: "Author or organization name"
+          email:
+            type: string
+            format: email
+            description: "Contact email"
+          url:
+            type: string
+            format: uri
+            description: "Website or profile URL"
+      
+      license:
+        type: string
+        description: "Software license"
+        example: "MIT"
+      
+      homepage:
+        type: string
+        format: uri
+        description: "Project homepage URL"
+      
+      repository:
+        type: string
+        format: uri
+        description: "Source code repository URL"
+      
+      documentation:
+        type: string
+        format: uri
+        description: "Documentation URL"
+
+  # === INSTALLATION SECTION ===
+  installation:
+    type: object
+    description: "Installation methods and requirements"
+    properties:
+      recommended:
+        type: string
+        description: "Recommended installation method"
+        enum: ["npm", "python", "docker", "git", "binary"]
+        example: "npm"
+      
+      methods:
+        type: array
+        description: "Available installation methods"
+        items:
+          type: object
+          required: ["type", "command"]
+          properties:
+            type:
+              type: string
+              enum: ["npm", "python", "docker", "git", "binary"]
+            
+            command:
+              type: string
+              description: "Installation command"
+              example: "npm install -g weather-mcp-server"
+            
+            requirements:
+              type: object
+              properties:
+                node_version:
+                  type: string
+                  description: "Required Node.js version"
+                  example: ">=18.0.0"
+                
+                python_version:
+                  type: string
+                  description: "Required Python version"
+                  example: ">=3.8"
+                
+                docker_version:
+                  type: string
+                  description: "Required Docker version"
+                  example: ">=20.0"
+                
+                system:
+                  type: array
+                  items:
+                    type: string
+                  description: "Supported operating systems"
+                  example: ["linux", "macos", "windows"]
+            
+            environment_variables:
+              type: object
+              description: "Required environment variables"
+              additionalProperties:
+                type: object
+                properties:
+                  description:
+                    type: string
+                  required:
+                    type: boolean
+                    default: true
+                  default:
+                    type: string
+                  example:
+                    type: string
+              example:
+                OPENWEATHER_API_KEY:
+                  description: "API key for OpenWeatherMap service"
+                  required: true
+                  example: "your-api-key-here"
+            
+            post_install:
+              type: array
+              items:
+                type: string
+              description: "Commands to run after installation"
+              example: ["weather-mcp-server --setup"]
+
+  # === CONFIGURATION SECTION ===
+  configuration:
+    type: object
+    description: "MCP server configuration"
+    properties:
+      transport:
+        type: string
+        description: "MCP transport method"
+        enum: ["stdio", "sse", "websocket", "http"]
+        default: "stdio"
+      
+      command:
+        type: string
+        description: "Command to start the MCP server"
+        example: "weather-mcp-server"
+      
+      args:
+        type: array
+        items:
+          type: string
+        description: "Command line arguments"
+        example: ["--port", "3000"]
+      
+      claude_desktop:
+        type: object
+        description: "Claude Desktop configuration"
+        properties:
+          command:
+            type: string
+            description: "Command for Claude Desktop"
+          args:
+            type: array
+            items:
+              type: string
+            description: "Arguments for Claude Desktop"
+          env:
+            type: object
+            additionalProperties:
+              type: string
+            description: "Environment variables for Claude Desktop"
+
+  # === CAPABILITIES SECTION ===
+  capabilities:
+    type: object
+    description: "MCP server capabilities"
+    properties:
+      tools:
+        type: array
+        items:
+          type: object
+          required: ["name", "description"]
+          properties:
+            name:
+              type: string
+              description: "Tool name"
+            description:
+              type: string
+              description: "Tool description"
+            parameters:
+              type: object
+              description: "Tool parameters schema"
+        description: "Available MCP tools"
+      
+      resources:
+        type: array
+        items:
+          type: object
+          required: ["name", "description"]
+          properties:
+            name:
+              type: string
+              description: "Resource name"
+            description:
+              type: string
+              description: "Resource description"
+            uri_template:
+              type: string
+              description: "URI template for the resource"
+        description: "Available MCP resources"
+      
+      prompts:
+        type: array
+        items:
+          type: object
+          required: ["name", "description"]
+          properties:
+            name:
+              type: string
+              description: "Prompt name"
+            description:
+              type: string
+              description: "Prompt description"
+        description: "Available MCP prompts"
+
+  # === TESTING SECTION ===
+  testing:
+    type: object
+    description: "Testing and validation"
+    properties:
+      test_commands:
+        type: array
+        items:
+          type: string
+        description: "Commands to test the installation"
+        example: ["weather-mcp-server --test"]
+      
+      health_check:
+        type: object
+        properties:
+          endpoint:
+            type: string
+            description: "Health check endpoint"
+          expected_response:
+            type: string
+            description: "Expected response for health check"
+
+required: ["version", "mcp", "installation"]
+
+# Example usage in comments:
+# version: "1.0"
+# mcp:
+#   name: "Weather API Server"
+#   description: "Provides real-time weather data via OpenWeatherMap"
+#   category: "data"
+#   subcategories: ["weather", "api"]
+#   keywords: ["weather", "forecast", "temperature"]
+# installation:
+#   recommended: "npm"
+#   methods:
+#     - type: "npm"
+#       command: "npm install -g weather-mcp-server"
+#       environment_variables:
+#         OPENWEATHER_API_KEY:
+#           description: "OpenWeatherMap API key"
+#           required: true
