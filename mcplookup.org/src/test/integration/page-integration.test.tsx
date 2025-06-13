@@ -51,21 +51,22 @@ vi.mock('@/auth', () => ({
 // Helper function to render pages with providers
 function renderWithProviders(component: React.ReactElement) {
   return render(
-    React.createElement(Provider, {}, component)
+    <Provider>
+      {component}
+    </Provider>
   );
 }
 
 describe('Page Integration Tests', () => {
   beforeEach(async () => {
     // Reset storage and mocks
-    const storageService = getStorageService();
-    await storageService.clear();
+    setStorageService(null as any);
     vi.clearAllMocks();
   });
 
   describe('HomePage Integration', () => {
     it('should render homepage with all key sections', async () => {
-      renderWithProviders(React.createElement(HomePage));
+      renderWithProviders(<HomePage />);
 
       // Check hero section
       expect(screen.getByText(/Dynamic Discovery Infrastructure/i)).toBeInTheDocument();
@@ -77,7 +78,7 @@ describe('Page Integration Tests', () => {
     });
 
     it('should navigate to discovery page when clicking discover button', async () => {
-      renderWithProviders(React.createElement(HomePage));
+      renderWithProviders(<HomePage />);
 
       const discoverButton = screen.getByText(/Start Discovering/i);
       fireEvent.click(discoverButton);
@@ -88,7 +89,7 @@ describe('Page Integration Tests', () => {
     });
 
     it('should navigate to registration page when clicking register button', async () => {
-      renderWithProviders(React.createElement(HomePage));
+      renderWithProviders(<HomePage />);
 
       const registerButton = screen.getByText(/Register Your Server/i);
       fireEvent.click(registerButton);
@@ -102,14 +103,14 @@ describe('Page Integration Tests', () => {
   describe('DiscoverPage Integration', () => {
     it('should render discovery page with search interface', async () => {
       renderWithProviders(<DiscoverPage />);
-      
+
       expect(screen.getByText(/MCP Server Discovery Engine/i)).toBeInTheDocument();
       expect(screen.getByText(/Free Discovery API/i)).toBeInTheDocument();
     });
 
     it('should handle search functionality', async () => {
       renderWithProviders(<DiscoverPage />);
-      
+
       // Look for search input (may be in DiscoveryInterface component)
       const searchInputs = screen.getAllByRole('textbox');
       expect(searchInputs.length).toBeGreaterThan(0);
@@ -117,7 +118,7 @@ describe('Page Integration Tests', () => {
 
     it('should display API documentation link', async () => {
       renderWithProviders(<DiscoverPage />);
-      
+
       const apiDocsLink = screen.getByText(/View API Docs/i);
       expect(apiDocsLink).toBeInTheDocument();
     });
@@ -126,7 +127,7 @@ describe('Page Integration Tests', () => {
   describe('RegisterPage Integration', () => {
     it('should render registration page with both registration methods', async () => {
       renderWithProviders(<RegisterPage />);
-      
+
       expect(screen.getByText(/Register Your MCP Server/i)).toBeInTheDocument();
       expect(screen.getByText(/GitHub Auto-Register/i)).toBeInTheDocument();
       expect(screen.getByText(/Manual Registration/i)).toBeInTheDocument();
@@ -134,10 +135,10 @@ describe('Page Integration Tests', () => {
 
     it('should switch between registration tabs', async () => {
       renderWithProviders(<RegisterPage />);
-      
+
       const manualTab = screen.getByText(/Manual Registration/i);
       fireEvent.click(manualTab);
-      
+
       // Should show manual registration content
       await waitFor(() => {
         expect(screen.getByText(/Manual Registration/i)).toBeInTheDocument();
@@ -148,7 +149,7 @@ describe('Page Integration Tests', () => {
   describe('DashboardPage Integration', () => {
     it('should render dashboard with user content', async () => {
       renderWithProviders(<DashboardPage />);
-      
+
       await waitFor(() => {
         expect(screen.getByText(/Loading.../i)).toBeInTheDocument();
       });
@@ -156,7 +157,7 @@ describe('Page Integration Tests', () => {
 
     it('should handle dashboard navigation', async () => {
       renderWithProviders(<DashboardPage />);
-      
+
       // Dashboard should load with suspense
       await waitFor(() => {
         expect(screen.getByText(/Loading.../i)).toBeInTheDocument();
@@ -167,7 +168,7 @@ describe('Page Integration Tests', () => {
   describe('DocsPage Integration', () => {
     it('should render documentation page', async () => {
       renderWithProviders(<DocsPage />);
-      
+
       expect(screen.getByText(/Documentation/i)).toBeInTheDocument();
     });
   });
@@ -175,7 +176,7 @@ describe('Page Integration Tests', () => {
   describe('ProfilePage Integration', () => {
     it('should render profile page', async () => {
       renderWithProviders(<ProfilePage />);
-      
+
       // Profile page should render (may require auth)
       expect(document.body).toBeInTheDocument();
     });
@@ -184,7 +185,7 @@ describe('Page Integration Tests', () => {
   describe('OnboardingPage Integration', () => {
     it('should render onboarding page', async () => {
       renderWithProviders(<OnboardingPage />);
-      
+
       // Onboarding page should render
       expect(document.body).toBeInTheDocument();
     });
@@ -193,7 +194,7 @@ describe('Page Integration Tests', () => {
   describe('StatusPage Integration', () => {
     it('should render status page', async () => {
       renderWithProviders(<StatusPage />);
-      
+
       // Status page should render
       expect(document.body).toBeInTheDocument();
     });
@@ -227,7 +228,7 @@ describe('Page Integration Tests', () => {
     it('should handle page rendering errors gracefully', async () => {
       // Mock console.error to avoid noise in tests
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      
+
       try {
         renderWithProviders(<HomePage />);
         expect(document.body).toBeInTheDocument();
@@ -235,7 +236,7 @@ describe('Page Integration Tests', () => {
         // Should not throw unhandled errors
         expect(error).toBeUndefined();
       }
-      
+
       consoleSpy.mockRestore();
     });
   });
@@ -248,7 +249,7 @@ describe('Page Integration Tests', () => {
         configurable: true,
         value: 375,
       });
-      
+
       renderWithProviders(<HomePage />);
       expect(screen.getByText(/Dynamic Discovery Infrastructure/i)).toBeInTheDocument();
     });
@@ -260,7 +261,7 @@ describe('Page Integration Tests', () => {
         configurable: true,
         value: 1920,
       });
-      
+
       renderWithProviders(<HomePage />);
       expect(screen.getByText(/Dynamic Discovery Infrastructure/i)).toBeInTheDocument();
     });
