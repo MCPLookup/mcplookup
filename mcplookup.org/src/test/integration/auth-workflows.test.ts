@@ -30,16 +30,29 @@ vi.mock('@/lib/services/resend-email', () => ({
   sendPasswordResetEmail: vi.fn().mockResolvedValue({ success: true })
 }));
 
+// Create a simple in-memory store for test users
+const testUsers = new Map();
+
 vi.mock('@/lib/auth/storage-adapter', () => ({
-  createUserWithPassword: vi.fn().mockResolvedValue({
-    id: 'user-123',
-    email: 'test@example.com',
-    name: 'Test User',
-    emailVerified: false,
-    createdAt: new Date()
+  createUserWithPassword: vi.fn().mockImplementation((email, name) => {
+    const user = {
+      id: `user-${Date.now()}`,
+      email: email,
+      name: name,
+      emailVerified: false,
+      createdAt: new Date()
+    };
+    testUsers.set(email, user);
+    return Promise.resolve(user);
   }),
   createEmailVerificationToken: vi.fn().mockResolvedValue(true),
   getUserByEmail: vi.fn().mockImplementation((email) => {
+    // Check in-memory store first
+    if (testUsers.has(email)) {
+      return Promise.resolve(testUsers.get(email));
+    }
+
+    // Pre-existing test users
     if (email === 'existing@example.com') {
       return Promise.resolve({
         id: 'existing-user',
@@ -48,6 +61,7 @@ vi.mock('@/lib/auth/storage-adapter', () => ({
         emailVerified: true
       });
     }
+
     return Promise.resolve(null);
   }),
   hashPassword: vi.fn().mockResolvedValue('hashed-password'),
@@ -79,6 +93,9 @@ describe('Authentication and User Management Integration Tests', () => {
     // Reset storage for each test
     setStorageService(null as any);
 
+    // Clear test users
+    testUsers.clear();
+
     // Mock console methods
     vi.spyOn(console, 'log').mockImplementation(() => {});
     vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -92,9 +109,8 @@ describe('Authentication and User Management Integration Tests', () => {
   });
 
   describe('User Registration Workflow', () => {
-    it.skip('should handle complete user registration flow', async () => {
-      // SKIP: Auth import resolution issue in test environment
-      // The auth module import fails in Vitest due to NextAuth complexity
+    it('should handle complete user registration flow', async () => {
+      // Fixed: Auth import resolution issue resolved with proper mocking
       // Step 1: Register new user
       const registrationRequest = new NextRequest('http://localhost:3000/api/auth/register', {
         method: 'POST',
@@ -102,6 +118,7 @@ describe('Authentication and User Management Integration Tests', () => {
         body: JSON.stringify({
           email: 'newuser@example.com',
           password: 'SecurePassword123!',
+          confirmPassword: 'SecurePassword123!',
           name: 'New User'
         })
       });
@@ -141,20 +158,21 @@ describe('Authentication and User Management Integration Tests', () => {
       expect(sendWelcomeEmail).toHaveBeenCalled();
     });
 
-    it.skip('should prevent duplicate user registration', async () => {
-      // SKIP: Auth import resolution issue in test environment
+    it('should prevent duplicate user registration', async () => {
+      // Fixed: Auth import resolution issue resolved
       const duplicateRequest = new NextRequest('http://localhost:3000/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: 'existing@example.com',
           password: 'SecurePassword123!',
+          confirmPassword: 'SecurePassword123!',
           name: 'Duplicate User'
         })
       });
 
       const response = await authRegisterPOST(duplicateRequest);
-      expect(response.status).toBe(400);
+      expect(response.status).toBe(409);
 
       const errorData = await response.json();
       expect(errorData.error).toContain('already exists');
@@ -168,6 +186,7 @@ describe('Authentication and User Management Integration Tests', () => {
         body: JSON.stringify({
           email: 'test@example.com',
           password: '123', // Too weak
+          confirmPassword: '123',
           name: 'Test User'
         })
       });
@@ -182,6 +201,7 @@ describe('Authentication and User Management Integration Tests', () => {
         body: JSON.stringify({
           email: 'invalid-email',
           password: 'SecurePassword123!',
+          confirmPassword: 'SecurePassword123!',
           name: 'Test User'
         })
       });
@@ -195,7 +215,8 @@ describe('Authentication and User Management Integration Tests', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: 'test@example.com',
-          password: 'SecurePassword123!'
+          password: 'SecurePassword123!',
+          confirmPassword: 'SecurePassword123!'
           // name missing
         })
       });
@@ -205,8 +226,8 @@ describe('Authentication and User Management Integration Tests', () => {
     });
   });
 
-  describe.skip('Email Verification Workflow', () => {
-    // SKIP: Auth import resolution issue in test environment
+  describe('Email Verification Workflow', () => {
+    // Fixed: Auth import resolution issue resolved
     it('should handle email verification with valid token', async () => {
       const verificationRequest = new NextRequest('http://localhost:3000/api/auth/verify-email', {
         method: 'POST',
@@ -271,8 +292,8 @@ describe('Authentication and User Management Integration Tests', () => {
     });
   });
 
-  describe.skip('Password Reset Workflow', () => {
-    // SKIP: Auth import resolution issue in test environment
+  describe('Password Reset Workflow', () => {
+    // Fixed: Auth import resolution issue resolved
     it('should handle complete password reset flow', async () => {
       // Step 1: Request password reset
       const resetRequest = new NextRequest('http://localhost:3000/api/auth/forgot-password', {
@@ -357,8 +378,8 @@ describe('Authentication and User Management Integration Tests', () => {
     });
   });
 
-  describe.skip('Error Handling and Security', () => {
-    // SKIP: Auth import resolution issue in test environment
+  describe('Error Handling and Security', () => {
+    // Fixed: Auth import resolution issue resolved
     it('should handle malformed requests gracefully', async () => {
       const malformedRequest = new NextRequest('http://localhost:3000/api/auth/register', {
         method: 'POST',
@@ -384,6 +405,7 @@ describe('Authentication and User Management Integration Tests', () => {
         body: JSON.stringify({
           email: 'test@example.com',
           password: 'SecurePassword123!',
+          confirmPassword: 'SecurePassword123!',
           name: 'Test User'
         })
       });
@@ -405,6 +427,7 @@ describe('Authentication and User Management Integration Tests', () => {
       const userData = {
         email: 'concurrent@example.com',
         password: 'SecurePassword123!',
+        confirmPassword: 'SecurePassword123!',
         name: 'Concurrent User'
       };
 
@@ -424,7 +447,7 @@ describe('Authentication and User Management Integration Tests', () => {
 
       // Only one should succeed, others should fail with duplicate error
       const successfulResponses = responses.filter(response => response.status === 201);
-      const failedResponses = responses.filter(response => response.status === 400);
+      const failedResponses = responses.filter(response => response.status === 409);
 
       expect(successfulResponses.length).toBe(1);
       expect(failedResponses.length).toBe(2);
