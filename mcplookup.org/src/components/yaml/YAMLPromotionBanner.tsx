@@ -98,8 +98,11 @@ export function YAMLPromotionBanner({
               colorScheme="blue"
               onClick={onGenerateTemplate}
             >
-              📝 Generate Template
+              📝 Generate from Repo
             </Button>
+            <Text fontSize="sm" color="blue.600">
+              🔧 <Link href="/generate-yaml" color="blue.600" textDecoration="underline">Analyze Your Repository</Link>
+            </Text>
             <Text fontSize="sm" color="blue.600">
               📚 <Link href="/docs/mcplookup-yaml" color="blue.600" textDecoration="underline">View Documentation</Link>
             </Text>
