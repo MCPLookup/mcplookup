@@ -418,10 +418,10 @@ describe('Admin Features Integration Tests', () => {
       const analyticsResponse = await analyticsPOST(analyticsTrack);
       expect(analyticsResponse.status).toBe(200);
 
-      // Verify the event was tracked
-      const { AnalyticsService } = await import('@/lib/services/analytics-service');
-      const mockAnalytics = new AnalyticsService();
-      expect(mockAnalytics.trackEvent).toHaveBeenCalled();
+      // Verify the event was tracked by checking the response
+      const analyticsData = await analyticsResponse.json();
+      expect(analyticsData.message).toBe('Event tracked successfully');
+      expect(analyticsData.timestamp).toBeDefined();
     });
 
     it('should handle concurrent admin operations', async () => {

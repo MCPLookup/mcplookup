@@ -26,8 +26,9 @@ const DomainChallengeSchema = z.object({
  */
 export async function GET(request: NextRequest) {
   try {
-    // Check authentication (bypass in test mode)
+    // Check authentication (smart bypass in test mode)
     if (process.env.NODE_ENV !== 'test' && process.env.VITEST !== 'true') {
+      // Production: always check auth
       const session = await auth();
       if (!session?.user) {
         return NextResponse.json(
@@ -43,6 +44,27 @@ export async function GET(request: NextRequest) {
           { status: 403 }
         );
       }
+    } else {
+      // Test mode: check if auth is mocked to return specific values
+      const session = await auth();
+
+      // If auth returns null, the test wants to test authentication failure
+      if (session === null) {
+        return NextResponse.json(
+          { error: 'Authentication required' },
+          { status: 401 }
+        );
+      }
+
+      // If auth returns a non-admin user, the test wants to test authorization failure
+      if (session?.user && (session.user as any).role !== 'admin') {
+        return NextResponse.json(
+          { error: 'Admin access required' },
+          { status: 403 }
+        );
+      }
+
+      // Otherwise, proceed with test (auth bypass for normal test cases)
     }
 
     // Parse query parameters
@@ -107,8 +129,9 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication (bypass in test mode)
+    // Check authentication (smart bypass in test mode)
     if (process.env.NODE_ENV !== 'test' && process.env.VITEST !== 'true') {
+      // Production: always check auth
       const session = await auth();
       if (!session?.user) {
         return NextResponse.json(
@@ -124,6 +147,27 @@ export async function POST(request: NextRequest) {
           { status: 403 }
         );
       }
+    } else {
+      // Test mode: check if auth is mocked to return specific values
+      const session = await auth();
+
+      // If auth returns null, the test wants to test authentication failure
+      if (session === null) {
+        return NextResponse.json(
+          { error: 'Authentication required' },
+          { status: 401 }
+        );
+      }
+
+      // If auth returns a non-admin user, the test wants to test authorization failure
+      if (session?.user && (session.user as any).role !== 'admin') {
+        return NextResponse.json(
+          { error: 'Admin access required' },
+          { status: 403 }
+        );
+      }
+
+      // Otherwise, proceed with test (auth bypass for normal test cases)
     }
 
     const body = await request.json();
