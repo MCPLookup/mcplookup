@@ -144,6 +144,8 @@
     "prismjs": "^1.30.0",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3",
+    "vite": "^6.3.5",
+    "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^3.2.1"
   },
   "engines": {

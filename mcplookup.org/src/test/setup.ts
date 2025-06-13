@@ -4,7 +4,7 @@ import '@testing-library/jest-dom'
 // Mock environment variables for testing
 vi.stubEnv('NODE_ENV', 'test')
 
-// Global auth mock for all tests
+// Global auth mock for all tests - comprehensive NextAuth v5 mocking
 vi.mock('@/auth', () => ({
   auth: vi.fn().mockResolvedValue({
     user: {
@@ -13,7 +13,31 @@ vi.mock('@/auth', () => ({
       name: 'Test User',
       role: 'user'
     }
-  })
+  }),
+  handlers: {
+    GET: vi.fn(),
+    POST: vi.fn()
+  },
+  signIn: vi.fn(),
+  signOut: vi.fn()
+}))
+
+// Also mock the auth module at root level for direct imports
+vi.mock('../../auth', () => ({
+  auth: vi.fn().mockResolvedValue({
+    user: {
+      id: 'test-user-123',
+      email: 'test@example.com',
+      name: 'Test User',
+      role: 'user'
+    }
+  }),
+  handlers: {
+    GET: vi.fn(),
+    POST: vi.fn()
+  },
+  signIn: vi.fn(),
+  signOut: vi.fn()
 }))
 
 // Mock auth.ts at root level with comprehensive NextAuth mocking

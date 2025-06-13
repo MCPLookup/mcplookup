@@ -1,13 +1,23 @@
 import { defineConfig } from 'vitest/config'
 import path from 'path'
+import tsconfigPaths from 'vite-tsconfig-paths'
 
 export default defineConfig({
+  plugins: [
+    tsconfigPaths(),
+    {
+      name: 'auth-resolver',
+      resolveId(id) {
+        if (id === '@/auth') {
+          return path.resolve(__dirname, './auth.ts')
+        }
+      }
+    }
+  ],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '@/auth': path.resolve(__dirname, './auth.ts'),
-      // Add explicit mapping for auth module
-      'auth': path.resolve(__dirname, './auth.ts')
+      '@/auth': path.resolve(__dirname, './auth.ts')
     }
   },
   test: {
