@@ -48,6 +48,40 @@ describe('Real API Endpoint Integration Tests', () => {
     vi.spyOn(console, 'log').mockImplementation(() => {});
     vi.spyOn(console, 'error').mockImplementation(() => {});
     vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    // Mock fetch for real HTTP requests
+    global.fetch = vi.fn().mockImplementation((url: string, options?: any) => {
+      // Mock successful responses based on URL patterns
+      if (url.includes('/api/v1/register')) {
+        return Promise.resolve(new Response(JSON.stringify({
+          success: true,
+          challenge_id: 'mock-challenge-id',
+          domain: 'test-domain.com',
+          verification_url: 'https://mcplookup.org/verify/mock-challenge-id'
+        }), { status: 201 }));
+      }
+
+      if (url.includes('/api/v1/discover')) {
+        return Promise.resolve(new Response(JSON.stringify({
+          servers: [],
+          total_results: 0,
+          query_time_ms: 10
+        }), { status: 200 }));
+      }
+
+      if (url.includes('/api/v1/health')) {
+        return Promise.resolve(new Response(JSON.stringify({
+          status: 'healthy',
+          uptime: 99.9,
+          services: { storage: 'ok', analytics: 'ok' }
+        }), { status: 200 }));
+      }
+
+      // Default mock response
+      return Promise.resolve(new Response(JSON.stringify({
+        message: 'Mock response'
+      }), { status: 200 }));
+    });
   });
 
   describe('Server Registration API Workflow', () => {

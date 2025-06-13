@@ -5,40 +5,45 @@ import '@testing-library/jest-dom'
 vi.stubEnv('NODE_ENV', 'test')
 
 // Global auth mock for all tests - comprehensive NextAuth v5 mocking
-vi.mock('@/auth', () => ({
-  auth: vi.fn().mockResolvedValue({
+// Create a flexible auth mock that can be configured per test
+const createAuthMock = (userRole = 'admin') => {
+  const mockAuth = vi.fn().mockResolvedValue({
     user: {
-      id: 'test-user-123',
-      email: 'test@example.com',
-      name: 'Test User',
-      role: 'user'
+      id: `test-${userRole}-123`,
+      email: `${userRole}@example.com`,
+      name: `Test ${userRole.charAt(0).toUpperCase() + userRole.slice(1)}`,
+      role: userRole
     }
-  }),
-  handlers: {
-    GET: vi.fn(),
-    POST: vi.fn()
-  },
-  signIn: vi.fn(),
-  signOut: vi.fn()
-}))
+  });
 
-// Also mock the auth module at root level for direct imports
-vi.mock('../../auth', () => ({
-  auth: vi.fn().mockResolvedValue({
-    user: {
-      id: 'test-user-123',
-      email: 'test@example.com',
-      name: 'Test User',
-      role: 'user'
-    }
-  }),
-  handlers: {
-    GET: vi.fn(),
-    POST: vi.fn()
-  },
-  signIn: vi.fn(),
-  signOut: vi.fn()
-}))
+  return {
+    auth: mockAuth,
+    handlers: {
+      GET: vi.fn(),
+      POST: vi.fn()
+    },
+    signIn: vi.fn(),
+    signOut: vi.fn(),
+    default: mockAuth // For default exports
+  };
+};
+
+// Create the admin auth mock
+const adminAuthMock = createAuthMock('admin');
+
+// Mock all possible import paths
+vi.mock('@/auth', () => adminAuthMock);
+vi.mock('../../auth', () => adminAuthMock);
+vi.mock('../../../../../auth', () => adminAuthMock);
+vi.mock('../../../../auth', () => adminAuthMock);
+vi.mock('../../../auth', () => adminAuthMock);
+
+// Also mock the auth.ts file directly
+vi.mock('/mnt/persist/workspace/mcplookup.org/auth.ts', () => adminAuthMock);
+vi.mock('/mnt/persist/workspace/mcplookup.org/auth', () => adminAuthMock);
+
+// Export the auth mock creator for test-specific configuration
+export { createAuthMock };
 
 // Mock auth.ts at root level with comprehensive NextAuth mocking
 vi.mock('../../auth.ts', () => ({

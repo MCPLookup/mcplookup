@@ -3,13 +3,13 @@
 
 import { vi } from 'vitest';
 
-// Mock auth function for testing
+// Mock auth function for testing with admin permissions
 export const auth = vi.fn().mockResolvedValue({
   user: {
-    id: 'test-user-123',
-    email: 'test@example.com',
-    name: 'Test User',
-    role: 'user'
+    id: 'test-admin-123',
+    email: 'admin@example.com',
+    name: 'Test Admin',
+    role: 'admin'
   }
 });
 
