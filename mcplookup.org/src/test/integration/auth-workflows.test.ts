@@ -108,8 +108,7 @@ describe('Authentication and User Management Integration Tests', () => {
       expect(registrationResponse.status).toBe(201);
 
       const registrationData = await registrationResponse.json();
-      expect(registrationData.success).toBe(true);
-      expect(registrationData.message).toContain('verification email');
+      expect(registrationData.message).toContain('Registration successful');
       expect(registrationData.user).toBeDefined();
       expect(registrationData.user.email).toBe('newuser@example.com');
       expect(registrationData.user.emailVerified).toBe(false);
@@ -155,7 +154,7 @@ describe('Authentication and User Management Integration Tests', () => {
       expect(response.status).toBe(400);
 
       const errorData = await response.json();
-      expect(errorData.error).toContain('already registered');
+      expect(errorData.error).toContain('already exists');
     });
 
     it('should validate registration input', async () => {

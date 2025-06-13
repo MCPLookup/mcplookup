@@ -16,6 +16,73 @@ vi.mock('@/auth', () => ({
   })
 }))
 
+// Mock auth.ts at root level with comprehensive NextAuth mocking
+vi.mock('../../auth.ts', () => ({
+  auth: vi.fn().mockResolvedValue({
+    user: {
+      id: 'test-user-123',
+      email: 'test@example.com',
+      name: 'Test User',
+      role: 'user'
+    }
+  }),
+  handlers: {
+    GET: vi.fn(),
+    POST: vi.fn()
+  },
+  signIn: vi.fn(),
+  signOut: vi.fn(),
+  config: {}
+}))
+
+// Mock NextAuth module
+vi.mock('next-auth', () => ({
+  default: vi.fn().mockImplementation(() => ({
+    handlers: { GET: vi.fn(), POST: vi.fn() },
+    auth: vi.fn().mockResolvedValue({
+      user: {
+        id: 'test-user-123',
+        email: 'test@example.com',
+        name: 'Test User',
+        role: 'user'
+      }
+    }),
+    signIn: vi.fn(),
+    signOut: vi.fn()
+  }))
+}))
+
+// Mock auth storage adapter
+vi.mock('@/lib/auth/storage-adapter', () => ({
+  createUserWithPassword: vi.fn().mockResolvedValue({
+    id: 'test-user-123',
+    email: 'test@example.com',
+    name: 'Test User',
+    emailVerified: false
+  }),
+  createEmailVerificationToken: vi.fn().mockResolvedValue(true),
+  getUserByEmail: vi.fn().mockResolvedValue(null),
+  hashPassword: vi.fn().mockResolvedValue('hashed-password'),
+  generateSecureToken: vi.fn().mockReturnValue('secure-token-123'),
+  hashToken: vi.fn().mockResolvedValue('hashed-token'),
+  getEmailVerificationToken: vi.fn().mockResolvedValue({
+    id: 'token-id',
+    email: 'test@example.com',
+    hashedToken: 'hashed-token',
+    expiresAt: new Date(Date.now() + 60 * 60 * 1000)
+  }),
+  deleteEmailVerificationToken: vi.fn().mockResolvedValue(true),
+  updateUserPassword: vi.fn().mockResolvedValue(true),
+  verifyPassword: vi.fn().mockResolvedValue(true)
+}))
+
+// Mock email service
+vi.mock('@/lib/services/resend-email', () => ({
+  sendEmailVerification: vi.fn().mockResolvedValue({ success: true }),
+  sendWelcomeEmail: vi.fn().mockResolvedValue({ success: true }),
+  sendPasswordResetEmail: vi.fn().mockResolvedValue({ success: true })
+}))
+
 // Mock MCP adapter for tests
 vi.mock('@vercel/mcp-adapter', () => ({
   createMcpHandler: vi.fn().mockImplementation((callback) => {
