@@ -13,3 +13,6 @@ dist/
 # TypeScript build info
 *.tsbuildinfo
 tsconfig.tsbuildinfo
+
+# Core dumps
+core.*
