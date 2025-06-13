@@ -2,7 +2,7 @@
 // Comprehensive dashboard for security, analytics, and real-time monitoring
 
 import { Metadata } from 'next';
-import { getServerSession } from 'next-auth';
+import { auth } from '../../../../auth';
 import { authOptions } from '@/lib/auth/config';
 import { redirect } from 'next/navigation';
 import { AdvancedAdminDashboard } from '@/components/admin/advanced-admin-dashboard';
@@ -14,13 +14,13 @@ export const metadata: Metadata = {
 
 export default async function AdvancedAdminPage() {
   // Check authentication and admin permissions
-  const session = await getServerSession(authOptions);
+  const session = await auth();
   
   if (!session?.user) {
     redirect('/auth/signin?callbackUrl=/admin/advanced');
   }
 
-  if (session.user.role !== 'admin') {
+  if ((session.user as any).role !== 'admin') {
     redirect('/dashboard?error=insufficient_permissions');
   }
 
