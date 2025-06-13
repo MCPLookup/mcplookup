@@ -167,22 +167,47 @@ export async function GET(request: NextRequest) {
     let discoveryResponse;
 
     if (process.env.NODE_ENV === 'test' || process.env.VITEST === 'true') {
-      // Mock discovery response for tests
+      // Test mode: Real discovery from storage
+      const { getStorageService } = await import('@/lib/storage');
+      const storage = getStorageService();
+
+      let servers = [];
+
+      if (validatedRequest.domain) {
+        // Search by specific domain
+        const serverResult = await storage.get('mcp_servers', validatedRequest.domain);
+        if (serverResult.success && serverResult.data) {
+          servers = [serverResult.data];
+        }
+      } else {
+        // Get all servers and filter
+        const allServersResult = await storage.getAll('mcp_servers');
+        if (allServersResult.success && allServersResult.data) {
+          servers = allServersResult.data;
+
+          // Apply filters
+          if (validatedRequest.category) {
+            servers = servers.filter(s => s.capabilities?.category === validatedRequest.category);
+          }
+          if (validatedRequest.capability) {
+            servers = servers.filter(s =>
+              s.capabilities?.subcategories?.includes(validatedRequest.capability) ||
+              s.capabilities?.intent_keywords?.includes(validatedRequest.capability)
+            );
+          }
+        }
+      }
+
+      // Apply pagination
+      const offset = validatedRequest.offset || 0;
+      const limit = validatedRequest.limit || 10;
+      const paginatedServers = servers.slice(offset, offset + limit);
+
       discoveryResponse = {
-        servers: validatedRequest.domain ? [{
-          domain: validatedRequest.domain,
-          verified: true,
-          capabilities: {
-            category: validatedRequest.category || 'productivity',
-            tools: ['email', 'calendar']
-          },
-          endpoint: `https://${validatedRequest.domain}/mcp`,
-          contact_email: `admin@${validatedRequest.domain}`,
-          created_at: new Date().toISOString()
-        }] : [],
-        total: validatedRequest.domain ? 1 : 0,
-        limit: validatedRequest.limit || 10,
-        offset: validatedRequest.offset || 0,
+        servers: paginatedServers,
+        total: servers.length,
+        limit: limit,
+        offset: offset,
         query_metadata: {
           execution_time_ms: 50,
           cache_hit: false

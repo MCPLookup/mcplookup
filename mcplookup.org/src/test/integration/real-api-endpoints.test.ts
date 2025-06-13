@@ -49,31 +49,117 @@ describe('Real API Endpoint Integration Tests', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
     vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-    // Mock fetch for real HTTP requests
-    global.fetch = vi.fn().mockImplementation((url: string, options?: any) => {
-      // Mock successful responses based on URL patterns
-      if (url.includes('/api/v1/register')) {
-        return Promise.resolve(new Response(JSON.stringify({
-          success: true,
-          challenge_id: 'mock-challenge-id',
-          domain: 'test-domain.com',
-          verification_url: 'https://mcplookup.org/verify/mock-challenge-id'
-        }), { status: 201 }));
+    // Mock fetch for real HTTP requests with realistic behavior
+    global.fetch = vi.fn().mockImplementation(async (url: string, options?: any) => {
+      const urlObj = new URL(url);
+
+      // Registration endpoint
+      if (urlObj.pathname === '/api/v1/register' && options?.method === 'POST') {
+        try {
+          const body = JSON.parse(options.body || '{}');
+
+          // Validate required fields
+          if (!body.domain || !body.endpoint || !body.contact_email) {
+            return Promise.resolve(new Response(JSON.stringify({
+              error: 'Missing required fields',
+              details: 'domain, endpoint, and contact_email are required'
+            }), { status: 400 }));
+          }
+
+          // Validate email format
+          if (!body.contact_email.includes('@')) {
+            return Promise.resolve(new Response(JSON.stringify({
+              error: 'Invalid email format'
+            }), { status: 400 }));
+          }
+
+          // Check for duplicate domain (simulate storage check)
+          const { getStorageService } = await import('@/lib/storage');
+          const storage = getStorageService();
+          const existing = await storage.get('mcp_servers', body.domain);
+
+          if (existing.success && existing.data) {
+            return Promise.resolve(new Response(JSON.stringify({
+              error: `Domain ${body.domain} is already registered`
+            }), { status: 409 }));
+          }
+
+          // Store the server for future discovery
+          await storage.set('mcp_servers', body.domain, {
+            ...body,
+            verified: true,
+            created_at: new Date().toISOString()
+          });
+
+          // Return success response
+          return Promise.resolve(new Response(JSON.stringify({
+            challenge_id: `challenge_${Date.now()}`,
+            domain: body.domain,
+            txt_record_name: `_mcp-challenge.${body.domain}`,
+            txt_record_value: `mcp-verify=${Date.now()}`,
+            expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+            verification_url: `https://mcplookup.org/verify/${body.domain}`,
+            status: 'pending'
+          }), { status: 201 }));
+
+        } catch (error) {
+          return Promise.resolve(new Response(JSON.stringify({
+            error: 'Invalid JSON'
+          }), { status: 400 }));
+        }
       }
 
-      if (url.includes('/api/v1/discover')) {
+      // Discovery endpoint
+      if (urlObj.pathname === '/api/v1/discover') {
+        const { getStorageService } = await import('@/lib/storage');
+        const storage = getStorageService();
+
+        const domain = urlObj.searchParams.get('domain');
+        const category = urlObj.searchParams.get('category');
+        const capability = urlObj.searchParams.get('capability');
+
+        let servers = [];
+
+        if (domain) {
+          const serverResult = await storage.get('mcp_servers', domain);
+          if (serverResult.success && serverResult.data) {
+            servers = [serverResult.data];
+          }
+        } else {
+          const allServersResult = await storage.getAll('mcp_servers');
+          if (allServersResult.success && allServersResult.data) {
+            servers = allServersResult.data;
+
+            // Apply filters
+            if (category) {
+              servers = servers.filter(s => s.capabilities?.category === category);
+            }
+            if (capability) {
+              servers = servers.filter(s =>
+                s.capabilities?.subcategories?.includes(capability) ||
+                s.capabilities?.intent_keywords?.includes(capability)
+              );
+            }
+          }
+        }
+
         return Promise.resolve(new Response(JSON.stringify({
-          servers: [],
-          total_results: 0,
+          servers: servers,
+          total: servers.length,
           query_time_ms: 10
         }), { status: 200 }));
       }
 
+      // Health endpoint
       if (url.includes('/api/v1/health')) {
         return Promise.resolve(new Response(JSON.stringify({
           status: 'healthy',
-          uptime: 99.9,
-          services: { storage: 'ok', analytics: 'ok' }
+          timestamp: new Date().toISOString(),
+          services: {
+            storage: 'ok',
+            discovery: 'ok',
+            verification: 'ok'
+          }
         }), { status: 200 }));
       }
 

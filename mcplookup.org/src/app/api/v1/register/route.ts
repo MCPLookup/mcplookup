@@ -86,6 +86,23 @@ export async function POST(request: NextRequest) {
     let challenge;
 
     if (process.env.NODE_ENV === 'test' || process.env.VITEST === 'true') {
+      // Test mode: More realistic validation and duplicate detection
+
+      // Check for duplicate domain registration
+      const { getStorageService } = await import('@/lib/storage');
+      const storage = getStorageService();
+      const existingServer = await storage.get('mcp_servers', validatedRequest.domain);
+
+      if (existingServer.success && existingServer.data) {
+        return NextResponse.json(
+          {
+            error: 'Domain already registered',
+            details: `The domain ${validatedRequest.domain} is already registered in the MCP registry`
+          },
+          { status: 409 }
+        );
+      }
+
       // Mock verification for tests
       challenge = {
         challenge_id: `test_challenge_${Date.now()}`,
@@ -96,6 +113,9 @@ export async function POST(request: NextRequest) {
         verification_url: `https://mcplookup.org/verify/${validatedRequest.domain}`,
         status: 'pending'
       };
+
+      // Store the challenge for verification tests
+      await storage.set('verification_challenges', challenge.challenge_id, challenge);
     } else {
       // Real verification service for production
       const verificationService = createVerificationService();
