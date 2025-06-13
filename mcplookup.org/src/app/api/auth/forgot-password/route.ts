@@ -64,7 +64,10 @@ export async function POST(request: NextRequest) {
     if (!emailResult.success) {
       console.warn('Failed to send password reset email:', emailResult.error)
       return NextResponse.json(
-        { error: 'Failed to send password reset email. Please try again.' },
+        {
+          success: false,
+          error: 'Failed to send password reset email. Please try again.'
+        },
         { status: 500 }
       )
     }
@@ -79,7 +82,8 @@ export async function POST(request: NextRequest) {
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { 
+        {
+          success: false,
           error: 'Validation failed',
           details: error.errors.map(e => e.message)
         },

@@ -50,8 +50,16 @@ function validatePassword(password: string) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    
+    let body;
+    try {
+      body = await request.json();
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Invalid JSON format' },
+        { status: 400 }
+      );
+    }
+
     // Validate input
     const validatedData = registerSchema.parse(body)
     
@@ -119,14 +127,22 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Registration error:', error)
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { 
+        {
           error: 'Validation failed',
           details: error.errors.map(e => e.message)
         },
         { status: 400 }
+      )
+    }
+
+    // Handle duplicate user error
+    if (error instanceof Error && error.message.includes('already exists')) {
+      return NextResponse.json(
+        { error: 'A user with this email already exists' },
+        { status: 409 }
       )
     }
 

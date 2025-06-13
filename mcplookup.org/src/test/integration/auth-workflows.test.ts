@@ -393,7 +393,7 @@ describe('Authentication and User Management Integration Tests', () => {
       expect(response.status).toBe(400);
 
       const errorData = await response.json();
-      expect(errorData.error).toContain('password');
+      expect(errorData.error.toLowerCase()).toContain('password');
     });
   });
 

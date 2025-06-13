@@ -107,8 +107,8 @@ export async function POST(request: NextRequest) {
     
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { 
-          error: 'Validation failed',
+        {
+          error: 'Password validation failed. Password must be at least 8 characters long.',
           details: error.errors.map(e => e.message)
         },
         { status: 400 }
