@@ -428,13 +428,15 @@ vi.mock('@/lib/services/analytics-service', () => {
   };
 })
 
-// Reset mocks between tests
+// Reset mocks between tests (but preserve implementations)
 beforeEach(() => {
+  // Only clear call history, don't reset implementations
   vi.clearAllMocks()
 })
 
 afterEach(() => {
-  vi.resetAllMocks()
+  // Don't reset implementations, just clear call history
+  vi.clearAllMocks()
 })
 
 // Global test utilities
