@@ -5,7 +5,9 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '@/auth': path.resolve(__dirname, './auth.ts')
+      '@/auth': path.resolve(__dirname, './auth.ts'),
+      // Add explicit mapping for auth module
+      'auth': path.resolve(__dirname, './auth.ts')
     }
   },
   test: {
