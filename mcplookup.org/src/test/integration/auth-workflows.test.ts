@@ -27,7 +27,9 @@ vi.mock('@/auth', () => ({
 vi.mock('@/lib/services/resend-email', () => ({
   sendEmailVerification: vi.fn().mockResolvedValue({ success: true }),
   sendWelcomeEmail: vi.fn().mockResolvedValue({ success: true }),
-  sendPasswordResetEmail: vi.fn().mockResolvedValue({ success: true })
+  sendPasswordResetEmail: vi.fn().mockImplementation((email, token) => {
+    return Promise.resolve({ success: true });
+  })
 }));
 
 // Create a simple in-memory store for test users
@@ -79,8 +81,12 @@ vi.mock('@/lib/auth/storage-adapter', () => ({
     return Promise.resolve(null);
   }),
   hashPassword: vi.fn().mockResolvedValue('hashed-password'),
-  generateSecureToken: vi.fn().mockReturnValue('secure-token-123'),
-  hashToken: vi.fn().mockResolvedValue('hashed-token'),
+  generateSecureToken: vi.fn().mockImplementation(() => {
+    return 'secure-token-123';
+  }),
+  hashToken: vi.fn().mockImplementation((token) => {
+    return Promise.resolve('hashed-token');
+  }),
   getEmailVerificationToken: vi.fn().mockResolvedValue({
     id: 'token-123',
     email: 'test@example.com',
@@ -89,7 +95,9 @@ vi.mock('@/lib/auth/storage-adapter', () => ({
   }),
   deleteEmailVerificationToken: vi.fn().mockResolvedValue(true),
   markEmailAsVerified: vi.fn().mockResolvedValue(true),
-  createPasswordResetToken: vi.fn().mockResolvedValue(true),
+  createPasswordResetToken: vi.fn().mockImplementation((email, hashedToken, expiresAt) => {
+    return Promise.resolve(true);
+  }),
   getPasswordResetToken: vi.fn().mockImplementation((email, token) => {
     if (email === 'existing@example.com' && token === 'secure-token-123') {
       return Promise.resolve({
@@ -324,9 +332,21 @@ describe('Authentication and User Management Integration Tests', () => {
       });
 
       const resetResponse = await forgotPasswordPOST(resetRequest);
+
+      // Debug: Check actual status and response
+      if (resetResponse.status !== 200) {
+        const errorData = await resetResponse.json();
+        console.log('Unexpected status:', resetResponse.status, 'Response:', errorData);
+      }
+
       expect(resetResponse.status).toBe(200);
 
       const resetData = await resetResponse.json();
+
+      // Debug: Check actual response data
+      console.log('All response fields:', Object.keys(resetData));
+      console.log('Full response:', resetData);
+
       expect(resetData.success).toBe(true);
       expect(resetData.message).toContain('reset email');
 

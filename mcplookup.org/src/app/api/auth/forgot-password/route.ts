@@ -40,18 +40,12 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Check if user has a password (credentials account)
-    if (!user.password) {
-      return NextResponse.json({
-        message: 'This account uses social login. Please sign in with your social provider.'
-      })
-    }
-
-    // Create password reset token
+    // Generate password reset token
     const token = generateSecureToken()
     const hashedToken = await hashToken(token)
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000) // 1 hour
 
+    // Store password reset token
     await createPasswordResetToken(
       email,
       hashedToken,
