@@ -146,12 +146,57 @@ describe('Real API Endpoint Integration Tests', () => {
         return Promise.resolve(new Response(JSON.stringify({
           servers: servers,
           total: servers.length,
+          total_results: servers.length,
           query_time_ms: 10
+        }), { status: 200 }));
+      }
+
+      // Smart discovery endpoint
+      if (urlObj.pathname === '/api/discover/smart' && options?.method === 'POST') {
+        return Promise.resolve(new Response(JSON.stringify({
+          servers: [{
+            domain: 'productivity-server.com',
+            verified: true,
+            capabilities: {
+              category: 'productivity',
+              tools: ['file_management', 'automation']
+            }
+          }],
+          intent_analysis: {
+            confidence: 0.9,
+            detected_intent: 'file_management_automation',
+            keywords: ['files', 'automate', 'tasks']
+          },
+          recommendations: [
+            'Use productivity-server.com for file management',
+            'Consider automation tools for task management'
+          ]
         }), { status: 200 }));
       }
 
       // Health endpoint
       if (url.includes('/api/v1/health')) {
+        // Server-specific health checks
+        if (url.includes('/api/v1/health/servers')) {
+          return Promise.resolve(new Response(JSON.stringify({
+            health_checks: [
+              {
+                domain: 'productivity-server.com',
+                status: 'healthy',
+                response_time: 150,
+                uptime: 99.9
+              },
+              {
+                domain: 'communication-server.com',
+                status: 'healthy',
+                response_time: 200,
+                uptime: 99.8
+              }
+            ]
+          }), { status: 200 }));
+        }
+
+        // General health endpoint
         return Promise.resolve(new Response(JSON.stringify({
           status: 'healthy',
           timestamp: new Date().toISOString(),
