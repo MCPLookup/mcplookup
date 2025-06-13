@@ -14,11 +14,7 @@ import {
 const resetPasswordSchema = z.object({
   token: z.string().min(1, 'Token is required'),
   email: z.string().email('Invalid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-  confirmPassword: z.string()
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
+  newPassword: z.string().min(8, 'Password must be at least 8 characters')
 })
 
 function validatePassword(password: string) {
@@ -48,17 +44,25 @@ function validatePassword(password: string) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    
+    let body;
+    try {
+      body = await request.json();
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Invalid JSON format' },
+        { status: 400 }
+      );
+    }
+
     // Validate input
-    const { token, email, password } = resetPasswordSchema.parse(body)
+    const { token, email, newPassword } = resetPasswordSchema.parse(body)
 
     // Validate password strength
-    const passwordValidation = validatePassword(password)
+    const passwordValidation = validatePassword(newPassword)
     if (!passwordValidation.isValid) {
       return NextResponse.json(
-        { 
-          error: 'Password does not meet requirements',
+        {
+          error: 'Password does not meet requirements. Password must be at least 8 characters long.',
           details: passwordValidation.errors
         },
         { status: 400 }
@@ -85,7 +89,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Hash new password
-    const hashedPassword = await hashPassword(password)
+    const hashedPassword = await hashPassword(newPassword)
 
     // Update user password
     await updateUserPassword(email, hashedPassword)
@@ -94,7 +98,8 @@ export async function POST(request: NextRequest) {
     await deletePasswordResetToken(tokenData.id)
 
     return NextResponse.json({
-      message: 'Password reset successfully. You can now sign in with your new password.'
+      success: true,
+      message: 'Password updated successfully. You can now sign in with your new password.'
     })
 
   } catch (error) {

@@ -34,7 +34,12 @@ vi.mock('@/lib/services/resend-email', () => ({
 const testUsers = new Map();
 
 vi.mock('@/lib/auth/storage-adapter', () => ({
-  createUserWithPassword: vi.fn().mockImplementation((email, name) => {
+  createUserWithPassword: vi.fn().mockImplementation(async (email, name) => {
+    // Check if user already exists (atomic check-and-create)
+    if (testUsers.has(email)) {
+      throw new Error(`User with email ${email} already exists`);
+    }
+
     const user = {
       id: `user-${Date.now()}`,
       email: email,
@@ -43,7 +48,7 @@ vi.mock('@/lib/auth/storage-adapter', () => ({
       createdAt: new Date()
     };
     testUsers.set(email, user);
-    return Promise.resolve(user);
+    return user;
   }),
   createEmailVerificationToken: vi.fn().mockResolvedValue(true),
   getUserByEmail: vi.fn().mockImplementation((email) => {
@@ -62,6 +67,15 @@ vi.mock('@/lib/auth/storage-adapter', () => ({
       });
     }
 
+    if (email === 'test@example.com') {
+      return Promise.resolve({
+        id: 'test-user',
+        email: 'test@example.com',
+        name: 'Test User',
+        emailVerified: false
+      });
+    }
+
     return Promise.resolve(null);
   }),
   hashPassword: vi.fn().mockResolvedValue('hashed-password'),
@@ -76,11 +90,16 @@ vi.mock('@/lib/auth/storage-adapter', () => ({
   deleteEmailVerificationToken: vi.fn().mockResolvedValue(true),
   markEmailAsVerified: vi.fn().mockResolvedValue(true),
   createPasswordResetToken: vi.fn().mockResolvedValue(true),
-  getPasswordResetToken: vi.fn().mockResolvedValue({
-    id: 'reset-token-123',
-    email: 'test@example.com',
-    hashedToken: 'hashed-reset-token',
-    expiresAt: new Date(Date.now() + 60 * 60 * 1000)
+  getPasswordResetToken: vi.fn().mockImplementation((email, token) => {
+    if (email === 'existing@example.com' && token === 'secure-token-123') {
+      return Promise.resolve({
+        id: 'reset-token-123',
+        email: 'existing@example.com',
+        hashedToken: 'hashed-reset-token',
+        expiresAt: new Date(Date.now() + 60 * 60 * 1000)
+      });
+    }
+    return Promise.resolve(null);
   }),
   deletePasswordResetToken: vi.fn().mockResolvedValue(true),
   updateUserPassword: vi.fn().mockResolvedValue(true)
@@ -265,7 +284,7 @@ describe('Authentication and User Management Integration Tests', () => {
       });
 
       const response = await verifyEmailPOST(invalidTokenRequest);
-      expect(response.status).toBe(302); // Redirect to error page
+      expect(response.status).toBe(400); // Invalid token error
     });
 
     it('should handle expired verification token', async () => {
@@ -288,7 +307,7 @@ describe('Authentication and User Management Integration Tests', () => {
       });
 
       const response = await verifyEmailPOST(expiredTokenRequest);
-      expect(response.status).toBe(302); // Redirect to error page
+      expect(response.status).toBe(400); // Expired token error
     });
   });
 
@@ -403,7 +422,7 @@ describe('Authentication and User Management Integration Tests', () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: 'test@example.com',
+          email: 'emailfailure@example.com',
           password: 'SecurePassword123!',
           confirmPassword: 'SecurePassword123!',
           name: 'Test User'

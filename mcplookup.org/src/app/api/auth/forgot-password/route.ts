@@ -9,7 +9,7 @@ import {
   generateSecureToken,
   hashToken
 } from '@/lib/auth/storage-adapter'
-import { sendPasswordReset } from '@/lib/services/resend-email'
+import { sendPasswordResetEmail } from '@/lib/services/resend-email'
 
 const forgotPasswordSchema = z.object({
   email: z.string().email('Invalid email address')
@@ -17,8 +17,16 @@ const forgotPasswordSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    
+    let body;
+    try {
+      body = await request.json();
+    } catch (error) {
+      return NextResponse.json(
+        { error: 'Invalid JSON format' },
+        { status: 400 }
+      );
+    }
+
     // Validate input
     const { email } = forgotPasswordSchema.parse(body)
 
@@ -27,7 +35,8 @@ export async function POST(request: NextRequest) {
     if (!user) {
       // Don't reveal whether the email exists or not for security
       return NextResponse.json({
-        message: 'If an account with that email exists, we have sent a password reset link.'
+        success: true,
+        message: 'If an account with that email exists, we have sent a password reset email.'
       })
     }
 
@@ -50,7 +59,7 @@ export async function POST(request: NextRequest) {
     )
 
     // Send password reset email
-    const emailResult = await sendPasswordReset(email, token)
+    const emailResult = await sendPasswordResetEmail(email, token)
 
     if (!emailResult.success) {
       console.warn('Failed to send password reset email:', emailResult.error)
@@ -61,7 +70,8 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({
-      message: 'If an account with that email exists, we have sent a password reset link.'
+      success: true,
+      message: 'If an account with that email exists, we have sent a password reset email.'
     })
 
   } catch (error) {
@@ -78,7 +88,10 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: 'Password reset request failed. Please try again.' },
+      {
+        success: false,
+        error: 'Password reset request failed. Please try again.'
+      },
       { status: 500 }
     )
   }

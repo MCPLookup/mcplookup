@@ -33,6 +33,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Check if token is expired
+    if (new Date() > new Date(tokenData.expiresAt)) {
+      return NextResponse.json(
+        { error: 'Verification token has expired' },
+        { status: 400 }
+      )
+    }
+
     // Check if user exists
     const user = await getUserByEmail(email)
     if (!user) {
