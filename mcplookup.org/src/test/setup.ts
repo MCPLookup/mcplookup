@@ -4,34 +4,10 @@ import '@testing-library/jest-dom'
 // Mock environment variables for testing
 vi.stubEnv('NODE_ENV', 'test')
 
-// Global auth mock for all tests - comprehensive NextAuth v5 mocking
-// Create a flexible auth mock that can be configured per test
-const createAuthMock = (userRole = 'admin') => {
-  const mockAuth = vi.fn().mockResolvedValue({
-    user: {
-      id: `test-${userRole}-123`,
-      email: `${userRole}@example.com`,
-      name: `Test ${userRole.charAt(0).toUpperCase() + userRole.slice(1)}`,
-      role: userRole
-    }
-  });
+// Global auth mock for all tests - using dedicated mock module
+import { adminAuthMock, createAuthMock } from '@/test/mocks/auth';
 
-  return {
-    auth: mockAuth,
-    handlers: {
-      GET: vi.fn(),
-      POST: vi.fn()
-    },
-    signIn: vi.fn(),
-    signOut: vi.fn(),
-    default: mockAuth // For default exports
-  };
-};
-
-// Create the admin auth mock
-const adminAuthMock = createAuthMock('admin');
-
-// Mock all possible import paths
+// Mock all possible import paths to use our dedicated auth mock
 vi.mock('@/auth', () => adminAuthMock);
 vi.mock('../../auth', () => adminAuthMock);
 vi.mock('../../../../../auth', () => adminAuthMock);

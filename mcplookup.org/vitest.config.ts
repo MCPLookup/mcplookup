@@ -9,7 +9,7 @@ export default defineConfig({
       name: 'auth-resolver',
       resolveId(id) {
         if (id === '@/auth') {
-          return path.resolve(__dirname, './auth.ts')
+          return path.resolve(__dirname, './src/test/mocks/auth.ts')
         }
       }
     }
@@ -17,7 +17,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '@/auth': path.resolve(__dirname, './auth.ts')
+      '@/auth': path.resolve(__dirname, './src/test/mocks/auth.ts')
     }
   },
   test: {
