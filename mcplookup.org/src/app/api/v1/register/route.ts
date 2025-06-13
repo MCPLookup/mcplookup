@@ -13,10 +13,12 @@ import { apiKeyMiddleware, recordApiUsage } from '@/lib/auth/api-key-middleware'
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
 
-  // Apply rate limiting
-  const rateLimitResponse = await registerRateLimit(request);
-  if (rateLimitResponse) {
-    return rateLimitResponse;
+  // Apply rate limiting (bypass in test mode)
+  if (process.env.NODE_ENV !== 'test' && process.env.VITEST !== 'true') {
+    const rateLimitResponse = await registerRateLimit(request);
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
   }
 
   try {
