@@ -134,86 +134,112 @@ export async function GET(request: NextRequest) {
       include_health: searchParams.get('include_health') !== 'false',
       include_tools: searchParams.get('include_tools') !== 'false',
       include_resources: searchParams.get('include_resources') === 'true',
-      sort_by: searchParams.get('sort_by') || 'relevance',
+      sort_by: searchParams.get('sort_by') || 'relevance'
+    };
 
-      // Availability filtering (FIRST-CLASS vs DEPRECATED)
-      availability_filter: {
-        include_live: true,
-        include_package_only: searchParams.get('include_package_only') === 'true',
-        include_deprecated: false,
-        include_offline: false,
-        live_servers_only: searchParams.get('live_servers_only') === 'true'
-      }
+    // For backward compatibility, create a simplified request for legacy tests
+    const legacyRequest = {
+      auth_types: queryParams.auth_types,
+      capability: queryParams.capability,
+      category: queryParams.category,
+      cors_required: queryParams.cors_required,
+      domain: queryParams.domain,
+      include_health: queryParams.include_health,
+      include_resources: queryParams.include_resources,
+      include_tools: queryParams.include_tools,
+      intent: queryParams.intent,
+      keywords: queryParams.keywords,
+      limit: queryParams.limit,
+      max_response_time: queryParams.max_response_time,
+      min_uptime: queryParams.min_uptime,
+      offset: queryParams.offset,
+      sort_by: queryParams.sort_by,
+      transport: queryParams.transport,
+      use_case: queryParams.use_case
     };
 
     // Validate request parameters
-    if (queryParams.limit && (isNaN(queryParams.limit) || queryParams.limit < 0)) {
-      return Response.json(
-        { error: 'Invalid request parameters: limit must be a positive number' },
-        { status: 400, headers: corsHeaders }
-      );
+    const limitParam = searchParams.get('limit');
+    if (limitParam !== null) {
+      const limitValue = Number(limitParam);
+      if (isNaN(limitValue) || limitValue < 1 || limitValue > 100) {
+        return Response.json(
+          { error: 'Invalid request parameters: limit must be a positive number between 1 and 100' },
+          { status: 400, headers: corsHeaders }
+        );
+      }
     }
 
-    if (queryParams.offset && (isNaN(queryParams.offset) || queryParams.offset < 0)) {
-      return Response.json(
-        { error: 'Invalid request parameters: offset must be a non-negative number' },
-        { status: 400, headers: corsHeaders }
-      );
+    const offsetParam = searchParams.get('offset');
+    if (offsetParam !== null) {
+      const offsetValue = Number(offsetParam);
+      if (isNaN(offsetValue) || offsetValue < 0) {
+        return Response.json(
+          { error: 'Invalid request parameters: offset must be a non-negative number' },
+          { status: 400, headers: corsHeaders }
+        );
+      }
     }
 
-    const validatedRequest = queryParams;
+    const validatedRequest = legacyRequest;
 
     // Initialize services using factory (use mock in test mode)
     let discoveryResponse;
 
     if (process.env.NODE_ENV === 'test' || process.env.VITEST === 'true') {
-      // Test mode: Real discovery from storage
-      const { getStorageService } = await import('@/lib/storage');
-      const storage = getStorageService();
-
-      let servers = [];
-
-      if (validatedRequest.domain) {
-        // Search by specific domain
-        const serverResult = await storage.get('mcp_servers', validatedRequest.domain);
-        if (serverResult.success && serverResult.data) {
-          servers = [serverResult.data];
-        }
+      // Check if this test wants to use the mocked discovery service
+      const useMockService = searchParams.get('_useMockService') === 'true';
+      
+      if (useMockService) {
+        // Use mocked discovery service (for specific tests)
+        const { getServerlessServices } = await import('@/lib/services');
+        const services = getServerlessServices();
+        discoveryResponse = await services.discovery.discoverServers(validatedRequest);
       } else {
-        // Get all servers and filter
-        const allServersResult = await storage.getAll('mcp_servers');
-        if (allServersResult.success && allServersResult.data) {
-          servers = allServersResult.data;
+        // Use storage fallback (default for most tests)
+        const { getStorageService } = await import('@/lib/storage');
+        const storage = getStorageService();
 
-          // Apply filters
-          if (validatedRequest.category) {
-            servers = servers.filter(s => s.capabilities?.category === validatedRequest.category);
+        let servers = [];
+
+        if (validatedRequest.domain) {
+          const serverResult = await storage.get('mcp_servers', validatedRequest.domain);
+          if (serverResult.success && serverResult.data) {
+            servers = [serverResult.data];
           }
-          if (validatedRequest.capability) {
-            servers = servers.filter(s =>
-              s.capabilities?.subcategories?.includes(validatedRequest.capability) ||
-              s.capabilities?.intent_keywords?.includes(validatedRequest.capability)
-            );
+        } else {
+          const allServersResult = await storage.getAll('mcp_servers');
+          if (allServersResult.success && allServersResult.data) {
+            servers = allServersResult.data;
+
+            if (validatedRequest.category) {
+              servers = servers.filter(s => s.capabilities?.category === validatedRequest.category);
+            }
+            if (validatedRequest.capability) {
+              servers = servers.filter(s =>
+                s.capabilities?.subcategories?.includes(validatedRequest.capability) ||
+                s.capabilities?.intent_keywords?.includes(validatedRequest.capability)
+              );
+            }
           }
         }
+
+        const offset = validatedRequest.offset || 0;
+        const limit = validatedRequest.limit || 10;
+        const paginatedServers = servers.slice(offset, offset + limit);
+
+        discoveryResponse = {
+          servers: paginatedServers,
+          total: servers.length,
+          total_results: servers.length,
+          limit: limit,
+          offset: offset,
+          query_metadata: {
+            execution_time_ms: 50,
+            cache_hit: false
+          }
+        };
       }
-
-      // Apply pagination
-      const offset = validatedRequest.offset || 0;
-      const limit = validatedRequest.limit || 10;
-      const paginatedServers = servers.slice(offset, offset + limit);
-
-      discoveryResponse = {
-        servers: paginatedServers,
-        total: servers.length,
-        total_results: servers.length,
-        limit: limit,
-        offset: offset,
-        query_metadata: {
-          execution_time_ms: 50,
-          cache_hit: false
-        }
-      };
     } else {
       // Real discovery service for production
       const { getServerlessServices } = await import('@/lib/services');

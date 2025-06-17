@@ -382,4 +382,183 @@ export class DomainTransferSecurityService {
     // Send expiry warning notification
     console.log(`Sending expiry warning for ${registration.domain}: ${daysUntilExpiry} days remaining`);
   }
+
+  /**
+   * Verify a domain challenge manually (admin operation)
+   */
+  async verifyDomainChallenge(challengeId: string, domain: string): Promise<{
+    domain: string;
+    verified: boolean;
+    challenge_id: string;
+    verification_method: string;
+    verified_at?: string;
+    error?: string;
+  }> {
+    try {
+      const challenge = await this.getChallenge(challengeId);
+      
+      if (!challenge) {
+        return {
+          domain,
+          verified: false,
+          challenge_id: challengeId,
+          verification_method: 'dns',
+          error: 'Challenge not found'
+        };
+      }
+
+      if (challenge.domain !== domain) {
+        return {
+          domain,
+          verified: false,
+          challenge_id: challengeId,
+          verification_method: 'dns',
+          error: 'Domain mismatch'
+        };
+      }
+
+      if (challenge.status !== 'pending') {
+        return {
+          domain,
+          verified: challenge.status === 'verified',
+          challenge_id: challengeId,
+          verification_method: 'dns',
+          verified_at: challenge.status === 'verified' ? challenge.created_at.toISOString() : undefined
+        };
+      }
+
+      // Verify the DNS record
+      const verified = await this.verifyDNSRecord(challenge.txt_record_name, challenge.txt_record_value);
+      
+      // Update challenge status
+      challenge.status = verified ? 'verified' : 'failed';
+      await this.updateChallenge(challenge);
+
+      return {
+        domain,
+        verified,
+        challenge_id: challengeId,
+        verification_method: 'dns',
+        verified_at: verified ? new Date().toISOString() : undefined,
+        error: verified ? undefined : 'DNS verification failed'
+      };
+    } catch (error) {
+      console.error('Error verifying domain challenge:', error);
+      return {
+        domain,
+        verified: false,
+        challenge_id: challengeId,
+        verification_method: 'dns',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      };
+    }
+  }
+
+  /**
+   * Run a comprehensive verification sweep (admin operation)
+   */
+  async runVerificationSweep(): Promise<{
+    scanned_domains: number;
+    verification_failures: number;
+    expired_registrations: number;
+    actions_taken: number;
+    sweep_id: string;
+    started_at: string;
+    completed_at: string;
+  }> {
+    const sweepId = randomUUID();
+    const startedAt = new Date().toISOString();
+    
+    let scannedDomains = 0;
+    let verificationFailures = 0;
+    let expiredRegistrations = 0;
+    let actionsTaken = 0;
+
+    try {
+      console.log(`Starting verification sweep: ${sweepId}`);
+      
+      // Get all registered servers
+      const servers = await this.registryService.getAllServers();
+      
+      for (const server of servers) {
+        scannedDomains++;
+        
+        try {
+          // Check verification status
+          const status = await this.getVerificationStatus(server.domain);
+          
+          if (!status) {
+            verificationFailures++;
+            console.log(`No verification status for domain: ${server.domain}`);
+            continue;
+          }
+
+          // Check if expired
+          if (status.verification_status === 'expired' || status.days_until_expiry < 0) {
+            expiredRegistrations++;
+            actionsTaken++;
+            
+            console.log(`Found expired registration: ${server.domain}`);
+            await this.markRegistrationExpired(server.domain);
+          }
+          
+          // Check if requires reverification
+          else if (status.requires_reverification) {
+            verificationFailures++;
+            actionsTaken++;
+            
+            console.log(`Requires reverification: ${server.domain}`);
+            // Could initiate automatic reverification here
+          }
+          
+          // Check pending challenges
+          if (status.pending_challenges.length > 0) {
+            console.log(`Found ${status.pending_challenges.length} pending challenges for: ${server.domain}`);
+            
+            // Process expired challenges
+            for (const challenge of status.pending_challenges) {
+              if (new Date() > challenge.expires_at) {
+                challenge.status = 'expired';
+                await this.updateChallenge(challenge);
+                actionsTaken++;
+              }
+            }
+          }
+        } catch (error) {
+          verificationFailures++;
+          console.error(`Error processing domain ${server.domain}:`, error);
+        }
+      }
+
+      const completedAt = new Date().toISOString();
+      
+      console.log(`Verification sweep completed: ${sweepId}`, {
+        scannedDomains,
+        verificationFailures, 
+        expiredRegistrations,
+        actionsTaken
+      });
+
+      return {
+        scanned_domains: scannedDomains,
+        verification_failures: verificationFailures,
+        expired_registrations: expiredRegistrations,
+        actions_taken: actionsTaken,
+        sweep_id: sweepId,
+        started_at: startedAt,
+        completed_at: completedAt
+      };
+    } catch (error) {
+      console.error('Error during verification sweep:', error);
+      return {
+        scanned_domains: scannedDomains,
+        verification_failures: verificationFailures,
+        expired_registrations: expiredRegistrations,
+        actions_taken: actionsTaken,
+        sweep_id: sweepId,
+        started_at: startedAt,
+        completed_at: new Date().toISOString()
+      };
+    }
+  }
 }

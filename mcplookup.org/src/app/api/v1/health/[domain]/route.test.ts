@@ -7,6 +7,20 @@ vi.mock('@/lib/services', () => ({
   getServerlessServices: vi.fn()
 }));
 
+// Mock security url validation to prevent real network calls
+vi.mock('@/lib/security/url-validation', () => ({
+  safeFetch: vi.fn()
+}));
+
+// Mock rate limiting
+vi.mock('@/lib/security/rate-limiting', () => ({
+  healthRateLimit: vi.fn().mockResolvedValue(null),
+  addRateLimitHeaders: vi.fn()
+}));
+
+// Mock global fetch to prevent any real network calls
+global.fetch = vi.fn();
+
 // Mock services
 const mockRegistryService = {
   getServersByDomain: vi.fn(),
@@ -52,6 +66,23 @@ describe('/api/v1/health/[domain]', () => {
       discovery: {} as any,
       verification: {} as any
     });
+
+    // Mock safeFetch to prevent real network calls
+    const urlValidation = await import('@/lib/security/url-validation');
+    vi.mocked(urlValidation.safeFetch).mockResolvedValue({
+      ok: true,
+      json: vi.fn().mockResolvedValue({
+        result: {
+          tools: ['mock-tool']
+        }
+      })
+    } as any);
+
+    // Mock global fetch as fallback
+    vi.mocked(global.fetch).mockResolvedValue({
+      ok: true,
+      json: vi.fn().mockResolvedValue({ success: true })
+    } as any);
   });
 
   afterEach(() => {

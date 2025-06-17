@@ -115,20 +115,26 @@ export async function POST(request: NextRequest) {
 
       // Mock verification for tests
       const challengeId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const challengeToken = `mcp_verify_${Date.now()}`;
       challenge = {
         challenge_id: challengeId,
         domain: validatedRequest.domain,
-        challenge_token: `mcp_verify_${Date.now()}`,
+        challenge_token: challengeToken,
         verification_type: 'dns-txt' as const,
         txt_record_name: `_mcp-verify.${validatedRequest.domain}`,
-        txt_record_value: `mcp-verify=${Date.now()}`,
+        txt_record_value: `mcp-verify=${challengeToken}`,
         expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        instructions: `Add a TXT record to your DNS: ${validatedRequest.domain} with value mcp-verify=${Date.now()}`,
-        status: 'pending' as const
+        instructions: `Add a TXT record to your DNS: _mcp-verify.${validatedRequest.domain} with value mcp-verify=${challengeToken}`,
+        status: 'pending' as const,
+        // Additional fields required by VerificationChallengeData
+        endpoint: validatedRequest.endpoint,
+        contact_email: validatedRequest.contact_email,
+        token: challengeToken,
+        created_at: new Date().toISOString()
       };
 
       // Store the challenge for verification tests
-      await storage.set('verification_challenges', challenge.challenge_id, challenge);
+      await storage.set('verification', challenge.challenge_id, challenge);
     } else {
       // Real verification service for production
       const verificationService = createVerificationService();

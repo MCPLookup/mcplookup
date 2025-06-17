@@ -114,6 +114,16 @@ describe('End-to-End Workflow Integration Tests', () => {
         params: Promise.resolve({ id: challengeId }) 
       });
       
+      // Debug: Print error details if status is not 200
+      if (statusResponse.status !== 200) {
+        const errorData = await statusResponse.json();
+        console.error('Status check failed:', {
+          status: statusResponse.status,
+          challengeId,
+          error: errorData
+        });
+      }
+      
       expect(statusResponse.status).toBe(200);
       const statusData = await statusResponse.json();
       expect(statusData.challenge_id).toBe(challengeId);

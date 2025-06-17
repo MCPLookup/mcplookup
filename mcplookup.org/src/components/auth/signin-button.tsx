@@ -57,11 +57,11 @@ export function SignInButton({
   const getProviderLabel = () => {
     switch (provider) {
       case 'github':
-        return 'Continue with GitHub'
+        return 'Sign in with GitHub'
       case 'google':
-        return 'Continue with Google'
+        return 'Sign in with Google'
       case 'email':
-        return 'Continue with Email'
+        return 'Sign in with Email'
       default:
         return 'Sign In'
     }

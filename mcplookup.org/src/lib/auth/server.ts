@@ -1,7 +1,7 @@
 // Server-side authentication utilities for Auth.js v5
 // Use these in server components, API routes, and server actions
 
-import { auth } from "../../../auth"
+import { auth } from "../../auth"
 import { redirect } from "next/navigation"
 import { NextRequest, NextResponse } from "next/server"
 import type { Session } from "next-auth"
@@ -302,4 +302,4 @@ export function createAuthMiddleware(options?: {
 }
 
 // Re-export the auth function for middleware use
-export { auth } from "../../../auth"
+export { auth } from "../../auth"

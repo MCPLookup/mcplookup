@@ -2,6 +2,8 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { SignInButton } from './signin-button';
 import { ChakraProvider, defaultSystem } from '@chakra-ui/react';
+import { signIn, useSession } from 'next-auth/react';
+import React from 'react';
 
 // Mock next-auth
 vi.mock('next-auth/react', () => ({
@@ -23,9 +25,8 @@ describe('SignInButton', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     
-    const { signIn, useSession } = require('next-auth/react');
-    signIn.mockImplementation(mockSignIn);
-    useSession.mockImplementation(mockUseSession);
+    vi.mocked(signIn).mockImplementation(mockSignIn);
+    vi.mocked(useSession).mockImplementation(mockUseSession);
 
     // Default session state
     mockUseSession.mockReturnValue({
@@ -180,7 +181,7 @@ describe('SignInButton', () => {
 
       await waitFor(() => {
         expect(mockSignIn).toHaveBeenCalledWith('github', {
-          callbackUrl: undefined
+          callbackUrl: '/'
         });
       });
     });
@@ -199,7 +200,7 @@ describe('SignInButton', () => {
 
       await waitFor(() => {
         expect(mockSignIn).toHaveBeenCalledWith('google', {
-          callbackUrl: undefined
+          callbackUrl: '/'
         });
       });
     });
@@ -237,7 +238,7 @@ describe('SignInButton', () => {
 
       await waitFor(() => {
         expect(mockSignIn).toHaveBeenCalledWith(undefined, {
-          callbackUrl: undefined
+          callbackUrl: '/'
         });
       });
     });

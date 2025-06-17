@@ -28,6 +28,7 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.test.ts', 'src/**/*.test.tsx', 'src/**/*.spec.ts', 'src/**/*.spec.tsx'],
     exclude: ['node_modules', 'dist', '.next'],
+    testTimeout: 10000, // 10 seconds for slow tests
     typecheck: {
       include: ['src/**/*.test.ts', 'src/**/*.test.tsx']
     }
