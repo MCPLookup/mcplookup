@@ -8,6 +8,12 @@ import { config } from 'dotenv';
 // Load environment variables from .env.local
 config({ path: '.env.local' });
 
+// Skip the test entirely when no API keys are configured
+if (!process.env.TOGETHER_API_KEY && !process.env.OPENROUTER_API_KEY && !process.env.GEMINI_API_KEY) {
+  console.warn('⚠️  No AI API keys configured. Skipping enhanced analysis test.');
+  process.exit(0);
+}
+
 async function testEnhancedAnalysisWithProgress() {
   console.log('🧪 Testing Enhanced MCP Repository Analysis WITH PROGRESS REPORTING');
   console.log('=================================================================');

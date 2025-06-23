@@ -12,19 +12,27 @@ import { GeminiSchemaSanitizer } from './gemini-schema-sanitizer.js';
 import { GeminiJSONParser } from './gemini-json-parser.js';
 
 export class AIProvider {
-  private togetherParser: TogetherJSONParser;
-  private openrouterParser: OpenRouterJSONParser;
+  private togetherParser?: TogetherJSONParser;
+  private openrouterParser?: OpenRouterJSONParser;
   private geminiParser?: GeminiJSONParser;
+
   constructor() {
-    this.togetherParser = new TogetherJSONParser();
-    this.openrouterParser = new OpenRouterJSONParser();
-    
+    // Only create Together.ai parser if API key is available
+    if (process.env.TOGETHER_API_KEY) {
+      this.togetherParser = new TogetherJSONParser();
+    }
+
+    // Only create OpenRouter parser if API key is available
+    if (process.env.OPENROUTER_API_KEY) {
+      this.openrouterParser = new OpenRouterJSONParser();
+    }
+
     // Only initialize Gemini if API key is available
     try {
-      this.geminiParser = new GeminiJSONParser();
-      
+      if (process.env.GEMINI_API_KEY) {
+        this.geminiParser = new GeminiJSONParser();
+      }
     } catch (error) {
-      
       this.geminiParser = undefined;
     }
   }
@@ -60,28 +68,29 @@ export class AIProvider {
         console.warn('⚠️', errorMsg);
         errors.push(errorMsg);
       }
-    }// Try OpenRouter second
-    try {
-      
-      const result = await this.openrouterParser.parseWithSchema(prompt, schema, schemaName);
-      
-      return result;
-    } catch (error: any) {
-      const errorMsg = `OpenRouter failed: ${error.message}`;
-      console.warn('⚠️', errorMsg);
-      errors.push(errorMsg);
+    }
+
+    // Try OpenRouter second when available
+    if (this.openrouterParser) {
+      try {
+        const result = await this.openrouterParser.parseWithSchema(prompt, schema, schemaName);
+        return result;
+      } catch (error: any) {
+        const errorMsg = `OpenRouter failed: ${error.message}`;
+        console.warn('⚠️', errorMsg);
+        errors.push(errorMsg);
+      }
     }
 
     // Try Together.ai last (fallback)
-    try {
-      
-      const result = await this.togetherParser.parseWithSchema(prompt, schema, schemaName);
-      
-      return result;
-    } catch (error: any) {
-      const errorMsg = `Together.ai failed: ${error.message}`;
-      
-      errors.push(errorMsg);
+    if (this.togetherParser) {
+      try {
+        const result = await this.togetherParser.parseWithSchema(prompt, schema, schemaName);
+        return result;
+      } catch (error: any) {
+        const errorMsg = `Together.ai failed: ${error.message}`;
+        errors.push(errorMsg);
+      }
     }
 
     // All providers failed
@@ -108,29 +117,30 @@ export class AIProvider {
         console.warn('⚠️', errorMsg);
         errors.push(errorMsg);
       }
-    }// Try OpenRouter second (using basic schema for JSON)
-    try {
-      
-      const basicSchema = { type: "object" }; // Simple schema for any JSON
-      const result = await this.openrouterParser.parseWithSchema(prompt, basicSchema, "json-response");
-      
-      return result;
-    } catch (error: any) {
-      const errorMsg = `OpenRouter failed: ${error.message}`;
-      console.warn('⚠️', errorMsg);
-      errors.push(errorMsg);
+    }
+
+    // Try OpenRouter second (using basic schema for JSON) when available
+    if (this.openrouterParser) {
+      try {
+        const basicSchema = { type: "object" }; // Simple schema for any JSON
+        const result = await this.openrouterParser.parseWithSchema(prompt, basicSchema, "json-response");
+        return result;
+      } catch (error: any) {
+        const errorMsg = `OpenRouter failed: ${error.message}`;
+        console.warn('⚠️', errorMsg);
+        errors.push(errorMsg);
+      }
     }
 
     // Try Together.ai last (fallback)
-    try {
-      
-      const result = await this.togetherParser.parseJSON(prompt);
-      
-      return result;
-    } catch (error: any) {
-      const errorMsg = `Together.ai failed: ${error.message}`;
-      
-      errors.push(errorMsg);
+    if (this.togetherParser) {
+      try {
+        const result = await this.togetherParser.parseJSON(prompt);
+        return result;
+      } catch (error: any) {
+        const errorMsg = `Together.ai failed: ${error.message}`;
+        errors.push(errorMsg);
+      }
     }
 
     // All providers failed
