@@ -182,10 +182,8 @@ export class GitHubClient {
     
     // Generate parsing metadata
     const parsingMetadata: ParsingMetadata = {
-      parsedAt: new Date().toISOString(),
-      sourceFiles: files.map(f => f.path),
-      methodCount: aiAnalysis.installationMethods.length,
-      extractionSuccessful: aiAnalysis.installationMethods.length > 0
+      analyzedAt: new Date().toISOString(),
+      parserVersion: 'local-test'
     };
     
     // Compute additional fields with MCP classification info
@@ -228,34 +226,22 @@ export class GitHubClient {
       name: data.name,
       fullName: data.full_name,
       description: data.description,
-      url: data.html_url,
       htmlUrl: data.html_url,
       cloneUrl: data.clone_url,
       stars: data.stargazers_count,
       forks: data.forks_count,
-      watchers: data.watchers_count,
-      size: data.size,
       language: data.language,
       topics: data.topics || [],
       license: data.license ? {
-        key: data.license.key,
         name: data.license.name,
         spdxId: data.license.spdx_id
       } : undefined,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
       pushedAt: data.pushed_at,
-      defaultBranch: data.default_branch,
-      archived: data.archived,
-      fork: data.fork,
-      private: data.private,
-      hasIssues: data.has_issues,
-      hasWiki: data.has_wiki,
-      hasPages: data.has_pages,
       owner: {
         login: data.owner.login,
-        type: data.owner.type,
-        avatarUrl: data.owner.avatar_url
+        type: data.owner.type
       }
     };
   }
@@ -289,9 +275,7 @@ export class GitHubClient {
         const content = await this.downloadFile(repoName, filePath);
         files.push({
           path: filePath,
-          content: content,
-          size: content.length,
-          lastModified: new Date().toISOString()
+          content: content
         });
       } catch (error) {
         // File doesn't exist, continue to next file
@@ -349,9 +333,7 @@ export class GitHubClient {
         const content = await this.downloadFile(repoName, filePath);
         files.push({
           path: filePath,
-          content: content,
-          size: content.length,
-          lastModified: new Date().toISOString()
+          content: content
         });
         downloadedFiles.push(filePath);
         
@@ -438,7 +420,7 @@ export class GitHubClient {
     const promptContext: PromptContext = {
       repoName,
       repoDescription: repoData.description || undefined,
-      repoTopics: repoData.topics,
+      repoTopics: repoData.topics || [],
       primaryLanguage: repoData.language || undefined,
       combinedContent
     };
@@ -556,7 +538,7 @@ export class GitHubClient {
     const promptContext: PromptContext = {
       repoName,
       repoDescription: repoData.description || undefined,
-      repoTopics: repoData.topics,
+      repoTopics: repoData.topics || [],
       primaryLanguage: repoData.language || undefined,
       combinedContent
     };
@@ -830,8 +812,9 @@ export class GitHubClient {
    * Compute additional repository metrics
    */
   private computeRepositoryMetrics(repo: GitHubRepository, methods: any[]) {
-    const isMcpServer = repo.description?.toLowerCase().includes('mcp') || 
-                       repo.topics.some(topic => topic.includes('mcp')) ||
+    const topics = repo.topics || [];
+    const isMcpServer = repo.description?.toLowerCase().includes('mcp') ||
+                       topics.some(topic => topic.includes('mcp')) ||
                        methods.some(method => method.description.toLowerCase().includes('mcp'));
     
     const platforms = new Set<string>();
@@ -851,7 +834,7 @@ export class GitHubClient {
     if (hasComplexSetup || methods.length > 8) difficulty = 'hard';
     else if (methods.length > 4) difficulty = 'medium';
     
-    const tags = [...repo.topics, ...(isMcpServer ? ['mcp-server'] : [])];
+    const tags = [...topics, ...(isMcpServer ? ['mcp-server'] : [])];
     
     // Enhanced fields for comprehensive analysis
     const hasClaudeDesktopConfig = methods.some(m => 
@@ -1205,10 +1188,8 @@ export class GitHubClient {
     };
 
     const parsingMetadata: ParsingMetadata = {
-      parsedAt: new Date().toISOString(),
-      sourceFiles: files.map(f => f.path),
-      methodCount: aiAnalysis.installationMethods.length,
-      extractionSuccessful: aiAnalysis.installationMethods.length > 0
+      analyzedAt: new Date().toISOString(),
+      parserVersion: 'local-test'
     };
 
     // Final step

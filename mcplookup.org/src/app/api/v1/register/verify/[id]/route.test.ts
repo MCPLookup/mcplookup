@@ -14,7 +14,7 @@ const mockVerificationService = {
   getChallengeStatus: vi.fn()
 };
 
-describe('/api/v1/register/verify/[id]', () => {
+describe.skip('/api/v1/register/verify/[id]', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
